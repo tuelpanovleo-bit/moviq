@@ -13,6 +13,7 @@ const { loadEnv } = require("./lib/env");
 loadEnv();
 
 const { Router, sendJson } = require("./lib/http");
+const { serveStatic } = require("./lib/static");
 
 const authRoutes = require("./routes/auth");
 const diaryRoutes = require("./routes/diary");
@@ -28,6 +29,38 @@ profileRoutes.register(router);
 
 router.get("/api/health", async (req, res) => {
     sendJson(res, 200, { status: "ok" });
+});
+
+// Temporäre Diagnose-Route, um zu sehen, welche Dateien auf dem Server
+// wirklich vorhanden sind (hilft beim Einrichten des Deployments; kann
+// später wieder entfernt werden).
+router.get("/api/debug", async (req, res) => {
+
+    const fs = require("fs");
+    const path = require("path");
+
+    const backendDir = __dirname;
+    let rootListing;
+    let publicListing;
+
+    try {
+        rootListing = fs.readdirSync(backendDir);
+    } catch (e) {
+        rootListing = "FEHLER: " + e.message;
+    }
+
+    try {
+        publicListing = fs.readdirSync(path.join(backendDir, "public"));
+    } catch (e) {
+        publicListing = "FEHLER: " + e.message;
+    }
+
+    sendJson(res, 200, {
+        backendDir,
+        rootListing,
+        publicListing
+    });
+
 });
 
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
@@ -49,11 +82,21 @@ const server = http.createServer(async (req, res) => {
 
     const pathname = req.url.split("?")[0];
 
-    const handled = await router.handle(req, res, pathname);
+    if (pathname.startsWith("/api/")) {
 
-    if (!handled) {
-        sendJson(res, 404, { error: "Nicht gefunden." });
+        const handled = await router.handle(req, res, pathname);
+
+        if (!handled) {
+            sendJson(res, 404, { error: "Nicht gefunden." });
+        }
+
+        return;
+
     }
+
+    if (serveStatic(req, res, pathname)) return;
+
+    sendJson(res, 404, { error: "Nicht gefunden." });
 
 });
 
