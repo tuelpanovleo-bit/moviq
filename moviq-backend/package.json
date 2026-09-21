@@ -1,0 +1,15 @@
+{
+  "name": "moviq-backend",
+  "version": "0.1.0",
+  "description": "MOVIQ Backend-Grundgerüst: Accounts, Tagebuch & Gesundheitsschirm über eine echte API + Datenbank statt localStorage. Läuft ohne externe Abhängigkeiten (nur Node eingebaute Module).",
+  "main": "server.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {}
+}
