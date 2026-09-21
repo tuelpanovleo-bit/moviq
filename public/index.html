@@ -1,0 +1,7185 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOVIQ</title>
+
+<style>
+
+/* =====================================================
+   FARBEN UND SCHRIFTEN
+   Beige als Grundton, Grün als Markenfarbe.
+   Schriften kommen vom System (keine externen Fonts,
+   dadurch keine Datenübertragung an Dritte).
+===================================================== */
+
+:root {
+    --sand-50:  #FCF9F2;
+    --sand-100: #F5EEDF;
+    --sand-200: #EADFC9;
+    --sand-300: #D8C9AB;
+
+    --green-100: #E3EDE1;
+    --green-200: #CADCCB;
+    --green-500: #4F8F73;
+    --green-600: #3E7C63;
+    --green-700: #2E6A53;
+    --green-800: #265846;
+    --green-900: #1D4538;
+
+    --ink:   #25302A;
+    --muted: #5B645B;
+
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino,
+             "Book Antiqua", Georgia, serif;
+    --sans:  system-ui, -apple-system, "Segoe UI", Roboto,
+             "Helvetica Neue", Arial, sans-serif;
+
+    --shadow: 0 10px 30px rgba(70, 55, 25, 0.08);
+}
+
+
+/* =====================================================
+   GRUNDLAYOUT
+===================================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: var(--sans);
+    line-height: 1.5;
+    background: var(--sand-100);
+    color: var(--ink);
+}
+
+
+/* =====================================================
+   DYNAMISCHER HINTERGRUND
+   Ein paar ruhig treibende Icons (Laufen, Sport, Arbeitsplatz,
+   Bewegung) im Seitenhintergrund, damit im Hintergrund leise
+   etwas passiert, ohne von den Inhalten abzulenken. Sitzt fest
+   hinter allen Inhalten, ist rein dekorativ und reagiert auf
+   "reduzierte Bewegung".
+===================================================== */
+
+.bg-scene {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.bg-icon {
+    position: absolute;
+    fill: none;
+    stroke: var(--green-700);
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.09;
+}
+
+.bg-icon.is-sand {
+    stroke: var(--sand-300);
+    opacity: 0.2;
+}
+
+.bg-icon-1  { top: 8%;  left: 4%;  width: 92px; animation: bg-drift-a 20s ease-in-out infinite; }
+.bg-icon-2  { top: 62%; left: 88%; width: 70px; animation: bg-drift-b 24s ease-in-out infinite; animation-delay: -6s; }
+.bg-icon-3  { top: 20%; left: 90%; width: 56px; animation: bg-drift-c 18s ease-in-out infinite; animation-delay: -12s; }
+.bg-icon-4  { top: 78%; left: 8%;  width: 64px; animation: bg-drift-a 26s ease-in-out infinite; animation-delay: -14s; }
+.bg-icon-5  { top: 42%; left: 2%;  width: 48px; animation: bg-drift-b 22s ease-in-out infinite; animation-delay: -4s; }
+.bg-icon-6  { top: 4%;  left: 60%; width: 60px; animation: bg-drift-c 21s ease-in-out infinite; animation-delay: -9s; }
+.bg-icon-7  { top: 34%; left: 50%; width: 50px; animation: bg-drift-d 25s ease-in-out infinite; animation-delay: -3s; }
+.bg-icon-8  { top: 88%; left: 42%; width: 58px; animation: bg-drift-e 19s ease-in-out infinite; animation-delay: -11s; }
+.bg-icon-9  { top: 14%; left: 30%; width: 44px; animation: bg-drift-d 23s ease-in-out infinite; animation-delay: -16s; }
+.bg-icon-10 { top: 54%; left: 16%; width: 66px; animation: bg-drift-e 27s ease-in-out infinite; animation-delay: -7s; }
+.bg-icon-11 { top: 68%; left: 68%; width: 52px; animation: bg-drift-a 17s ease-in-out infinite; animation-delay: -21s; }
+.bg-icon-12 { top: 2%;  left: 80%; width: 46px; animation: bg-drift-b 20s ease-in-out infinite; animation-delay: -15s; }
+
+@keyframes bg-drift-a {
+    0%   { transform: translate(0, 0) rotate(0deg); }
+    50%  { transform: translate(38px, -46px) rotate(9deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@keyframes bg-drift-b {
+    0%   { transform: translate(0, 0) rotate(0deg); }
+    50%  { transform: translate(-42px, 34px) rotate(-8deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@keyframes bg-drift-c {
+    0%   { transform: translate(0, 0) rotate(0deg); }
+    50%  { transform: translate(26px, 42px) rotate(7deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@keyframes bg-drift-d {
+    0%   { transform: translate(0, 0) rotate(0deg); }
+    50%  { transform: translate(-34px, -28px) rotate(-10deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@keyframes bg-drift-e {
+    0%   { transform: translate(0, 0) rotate(0deg); }
+    50%  { transform: translate(30px, 24px) rotate(-6deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bg-icon {
+        animation: none !important;
+    }
+}
+
+@media (max-width: 700px) {
+    .bg-scene { opacity: 0.7; }
+}
+
+button {
+    font: inherit;
+    border: none;
+    cursor: pointer;
+    color: inherit;
+}
+
+:focus-visible {
+    outline: 3px solid var(--green-500);
+    outline-offset: 3px;
+}
+
+h1, h2 {
+    font-family: var(--serif);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--green-900);
+    margin-top: 0;
+}
+
+h1 { font-size: 32px; line-height: 1.15; }
+h2 { font-size: 28px; line-height: 1.2; }
+
+.subtitle {
+    color: var(--muted);
+    margin: 0 0 28px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: var(--sand-50);
+    padding: 14px 32px;
+    border-bottom: 1px solid var(--sand-200);
+}
+
+.logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: var(--green-900);
+    text-decoration: none;
+}
+
+.logo-mark {
+    flex-shrink: 0;
+    display: block;
+}
+
+.container {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 44px 24px 72px;
+}
+
+
+/* Sanfter Wechsel zwischen den Bildschirmen */
+
+@media (prefers-reduced-motion: no-preference) {
+
+    .screen.enter {
+        animation: screen-in 0.28s ease-out;
+    }
+
+    @keyframes screen-in {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+    }
+}
+
+
+/* =====================================================
+   BUTTONS
+===================================================== */
+
+.btn {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 14px 24px;
+    font-weight: 600;
+    transition: background 0.15s;
+}
+
+.btn-primary {
+    background: var(--green-700);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--green-900);
+}
+
+.btn-soft {
+    background: var(--sand-200);
+    color: var(--ink);
+}
+
+.btn-soft:hover {
+    background: var(--sand-300);
+}
+
+.btn-large {
+    padding: 18px 30px;
+    font-size: 18px;
+    box-shadow: 0 8px 20px rgba(29, 69, 56, 0.22);
+}
+
+.link-btn {
+    background: none;
+    padding: 6px 2px;
+    margin-bottom: 22px;
+    font-weight: 600;
+    color: var(--green-700);
+}
+
+.link-btn:hover {
+    text-decoration: underline;
+}
+
+
+/* =====================================================
+   STARTSEITE: HERO
+===================================================== */
+
+.hero {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 56px;
+    align-items: start;
+    margin-bottom: 72px;
+}
+
+.hero-solo {
+    grid-template-columns: 1fr;
+    margin-bottom: 48px;
+}
+
+.hero-centered {
+    text-align: center;
+}
+
+.hero-centered .hero-text {
+    max-width: 620px;
+    margin: 0 auto;
+}
+
+.hero-text {
+    padding-top: 8px;
+}
+
+.hero h1 {
+    font-size: clamp(38px, 5.4vw, 62px);
+    line-height: 1.04;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+    text-wrap: balance;
+}
+
+.hero-wordmark {
+    font-family: var(--sans);
+    font-size: clamp(48px, 9vw, 88px);
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    color: var(--green-900);
+    line-height: 1;
+    margin-bottom: 14px;
+    perspective: 400px;
+}
+
+/* Jeder Buchstabe von "MOVIQ" bekommt eine eigene kleine
+   Einflug-Animation, die beim Laden bzw. Neuaufrufen der
+   Seite einmal abläuft. */
+
+.hero-wordmark .letter {
+    display: inline-block;
+    opacity: 0;
+    animation-duration: 0.75s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    animation-fill-mode: forwards;
+}
+
+.hero-wordmark .letter-m {
+    animation-name: letter-slide-in;
+    animation-delay: 0.05s;
+}
+
+.hero-wordmark .letter-o {
+    animation-name: letter-roll-in;
+    animation-delay: 0.22s;
+}
+
+/* Kleiner Gag: Sobald das V gelandet ist, "pumpt" es dreimal
+   auf, bevor alles ruhig als normale Schrift stehen bleibt. */
+
+.hero-wordmark .letter-v {
+    animation:
+        letter-drop-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.4s forwards,
+        letter-v-pump 0.7s ease-in-out 1.15s 3 both;
+}
+
+@keyframes letter-v-pump {
+    0%   { transform: scale(1); }
+    30%  { transform: scale(1.18); }
+    55%  { transform: scale(0.94); }
+    75%  { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+
+.hero-wordmark .letter-i {
+    animation-name: letter-unfold;
+    animation-delay: 0.58s;
+    transform-origin: bottom center;
+}
+
+.hero-wordmark .letter-q {
+    animation-name: letter-roll-in-reverse;
+    animation-delay: 0.74s;
+}
+
+@keyframes letter-slide-in {
+    from { opacity: 0; transform: translateX(-46px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes letter-roll-in {
+    from { opacity: 0; transform: translateX(-44px) rotate(-320deg); }
+    to   { opacity: 1; transform: translateX(0) rotate(0deg); }
+}
+
+@keyframes letter-drop-in {
+    0%   { opacity: 0; transform: translateY(-70px); }
+    70%  { opacity: 1; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes letter-unfold {
+    from { opacity: 0; transform: rotateX(-100deg); }
+    to   { opacity: 1; transform: rotateX(0deg); }
+}
+
+@keyframes letter-roll-in-reverse {
+    from { opacity: 0; transform: translateX(44px) rotate(320deg); }
+    to   { opacity: 1; transform: translateX(0) rotate(0deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-wordmark .letter {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}
+
+.hero-tagline {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: clamp(17px, 2vw, 21px);
+    color: var(--muted);
+    margin: 0;
+}
+
+.lead {
+    font-size: 20px;
+    color: var(--muted);
+    max-width: 30em;
+    margin: 0 0 32px;
+}
+
+.cta-note {
+    margin: 16px 0 0;
+    font-size: 15px;
+    color: var(--muted);
+}
+
+
+/* =====================================================
+   KÖRPERGRAFIK
+===================================================== */
+
+.figure-wrap {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 22px 20px;
+    background: var(--sand-50);
+    border: 1px solid var(--sand-200);
+    border-radius: 32px;
+    overflow: hidden;
+}
+
+/* Grüner Kreis hinter der Figur */
+
+.figure-wrap.with-halo::before {
+    content: "";
+    position: absolute;
+    left: 6%;
+    top: 17%;
+    width: 88%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--green-100);
+}
+
+.figure-wrap > * {
+    position: relative;
+}
+
+.view-toggle {
+    display: inline-flex;
+    gap: 2px;
+    padding: 4px;
+    margin-bottom: 14px;
+    background: var(--sand-200);
+    border-radius: 999px;
+}
+
+.view-btn {
+    padding: 9px 20px;
+    border-radius: 999px;
+    background: transparent;
+    font-size: 15px;
+}
+
+.view-btn:hover {
+    background: var(--sand-300);
+}
+
+.view-btn.active {
+    background: var(--green-700);
+    color: white;
+}
+
+.figure-svgs {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.body-svg {
+    display: block;
+    width: 100%;
+    max-width: 250px;
+    height: auto;
+}
+
+.analysis .body-svg {
+    max-width: 320px;
+}
+
+.silhouette {
+    fill: #E6D9BF;
+    stroke: #B3A17F;
+    stroke-width: 1.5;
+}
+
+.click-zone {
+    fill: transparent;
+    stroke: transparent;
+    stroke-width: 2;
+    cursor: pointer;
+    outline: none;
+}
+
+.click-zone:hover,
+.click-zone:focus-visible {
+    fill: rgba(46, 106, 83, 0.34);
+    stroke: var(--green-700);
+}
+
+.face-eye {
+    fill: #8B7654;
+}
+
+.face-mouth {
+    fill: none;
+    stroke: #8B7654;
+    stroke-width: 3;
+    stroke-linecap: round;
+}
+
+.figure-caption {
+    min-height: 1.6em;
+    margin: 12px 0 0;
+    font-weight: 600;
+    color: var(--green-900);
+    text-align: center;
+}
+
+.hint {
+    margin: 6px 0 0;
+    font-size: 14px;
+    color: var(--muted);
+    text-align: center;
+}
+
+
+/* =====================================================
+   STARTSEITE: KACHELN
+===================================================== */
+
+.section-title {
+    font-size: 32px;
+    line-height: 1.2;
+    margin: 0 auto 24px;
+    max-width: 640px;
+    text-align: center;
+}
+
+.tile-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.tile {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+    padding: 28px;
+    text-align: left;
+    border: 1px solid transparent;
+    border-radius: 26px;
+    transition: box-shadow 0.15s, border-color 0.15s;
+    width: 100%;
+}
+
+.tile:hover {
+    box-shadow: 0 12px 30px rgba(70, 55, 25, 0.14);
+}
+
+.tile-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+}
+
+.tile-icon svg {
+    width: 26px;
+    height: 26px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.tile-title {
+    display: block;
+    font-family: var(--serif);
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.tile-text {
+    display: block;
+    margin-top: 4px;
+    line-height: 1.45;
+}
+
+/* =====================================================
+   FARBVERLAUF DER KACHELN
+   Reihenfolge bleibt fachlich fest (Beschwerdeanalyse,
+   Prävention, Rehabilitation, Performance, Gesundheitsschirm,
+   Tagebuch, Wusstest du schon, Neues, Shop). Die Farbe folgt
+   dabei einem sauberen, durchgehenden Verlauf von kräftigem
+   Grün über Beige bis Creme – unabhängig vom Login-Status,
+   damit der Verlauf immer gleich aussieht.
+===================================================== */
+
+.tile-dark .tile-icon {
+    background: rgba(255, 255, 255, 0.16);
+    color: white;
+}
+
+.tile-dark .tile-text {
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.tile-light .tile-icon {
+    background: rgba(29, 69, 56, 0.08);
+    color: var(--green-700);
+}
+
+.tile-light .tile-text {
+    color: var(--muted);
+}
+
+/* Helle Kacheln bekommen unabhängig von ihrer Füllfarbe immer einen
+   erkennbaren Rahmen und einen leichten Schatten, damit sie sich auch
+   dann vom Seitenhintergrund abheben, wenn ihre Verlauffarbe zufällig
+   nah am Hintergrund liegt (z.B. "Neues aus der Welt der Physiotherapie"). */
+.tile-light {
+    border-color: rgba(38, 88, 70, 0.18) !important;
+    box-shadow: 0 1px 2px rgba(70, 55, 25, 0.05), 0 6px 18px rgba(70, 55, 25, 0.07);
+}
+
+.tile-light:hover {
+    box-shadow: 0 1px 2px rgba(70, 55, 25, 0.06), 0 14px 30px rgba(70, 55, 25, 0.14);
+}
+
+/* Alle Bereiche sind nur mit Account nutzbar: gesperrte und
+   entsperrte Kachel-Variante behalten je Position exakt dieselbe
+   Verlauffarbe, damit der Farbverlauf unabhängig vom Login-Status
+   immer gleich aussieht. Nur das Schloss-Icon zeigt den Unterschied. */
+
+/* 1. Beschwerdeanalyse */
+
+.tile-analysis,
+.tile-analysis-locked {
+    background: var(--green-900);
+    border-color: var(--green-900);
+    color: white;
+}
+
+/* 2. Prävention */
+
+.tile-prev,
+.tile-prev-locked {
+    background: var(--green-800);
+    border-color: var(--green-800);
+    color: white;
+}
+
+/* 3. Rehabilitation */
+
+.tile-reha,
+.tile-reha-locked {
+    background: var(--green-700);
+    border-color: var(--green-700);
+    color: white;
+}
+
+/* 4. Performance */
+
+.tile-perf,
+.tile-perf-locked {
+    background: var(--green-600);
+    border-color: var(--green-600);
+    color: white;
+}
+
+/* 5. Gesundheitsschirm */
+
+.tile-wheel,
+.tile-wheel-locked {
+    background: var(--green-500);
+    border-color: var(--green-500);
+    color: white;
+}
+
+/* 6. Tagebuch (eingeloggt und nicht eingeloggt gleich eingefärbt) */
+
+.tile-diary,
+.tile-diary-locked {
+    background: var(--sand-300);
+    color: var(--green-900);
+}
+
+/* 7. Wusstest du schon...? */
+
+.tile-myths,
+.tile-myths-locked {
+    background: var(--sand-200);
+    color: var(--green-900);
+}
+
+/* 8. Neues aus der Welt der Physiotherapie */
+
+.tile-news,
+.tile-news-locked {
+    background: var(--sand-100);
+    color: var(--green-900);
+}
+
+/* 9. Shop (eingeloggt und nicht eingeloggt gleich eingefärbt) */
+
+.tile-shop,
+.tile-shop-locked {
+    background: var(--sand-50);
+    color: var(--green-900);
+}
+
+
+/* =====================================================
+   KARTEN (Analyse, Details, Ergebnis, Platzhalter)
+===================================================== */
+
+.card {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 34px;
+    background: #FFFDF8;
+    border: 1px solid var(--sand-200);
+    border-radius: 28px;
+    box-shadow: var(--shadow);
+}
+
+#diaryScreen.card {
+    max-width: 980px;
+}
+
+.analysis .figure-wrap {
+    border: none;
+    background: transparent;
+    padding: 0;
+    overflow: visible;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+    margin-top: 8px;
+}
+
+.detail-button {
+    padding: 20px;
+    background: var(--sand-100);
+    border: 1px solid var(--sand-200);
+    border-radius: 18px;
+    text-align: left;
+    font-weight: 600;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.detail-button:hover {
+    background: var(--green-100);
+    border-color: var(--green-500);
+}
+
+.detail-button.is-selected {
+    background: var(--green-100);
+    border-color: var(--green-700);
+    color: var(--green-900);
+}
+
+.question-progress {
+    margin: 0 0 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.result {
+    margin-top: 8px;
+    padding: 22px;
+    background: var(--green-100);
+    border-left: 5px solid var(--green-700);
+    border-radius: 16px;
+}
+
+.result p {
+    margin: 8px 0 0;
+    color: var(--muted);
+}
+
+
+/* =====================================================
+   BESCHWERDEANALYSE: MUSTER-EINSCHÄTZUNG
+   Keine echte KI, sondern ein gewichtetes Muster-System,
+   das aus der Antwortkombination eine zusammenhängende,
+   vorsichtig formulierte Einschätzung baut - ausdrücklich
+   keine Diagnose.
+===================================================== */
+
+.analysis-block {
+    margin-top: 8px;
+    padding: 24px;
+    background: var(--green-100);
+    border-left: 5px solid var(--green-700);
+    border-radius: 16px;
+}
+
+.analysis-tag {
+    display: inline-block;
+    padding: 3px 11px;
+    border-radius: 999px;
+    background: var(--green-700);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+.analysis-lead {
+    margin: 0;
+    color: var(--ink);
+    line-height: 1.6;
+    font-size: 16px;
+}
+
+.analysis-advice-title {
+    margin: 20px 0 6px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--green-700);
+}
+
+.analysis-advice {
+    margin: 0;
+    padding-left: 20px;
+    color: var(--ink);
+    line-height: 1.6;
+}
+
+.analysis-advice li {
+    margin-bottom: 6px;
+}
+
+.analysis-redflag {
+    margin: 0 0 20px;
+    padding: 16px 18px;
+    background: #FBEAEA;
+    border-left: 5px solid #B0402E;
+    border-radius: 14px;
+    color: #7A2A1D;
+    font-size: 14.5px;
+    line-height: 1.55;
+    font-weight: 600;
+}
+
+.analysis-details-title {
+    margin-top: 32px;
+    font-size: 18px;
+}
+
+.button-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 26px;
+}
+
+
+/* =====================================================
+   HEADER: LOGIN UND MENÜ
+===================================================== */
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-sm {
+    padding: 10px 18px;
+    font-size: 15px;
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--green-900);
+    border: 1px solid var(--sand-300);
+}
+
+.btn-ghost:hover {
+    background: var(--sand-200);
+}
+
+.menu-wrap {
+    position: relative;
+}
+
+.menu-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.menu-btn svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.menu-panel {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 10px);
+    z-index: 20;
+    min-width: 240px;
+    padding: 8px;
+    background: var(--sand-50);
+    border: 1px solid var(--sand-200);
+    border-radius: 18px;
+    box-shadow: 0 16px 40px rgba(70, 55, 25, 0.16);
+}
+
+.menu-item {
+    display: block;
+    width: 100%;
+    padding: 12px 14px;
+    background: transparent;
+    border-radius: 12px;
+    text-align: left;
+    font-size: 16px;
+    color: var(--ink);
+}
+
+.menu-item:hover {
+    background: var(--green-100);
+}
+
+.menu-divider {
+    height: 1px;
+    margin: 6px 8px;
+    background: var(--sand-200);
+}
+
+.mobile-only {
+    display: none;
+}
+
+
+/* =====================================================
+   FORMULARE (Login, Account erstellen)
+===================================================== */
+
+.auth-card {
+    max-width: 460px;
+}
+
+.field {
+    margin-bottom: 18px;
+}
+
+.field label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.field input,
+.field select,
+.field textarea {
+    width: 100%;
+    padding: 13px 14px;
+    font: inherit;
+    color: var(--ink);
+    background: white;
+    border: 1px solid var(--sand-300);
+    border-radius: 12px;
+}
+
+.field select {
+    appearance: auto;
+}
+
+.field textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+    outline: 3px solid var(--green-200);
+    border-color: var(--green-500);
+}
+
+.field-help {
+    margin: 6px 0 0;
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.check-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 20px;
+    font-size: 15px;
+}
+
+.check-row input {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    accent-color: var(--green-700);
+}
+
+.inline-link {
+    display: inline;
+    padding: 0;
+    background: none;
+    font: inherit;
+    font-weight: 600;
+    color: var(--green-700);
+    text-decoration: underline;
+}
+
+.auth-switch {
+    margin: 22px 0 0;
+    color: var(--muted);
+}
+
+.form-error {
+    min-height: 1.4em;
+    margin: 0 0 12px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #9B2C2C;
+}
+
+.form-note {
+    margin-top: 20px;
+    padding: 16px 18px;
+    background: var(--green-100);
+    border-left: 5px solid var(--green-700);
+    border-radius: 14px;
+    font-size: 15px;
+}
+
+.form-note .btn {
+    margin-top: 12px;
+}
+
+
+/* =====================================================
+   ARBEITSPROFIL (Fragebogen nach der Registrierung)
+===================================================== */
+
+.workload-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.workload-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    background: white;
+    border: 1px solid var(--sand-300);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.workload-option:hover {
+    border-color: var(--green-500);
+}
+
+.workload-option:has(input:checked) {
+    background: var(--green-100);
+    border-color: var(--green-700);
+}
+
+.workload-option input {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    accent-color: var(--green-700);
+}
+
+.workload-option-text strong {
+    display: block;
+    color: var(--green-900);
+    font-size: 15px;
+    margin-bottom: 2px;
+}
+
+.workload-option-text span {
+    font-size: 13.5px;
+    color: var(--muted);
+}
+
+.body-area-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.body-area-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    background: white;
+    border: 1px solid var(--sand-300);
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 14.5px;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.body-area-option:hover {
+    border-color: var(--green-500);
+}
+
+.body-area-option:has(input:checked) {
+    background: var(--green-100);
+    border-color: var(--green-700);
+}
+
+.body-area-option input {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    accent-color: var(--green-700);
+}
+
+.field-note {
+    margin: -10px 0 18px;
+    font-size: 13.5px;
+    color: var(--muted);
+}
+
+.profile-skip-row {
+    margin-top: 18px;
+    text-align: center;
+}
+
+@media (max-width: 560px) {
+    .body-area-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* =====================================================
+   BENUTZERPROFIL-KARTE (Startseite, eingeloggt)
+===================================================== */
+
+.profile-card {
+    max-width: 360px;
+    margin: 0 0 40px;
+    padding: 24px 26px;
+    background: #FFFDF8;
+    border: 1px solid var(--sand-200);
+    border-radius: 22px;
+    box-shadow: var(--shadow);
+}
+
+.profile-card-name {
+    margin: 0 0 2px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--green-900);
+}
+
+.profile-card-role {
+    margin: 0 0 16px;
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.profile-card-rows {
+    margin: 0 0 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.profile-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 14px;
+    font-size: 13.5px;
+}
+
+.profile-card-row dt {
+    color: var(--muted);
+    flex-shrink: 0;
+}
+
+.profile-card-row dd {
+    margin: 0;
+    color: var(--ink);
+    font-weight: 600;
+    text-align: right;
+}
+
+.profile-card-tags-label {
+    margin: 0 0 6px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--green-700);
+}
+
+.profile-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 16px;
+}
+
+.profile-card-tag {
+    background: var(--green-100);
+    color: var(--green-800);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 11px;
+    border-radius: 999px;
+}
+
+.profile-card-empty p {
+    margin: 0 0 16px;
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+    .profile-card {
+        max-width: none;
+    }
+}
+
+
+/* =====================================================
+   ACCOUNTBEREICH: TAGEBUCH
+===================================================== */
+
+.locked-card {
+    max-width: 560px;
+    text-align: left;
+}
+
+.locked-card .button-row {
+    margin-top: 24px;
+}
+
+.vas-field {
+    padding: 18px 20px;
+    background: var(--sand-100);
+    border-radius: 16px;
+}
+
+.vas-scale {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.vas-scale input[type="range"] {
+    flex: 1;
+    accent-color: var(--green-700);
+}
+
+.vas-value {
+    flex-shrink: 0;
+    min-width: 40px;
+    padding: 6px 12px;
+    background: var(--green-700);
+    color: white;
+    border-radius: 999px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.vas-endpoints {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.diary-history-title {
+    margin-top: 44px;
+    font-size: 22px;
+}
+
+.diary-empty {
+    color: var(--muted);
+}
+
+/* =====================================================
+   TAGEBUCH-VERLAUF
+   Die Tage liegen nebeneinander in einer horizontal
+   scrollbaren Reihe, damit man mehrere Tage auf einen
+   Blick vergleichen kann statt lange untereinander zu
+   scrollen.
+===================================================== */
+
+.diary-timeline {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    padding: 6px 6px 18px;
+    margin: 0 -6px;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+}
+
+.diary-timeline::-webkit-scrollbar {
+    height: 8px;
+}
+
+.diary-timeline::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.diary-timeline::-webkit-scrollbar-thumb {
+    background: var(--sand-300);
+    border-radius: 999px;
+}
+
+.diary-day-card {
+    position: relative;
+    flex: 0 0 250px;
+    scroll-snap-align: start;
+    background: #FFFDF8;
+    border: 1px solid var(--sand-200);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 1px 2px rgba(70, 55, 25, 0.05), 0 6px 16px rgba(70, 55, 25, 0.06);
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.diary-day-card:hover {
+    box-shadow: 0 12px 26px rgba(70, 55, 25, 0.13);
+    transform: translateY(-3px);
+}
+
+.diary-day-card.is-latest {
+    border-color: var(--green-500);
+    box-shadow: 0 1px 2px rgba(70, 55, 25, 0.05), 0 8px 20px rgba(79, 143, 115, 0.18);
+}
+
+.diary-day-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.diary-day-weekday {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+}
+
+.diary-day-date {
+    display: block;
+    margin-top: 2px;
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--green-900);
+    line-height: 1.25;
+}
+
+.diary-day-vas {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 800;
+    font-size: 14px;
+}
+
+.diary-day-label {
+    margin: 14px 0 3px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--green-700);
+}
+
+.diary-day-card p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink);
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.diary-day-delete {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(176, 64, 46, 0.09);
+    color: #B0402E;
+    opacity: 0.55;
+    transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.diary-day-delete svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.diary-day-delete:hover,
+.diary-day-delete:focus-visible {
+    opacity: 1;
+    background: rgba(176, 64, 46, 0.18);
+}
+
+/* =====================================================
+   ACCOUNTBEREICH: SHOP
+===================================================== */
+
+.shop-intro {
+    max-width: 60ch;
+}
+
+.shop-section {
+    margin-top: 40px;
+}
+
+.shop-section-title {
+    font-size: 22px;
+    margin-bottom: 4px;
+}
+
+.shop-section-text {
+    color: var(--muted);
+    margin: 0 0 20px;
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 14px;
+}
+
+.product-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    background: var(--sand-100);
+    border: 1px solid var(--sand-200);
+    border-radius: 16px;
+}
+
+.product-card.is-set {
+    background: var(--green-100);
+    border-color: var(--green-200);
+}
+
+.product-swatch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.color-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    flex-shrink: 0;
+}
+
+.product-name {
+    font-weight: 700;
+    color: var(--green-900);
+}
+
+.product-level {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.product-price {
+    margin-top: auto;
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--green-900);
+}
+
+.product-card .btn {
+    margin-top: 4px;
+    padding: 10px 16px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.dumbbell-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 10px;
+}
+
+.dumbbell-card {
+    padding: 12px 10px;
+    text-align: center;
+    background: var(--sand-100);
+    border: 1px solid var(--sand-200);
+    border-radius: 14px;
+}
+
+.dumbbell-kg {
+    font-weight: 700;
+    color: var(--green-900);
+}
+
+.dumbbell-price {
+    margin-top: 4px;
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.dumbbell-card button {
+    width: 100%;
+    margin-top: 8px;
+    padding: 7px 8px;
+    font-size: 13px;
+}
+
+.shop-note {
+    margin-top: 14px;
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.cart-note {
+    position: sticky;
+    bottom: 20px;
+    margin-top: 30px;
+}
+
+
+/* =====================================================
+   PERFORMANCE: GESUNDHEITSSCHIRM (Netzdiagramm)
+===================================================== */
+
+.wheel-card {
+    max-width: 900px;
+}
+
+.wheel-section {
+    margin-top: 36px;
+}
+
+.wheel-title {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.wheel-intro {
+    color: var(--muted);
+    max-width: 60ch;
+    margin: 0 0 28px;
+}
+
+.wheel-layout {
+    display: grid;
+    grid-template-columns: minmax(260px, 380px) 1fr;
+    gap: 36px;
+    align-items: start;
+}
+
+.wheel-chart-wrap {
+    display: flex;
+    justify-content: center;
+}
+
+.wheel-chart {
+    width: 100%;
+    max-width: 360px;
+    height: auto;
+    overflow: visible;
+}
+
+.wheel-grid {
+    fill: none;
+    stroke: var(--sand-300);
+    stroke-width: 1;
+}
+
+.wheel-axis {
+    stroke: var(--sand-300);
+    stroke-width: 1;
+}
+
+.wheel-area {
+    fill: var(--green-700);
+    fill-opacity: 0.14;
+    stroke: var(--green-700);
+    stroke-width: 2;
+    stroke-linejoin: round;
+    transition: d 0.2s ease;
+}
+
+.wheel-vertex {
+    fill: var(--green-700);
+    stroke: var(--sand-50);
+    stroke-width: 2;
+}
+
+.wheel-axis-label {
+    font-size: 12px;
+    fill: var(--ink);
+    font-weight: 600;
+}
+
+.wheel-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.wheel-category {
+    border-bottom: 1px solid var(--sand-200);
+    padding: 14px 0;
+}
+
+.wheel-category:first-child {
+    padding-top: 0;
+}
+
+.wheel-category:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.wheel-category summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.wheel-category summary::-webkit-details-marker {
+    display: none;
+}
+
+.wheel-category-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    color: var(--green-900);
+}
+
+.wheel-category-chevron {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    color: var(--muted);
+    transition: transform 0.15s;
+}
+
+.wheel-category[open] .wheel-category-chevron {
+    transform: rotate(180deg);
+}
+
+.wheel-category-score {
+    flex-shrink: 0;
+    padding: 4px 13px;
+    border-radius: 999px;
+    background: var(--green-700);
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.wheel-subquestions {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.wheel-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.wheel-row-label {
+    font-weight: 600;
+    color: var(--green-900);
+}
+
+.wheel-subrow-text {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    max-width: 34ch;
+}
+
+.wheel-subrow-label {
+    font-size: 14px;
+    color: var(--ink);
+}
+
+.wheel-subrow-hint {
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: var(--muted);
+    font-style: italic;
+}
+
+.wheel-dots {
+    display: flex;
+    gap: 6px;
+}
+
+.wheel-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--sand-100);
+    border: 1px solid var(--sand-300);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.wheel-dot:hover {
+    background: var(--sand-200);
+}
+
+.wheel-dot.is-active {
+    background: var(--green-700);
+    border-color: var(--green-700);
+    color: white;
+}
+
+.wheel-summary {
+    margin-top: 28px;
+    padding: 18px 20px;
+    background: var(--green-100);
+    border-left: 5px solid var(--green-700);
+    border-radius: 14px;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.wheel-summary strong {
+    color: var(--green-900);
+}
+
+@media (max-width: 700px) {
+
+    .wheel-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .wheel-row {
+        justify-content: flex-start;
+    }
+
+    .wheel-subrow-text {
+        max-width: none;
+    }
+}
+
+
+/* =====================================================
+   INFOSEITEN (Über uns, Kontakt, Impressum, ...)
+===================================================== */
+
+.prose h3 {
+    margin: 26px 0 6px;
+    font-family: var(--serif);
+    font-size: 21px;
+    color: var(--green-900);
+}
+
+.prose p {
+    margin: 0 0 16px;
+    line-height: 1.6;
+}
+
+.team-member {
+    margin-top: 14px;
+}
+
+.team-member .team-name {
+    margin: 0 0 10px;
+    font-weight: 700;
+    color: var(--green-900);
+}
+
+.team-member p:last-child {
+    margin-bottom: 0;
+}
+
+.prose dl {
+    margin: 0;
+}
+
+.prose dt {
+    margin-top: 16px;
+    font-weight: 600;
+}
+
+.prose dd {
+    margin: 2px 0 0;
+}
+
+/* Platzhalter, die du noch ersetzen musst */
+
+.placeholder {
+    padding: 1px 6px;
+    background: #FFF1C9;
+    border-radius: 6px;
+}
+
+.faq details {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--sand-200);
+}
+
+.faq summary {
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.faq details p {
+    margin: 10px 0 0;
+}
+
+.myth-card {
+    max-width: 760px;
+}
+
+.myth-faq summary {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.myth-verdict {
+    flex-shrink: 0;
+    padding: 3px 11px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    color: white;
+}
+
+.myth-verdict.myth-false {
+    background: #9B2C2C;
+}
+
+.myth-verdict.myth-mixed {
+    background: #C98A2C;
+}
+
+.myth-verdict.myth-true {
+    background: var(--green-700);
+}
+
+.myth-source {
+    margin-top: 8px !important;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.myth-source a {
+    color: var(--green-700);
+}
+
+.myth-disclaimer {
+    margin: 24px 0 0;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+
+/* =====================================================
+   PRÄVENTION
+===================================================== */
+
+.prevention-area {
+    border-bottom: 1px solid var(--sand-200);
+    padding: 18px 0;
+}
+
+.prevention-area:first-child {
+    padding-top: 0;
+}
+
+.prevention-area:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.prevention-area summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.prevention-area summary::-webkit-details-marker {
+    display: none;
+}
+
+.prevention-area-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    color: var(--green-900);
+    font-size: 16px;
+}
+
+.prevention-area-chevron {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    color: var(--muted);
+    transition: transform 0.15s;
+}
+
+.prevention-area[open] .prevention-area-chevron {
+    transform: rotate(180deg);
+}
+
+.prevention-area-body {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.prevention-area-sub {
+    margin: 0 0 6px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--green-700);
+}
+
+.prevention-tips {
+    margin: 0;
+    padding-left: 20px;
+    color: var(--ink);
+    line-height: 1.6;
+}
+
+.prevention-tips li {
+    margin-bottom: 4px;
+}
+
+.condition-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.condition-item {
+    border-top: 1px solid var(--sand-200);
+    padding: 12px 0;
+}
+
+.condition-item:first-child {
+    border-top: none;
+    padding-top: 0;
+}
+
+.condition-item:last-child {
+    padding-bottom: 0;
+}
+
+.condition-item summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    cursor: pointer;
+    list-style: none;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.condition-item summary::-webkit-details-marker {
+    display: none;
+}
+
+.condition-item summary:hover {
+    color: var(--green-800);
+}
+
+.condition-chevron {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    color: var(--muted);
+    transition: transform 0.15s;
+}
+
+.condition-item[open] .condition-chevron {
+    transform: rotate(180deg);
+}
+
+.condition-exercises {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.prevention-exercise-card {
+    background: var(--green-100);
+    border-radius: 14px;
+    padding: 16px 18px;
+}
+
+.exercise-card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.exercise-name {
+    font-weight: 600;
+    color: var(--green-900);
+    font-size: 15.5px;
+}
+
+.exercise-target {
+    flex-shrink: 0;
+    font-size: 12.5px;
+    color: var(--muted);
+    text-align: right;
+}
+
+.exercise-steps-title,
+.exercise-dosage-title,
+.exercise-tip-title {
+    margin: 14px 0 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--green-700);
+}
+
+.exercise-steps-title:first-child {
+    margin-top: 0;
+}
+
+.exercise-steps {
+    margin: 0;
+    padding-left: 20px;
+    color: var(--ink);
+    line-height: 1.6;
+}
+
+.exercise-steps li {
+    margin-bottom: 6px;
+}
+
+.exercise-dosage,
+.exercise-tip {
+    margin: 0;
+    color: var(--ink);
+    line-height: 1.6;
+    font-size: 14.5px;
+}
+
+.prevention-shop-note {
+    margin-top: 30px;
+    padding: 22px 24px;
+    background: var(--sand-100);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.prevention-shop-note p {
+    margin: 0;
+    color: var(--ink);
+    line-height: 1.5;
+    max-width: 46ch;
+}
+
+@media (max-width: 640px) {
+    .prevention-shop-note {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .prevention-exercise-card {
+        margin: 0 -6px;
+        padding: 14px 12px;
+    }
+}
+
+
+/* =====================================================
+   FOOTER
+===================================================== */
+
+footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 22px;
+    padding: 0 24px 40px;
+    font-size: 15px;
+    color: var(--muted);
+}
+
+.footer-link {
+    padding: 4px 0;
+    background: none;
+    font: inherit;
+    color: var(--muted);
+}
+
+.footer-link:hover {
+    color: var(--green-900);
+    text-decoration: underline;
+}
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 860px) {
+
+    .hero {
+        grid-template-columns: 1fr;
+        gap: 36px;
+        margin-bottom: 56px;
+    }
+
+    .figure-wrap {
+        max-width: 420px;
+        width: 100%;
+        margin: 0 auto;
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    header {
+        padding: 12px 16px;
+    }
+
+    .hide-mobile {
+        display: none;
+    }
+
+    .mobile-only {
+        display: block;
+    }
+
+    .header-actions {
+        gap: 8px;
+    }
+
+    .btn-sm {
+        padding: 9px 14px;
+    }
+
+    .container {
+        padding: 28px 16px 56px;
+    }
+
+    .lead {
+        font-size: 18px;
+    }
+
+    .btn-large {
+        width: 100%;
+        text-align: center;
+    }
+
+    .section-title {
+        font-size: 27px;
+    }
+
+    .tile {
+        padding: 24px;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .card {
+        padding: 22px;
+        border-radius: 22px;
+    }
+
+    h1 {
+        font-size: 27px;
+    }
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     DYNAMISCHER HINTERGRUND (rein dekorativ)
+===================================================== -->
+
+<div class="bg-scene" aria-hidden="true">
+
+    <!-- Laufen / Bewegung -->
+    <svg class="bg-icon bg-icon-1" viewBox="0 0 24 24">
+        <circle cx="14.5" cy="4.3" r="1.7"/>
+        <path d="M13 7l-1.5 4 2 2-1 7"/>
+        <path d="M11.5 11l-4 1-1.5 4"/>
+        <path d="M13 7l2.8-1"/>
+        <path d="M13.6 8l2.4 2.6-1 3 3 2"/>
+    </svg>
+
+    <!-- Hantel / Sport -->
+    <svg class="bg-icon bg-icon-2" viewBox="0 0 24 24">
+        <path d="M4 9v6M2 10v4M6 7v10M18 7v10M22 10v4M20 9v6M6 12h12"/>
+    </svg>
+
+    <!-- Laptop / Arbeitsplatz -->
+    <svg class="bg-icon is-sand bg-icon-3" viewBox="0 0 24 24">
+        <rect x="4" y="5" width="16" height="10" rx="1"/>
+        <path d="M2 19h20M9 8h6"/>
+    </svg>
+
+    <!-- Fahrrad / Bewegung -->
+    <svg class="bg-icon bg-icon-4" viewBox="0 0 24 24">
+        <circle cx="5.5" cy="17.5" r="3.5"/>
+        <circle cx="18.5" cy="17.5" r="3.5"/>
+        <path d="M12 17.5L9 10h6l3.5 7.5M9 10l2-4h3M5.5 17.5L9 10"/>
+    </svg>
+
+    <!-- Puls / Gesundheit -->
+    <svg class="bg-icon is-sand bg-icon-5" viewBox="0 0 24 24">
+        <path d="M4 12h3l2-4 3 8 2-6 1.5 2H20"/>
+    </svg>
+
+    <!-- Dehnung / Rehabilitation -->
+    <svg class="bg-icon bg-icon-6" viewBox="0 0 24 24">
+        <circle cx="12" cy="3.6" r="1.7"/>
+        <path d="M12 5.5v6M12 11.5l-4.5 4M12 11.5l4.5-4M12 11.5l-2.5 8M12 11.5l2.5 8"/>
+    </svg>
+
+    <!-- Stoppuhr / Training -->
+    <svg class="bg-icon is-sand bg-icon-7" viewBox="0 0 24 24">
+        <circle cx="12" cy="13" r="8"/>
+        <path d="M12 13l3-3M9 2h6M12 2v3"/>
+    </svg>
+
+    <!-- Fußspuren / Bewegung -->
+    <svg class="bg-icon bg-icon-8" viewBox="0 0 24 24">
+        <path d="M7 3.2c-1.4 0-2.4 1.5-2.4 3.4S5.7 10 7 10s2.4-1.5 2.4-3.4S8.4 3.2 7 3.2z"/>
+        <path d="M17 10.4c-1.4 0-2.4 1.5-2.4 3.4S15.7 17.2 17 17.2s2.4-1.5 2.4-3.4-1-3.4-2.4-3.4z"/>
+        <path d="M6.3 12v6.5M17.7 19.2v-6.5"/>
+    </svg>
+
+    <!-- Klemmbrett / Arbeitsplatz -->
+    <svg class="bg-icon is-sand bg-icon-9" viewBox="0 0 24 24">
+        <rect x="5" y="4" width="14" height="17" rx="1.5"/>
+        <path d="M9 3h6v2H9zM8 10h8M8 14h8M8 18h5"/>
+    </svg>
+
+    <!-- Wassertropfen / Gesundheit -->
+    <svg class="bg-icon bg-icon-10" viewBox="0 0 24 24">
+        <path d="M12 2.5c3 4.2 6 8 6 11.7a6 6 0 1 1-12 0c0-3.7 3-7.5 6-11.7z"/>
+    </svg>
+
+    <!-- Widerstandsband / Physio -->
+    <svg class="bg-icon is-sand bg-icon-11" viewBox="0 0 24 24">
+        <path d="M4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8"/>
+        <path d="M4 12l3-2.5M4 12l3 2.5"/>
+    </svg>
+
+    <!-- Yoga / Dehnung -->
+    <svg class="bg-icon bg-icon-12" viewBox="0 0 24 24">
+        <circle cx="12" cy="3.6" r="1.7"/>
+        <path d="M12 5.5v5l4 4M12 10.5l-4 4M12 19.5l0-4"/>
+        <path d="M8 19.5h8"/>
+    </svg>
+
+</div>
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header>
+
+    <a class="logo" href="#" onclick="showHome(); return false;" aria-label="MOVIQ Startseite">
+        <svg class="logo-mark" width="40" height="40" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+            <path d="M12,88 L33,50 L45,65 L57,24 L78,38" stroke="var(--green-900)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="12" cy="88" r="5.5" fill="var(--green-900)"/>
+            <circle cx="33" cy="50" r="5.5" fill="var(--green-900)"/>
+            <circle cx="45" cy="65" r="5.5" fill="var(--green-900)"/>
+            <circle cx="57" cy="24" r="5.5" fill="var(--green-900)"/>
+            <circle cx="78" cy="38" r="5.5" fill="var(--green-900)"/>
+        </svg>
+    </a>
+
+    <div class="header-actions">
+
+        <!-- Nicht eingeloggt -->
+
+        <button class="btn btn-sm btn-ghost auth-out"
+                onclick="showLogin()">
+            Login
+        </button>
+
+        <button class="btn btn-sm btn-primary hide-mobile auth-out"
+                onclick="showRegister()">
+            Account erstellen
+        </button>
+
+        <!-- Eingeloggt -->
+
+        <button class="btn btn-sm btn-primary auth-in hidden"
+                onclick="openDiary()">
+            Tagebuch
+        </button>
+
+        <button class="btn btn-sm btn-ghost hide-mobile auth-in hidden"
+                onclick="handleLogout()">
+            Abmelden
+        </button>
+
+        <div class="menu-wrap">
+
+            <button class="btn btn-sm btn-ghost menu-btn"
+                    id="menuButton"
+                    aria-expanded="false"
+                    aria-controls="menuPanel"
+                    onclick="toggleMenu()">
+
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 7h16M4 12h16M4 17h16"/>
+                </svg>
+
+                Menü
+
+            </button>
+
+            <nav class="menu-panel hidden"
+                 id="menuPanel"
+                 aria-label="Weitere Seiten">
+
+                <button class="menu-item mobile-only auth-out"
+                        onclick="showRegister()">Account erstellen</button>
+
+                <button class="menu-item mobile-only auth-in hidden"
+                        onclick="handleLogout()">Abmelden</button>
+
+                <div class="menu-divider mobile-only"></div>
+
+                <button class="menu-item"
+                        onclick="openPage('ueber-uns')">Über uns</button>
+
+                <button class="menu-item"
+                        onclick="openPage('kontakt')">Kontakt</button>
+
+                <button class="menu-item"
+                        onclick="openPage('faq')">Häufige Fragen</button>
+
+                <div class="menu-divider"></div>
+
+                <button class="menu-item"
+                        onclick="openPage('impressum')">Impressum</button>
+
+                <button class="menu-item"
+                        onclick="openPage('datenschutz')">Datenschutz</button>
+
+            </nav>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<main class="container">
+
+
+<!-- =====================================================
+     STARTSEITE
+===================================================== -->
+
+<div id="homeScreen" class="screen">
+
+    <!-- Benutzerprofil-Karte: nur sichtbar, wenn eingeloggt -->
+
+    <div id="profileCard" class="profile-card auth-in hidden" aria-label="Dein Profil"></div>
+
+    <!-- Hero: Begrüßung. Die Körpergrafik erscheint erst
+         nach dem Klick auf die Kachel "Beschwerdeanalyse". -->
+
+    <section class="hero hero-solo hero-centered">
+
+        <div class="hero-text">
+
+            <h1 class="hero-wordmark" aria-label="MOVIQ">
+                <span class="letter letter-m" aria-hidden="true">M</span><span class="letter letter-o" aria-hidden="true">O</span><span class="letter letter-v" aria-hidden="true">V</span><span class="letter letter-i" aria-hidden="true">I</span><span class="letter letter-q" aria-hidden="true">Q</span>
+            </h1>
+
+            <p class="hero-tagline">Dein Körper. Besser verstehen.</p>
+
+        </div>
+
+    </section>
+
+
+    <!-- Weitere Bereiche -->
+
+    <section>
+
+        <h2 class="section-title">Schön, dass du da bist! Was steht heute an?</h2>
+
+        <div class="tile-grid">
+
+            <!-- 1. Beschwerdeanalyse: eingeloggt -->
+
+            <button class="tile tile-analysis tile-dark auth-in hidden"
+                    onclick="startAnalysis()">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 21s-7-4.5-7-11a7 7 0 1 1 14 0c0 6.5-7 11-7 11z"/>
+                        <circle cx="12" cy="10" r="2.5"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="tile-title">Beschwerdeanalyse</span>
+                    <span class="tile-text">Zeig uns, wo es zwickt, und wir finden gemeinsam heraus, was dir hilft.</span>
+                </span>
+            </button>
+
+            <!-- 1. Beschwerdeanalyse: nicht eingeloggt -->
+
+            <button class="tile tile-analysis-locked tile-dark auth-out"
+                    onclick="showRegister()">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="5" y="10" width="14" height="10" rx="2"/>
+                        <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="tile-title">Beschwerdeanalyse</span>
+                    <span class="tile-text">Erstelle einen Account, damit wir gemeinsam herausfinden, was dir hilft.</span>
+                </span>
+            </button>
+
+            <!-- 2. Prävention: eingeloggt -->
+
+            <button class="tile tile-prev tile-dark auth-in hidden"
+                    onclick="openPrevention()">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="tile-title">Prävention</span>
+                    <span class="tile-text">Beschwerden vorbeugen, bevor sie entstehen.</span>
+                </span>
+            </button>
+
+            <!-- 2. Prävention: nicht eingeloggt -->
+
+            <button class="tile tile-prev-locked tile-dark auth-out"
+                    onclick="showRegister()">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="5" y="10" width="14" height="10" rx="2"/>
+                        <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="tile-title">Prävention</span>
+                    <span class="tile-text">Erstelle einen Account, um Beschwerden vorzubeugen, bevor sie entstehen.</span>
+                </span>
+            </button>
+
+            <!-- 3. Rehabilitation: eingeloggt -->
+
+            <button class="tile tile-reha tile-dark auth-in hidden"
+                    onclick="openSection('Rehabilitation')">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M4 12a8 8 0 1 0 2.3-5.7"/>
+                        <path d="M4 4v4h4"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="tile-title">Rehabilitation</span>
+                    <span class="tile-text">Zurück in die Bewegung nach Verletzung oder OP.</span>
+                </span>
+            </button>
+
+            <!-- 3. Rehabilitation: nicht eingeloggt -->
+
+            <button class="tile tile-reha-locked tile-dark auth-out"
+                    onclick="showRegister()">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="5" y="10" width="14" height="10" rx="2"/>
+                        <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="tile-title">Rehabilitation</span>
+                    <span class="tile-text">Erstelle einen Account, um zurück in die Bewegung nach Verletzung oder OP zu finden.</span>
+                </span>
+            </button>
+
+            <!-- 4. Performance: eingeloggt -->
+
+            <button class="tile tile-perf tile-dark auth-in hidden"
+                    onclick="openSection('Performance')">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M3 17l6-6 4 4 8-8"/>
+                        <path d="M15 7h6v6"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="tile-title">Performance</span>
+                    <span class="tile-text">Belastbarer und leistungsfähiger werden.</span>
+                </span>
+            </button>
+
+            <!-- 4. Performance: nicht eingeloggt -->
+
+            <button class="tile tile-perf-locked tile-dark auth-out"
+                    onclick="showRegister()">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="5" y="10" width="14" height="10" rx="2"/>
+                        <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="tile-title">Performance</span>
+                    <span class="tile-text">Erstelle einen Account, um belastbarer und leistungsfähiger zu werden.</span>
+                </span>
+            </button>
+
+            <!-- 5. Gesundheitsschirm: eingeloggt -->
+
+            <button class="tile tile-wheel tile-dark auth-in hidden"
+                    onclick="openHealthWheel()">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9"/>
+                        <circle cx="12" cy="12" r="5"/>
+                        <circle cx="12" cy="12" r="1"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="tile-title">Gesundheitsschirm</span>
+                    <span class="tile-text">Finde heraus, in welchen Bereichen deines Lebens du schon gut aufgestellt bist, und wo noch Luft nach oben ist.</span>
+                </span>
+            </button>
+
+            <!-- 5. Gesundheitsschirm: nicht eingeloggt -->
+
+            <button class="tile tile-wheel-locked tile-dark auth-out"
+                    onclick="showRegister()">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="5" y="10" width="14" height="10" rx="2"/>
+                        <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="tile-title">Gesundheitsschirm</span>
+                    <span class="tile-text">Erstelle einen Account, um herauszufinden, wo du schon gut aufgestellt bist.</span>
+                </span>
+            </button>
+
+            <!-- 6. Tagebuch: eingeloggt -->
+
+            <button class="tile tile-diary tile-light auth-in hidden"
+                    onclick="openDiary()">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M6 4h11a2 2 0 0 1 2 2v13l-3-2-3 2-3-2-3 2V6a2 2 0 0 1-1-2z"/>
+                        <path d="M9 9h7M9 13h7"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="tile-title">Dein Tagebuch</span>
+                    <span class="tile-text">Trag ein, wie es dir heute geht, und verfolge deine Schmerzstärke über die Zeit.</span>
+                </span>
+            </button>
+
+            <!-- 6. Tagebuch: nicht eingeloggt -->
+
+            <button class="tile tile-diary-locked tile-light auth-out"
+                    onclick="showRegister()">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="5" y="10" width="14" height="10" rx="2"/>
+                        <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="tile-title">Tagebuch</span>
+                    <span class="tile-text">Erstelle einen Account, um deine Beschwerden über die Zeit zu verfolgen und deine Schmerzstärke einzutragen.</span>
+                </span>
+            </button>
+
+            <!-- 7. Wusstest du schon...?: eingeloggt -->
+
+            <button class="tile tile-myths tile-light auth-in hidden"
+                    onclick="openMyths()">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9"/>
+                        <path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1.2 1-1.2 1.7v.5"/>
+                        <path d="M12 17h.01"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="tile-title">Wusstest du schon...?</span>
+                    <span class="tile-text">Gesundheitsmythen und was dahinter steckt.</span>
+                </span>
+            </button>
+
+            <!-- 7. Wusstest du schon...?: nicht eingeloggt -->
+
+            <button class="tile tile-myths-locked tile-light auth-out"
+                    onclick="showRegister()">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="5" y="10" width="14" height="10" rx="2"/>
+                        <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="tile-title">Wusstest du schon...?</span>
+                    <span class="tile-text">Erstelle einen Account, um Gesundheitsmythen auf den Grund zu gehen.</span>
+                </span>
+            </button>
+
+            <!-- 8. Neues aus der Welt der Physiotherapie: eingeloggt -->
+
+            <button class="tile tile-news tile-light auth-in hidden"
+                    onclick="openSection('Neues aus der Welt der Physiotherapie')">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="4" y="4" width="16" height="16" rx="2"/>
+                        <path d="M8 9h8M8 13h8M8 17h5"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="tile-title">Neues aus der Welt der Physiotherapie</span>
+                    <span class="tile-text">Aktuelle Beiträge und Erkenntnisse.</span>
+                </span>
+            </button>
+
+            <!-- 8. Neues aus der Welt der Physiotherapie: nicht eingeloggt -->
+
+            <button class="tile tile-news-locked tile-light auth-out"
+                    onclick="showRegister()">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="5" y="10" width="14" height="10" rx="2"/>
+                        <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="tile-title">Neues aus der Welt der Physiotherapie</span>
+                    <span class="tile-text">Erstelle einen Account, um aktuelle Beiträge und Erkenntnisse zu lesen.</span>
+                </span>
+            </button>
+
+            <!-- 9. Shop: eingeloggt -->
+
+            <button class="tile tile-shop tile-light auth-in hidden"
+                    onclick="openShop()">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M6 8h12l-1 12H7z"/>
+                        <path d="M9 8V6a3 3 0 0 1 6 0v2"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="tile-title">Shop</span>
+                    <span class="tile-text">Therabänder, Fitness Loops, Hanteln und mehr!.</span>
+                </span>
+            </button>
+
+            <!-- 9. Shop: nicht eingeloggt -->
+
+            <button class="tile tile-shop-locked tile-light auth-out"
+                    onclick="showRegister()">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="5" y="10" width="14" height="10" rx="2"/>
+                        <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="tile-title">Shop</span>
+                    <span class="tile-text">Erstelle einen Account, um dich im Shop umzusehen.</span>
+                </span>
+            </button>
+
+        </div>
+
+    </section>
+
+</div>
+
+
+
+<!-- =====================================================
+     PLATZHALTER FÜR NOCH NICHT PROGRAMMIERTE BEREICHE
+===================================================== -->
+
+<div id="sectionScreen" class="screen card hidden">
+
+    <button class="link-btn" onclick="showHome()">← Startseite</button>
+
+    <h2 id="sectionTitle"></h2>
+
+    <p class="subtitle">
+        Hier entsteht gerade etwas Neues. Schau bald wieder vorbei.
+    </p>
+
+    <button class="btn btn-primary" onclick="startAnalysis()">
+        Beschwerden analysieren
+    </button>
+
+</div>
+
+
+
+<!-- =====================================================
+     PERFORMANCE: GESUNDHEITSSCHIRM
+===================================================== -->
+
+<div id="wheelScreen" class="screen card wheel-card hidden">
+
+    <button class="link-btn" onclick="showHome()">← Startseite</button>
+
+    <h1>Gesundheitsschirm</h1>
+
+    <p class="subtitle">
+        Klappe einen Bereich auf und beantworte die dazugehörigen
+        Unterfragen von 1 (ausbaufähig) bis 5 (sehr gut). Daraus ergibt
+        sich dein Wert auf einer Skala von 1 bis 10 pro Bereich. Das
+        Netzdiagramm zeigt dein Profil sofort. So siehst du auf einen
+        Blick, wo du schon gut aufgestellt bist und wo noch Potenzial liegt.
+    </p>
+
+    <p id="wheelError" class="form-error hidden" role="alert"></p>
+
+    <section class="wheel-section">
+
+        <div class="wheel-layout">
+
+            <div class="wheel-chart-wrap">
+                <svg id="wheelChart" class="wheel-chart"
+                     viewBox="0 0 360 360" role="img"
+                     aria-label="Netzdiagramm deines Gesundheitsprofils">
+                </svg>
+            </div>
+
+            <div id="wheelControls" class="wheel-controls"></div>
+
+        </div>
+
+        <div id="wheelSummary" class="wheel-summary" aria-live="polite"></div>
+
+    </section>
+
+</div>
+
+
+
+<!-- =====================================================
+     PRÄVENTION
+===================================================== -->
+
+<div id="preventionScreen" class="screen card hidden">
+
+    <button class="link-btn" onclick="showHome()">← Startseite</button>
+
+    <h1>Prävention</h1>
+
+    <p class="subtitle">
+        Die häufigsten orthopädischen Beschwerden lassen sich in vielen
+        Fällen vorbeugen. Wähle einen Körperbereich, klappe dort eine
+        gängige Beschwerde oder ein Krankheitsbild auf und du bekommst
+        direkt passende Übungen mit genauer Ausführung.
+    </p>
+
+    <div id="preventionAreasList"></div>
+
+    <div class="prevention-shop-note">
+        <p>
+            Passendes Zubehör für dein Präventionstraining – z. B.
+            Widerstandsbänder, Faszienrollen oder Balance-Pads – findest
+            du in unserem Shop.
+        </p>
+        <button class="btn btn-primary" onclick="openShop()">Zum Shop</button>
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     WUSSTEST DU SCHON: GESUNDHEITSMYTHEN
+===================================================== -->
+
+<div id="mythScreen" class="screen card myth-card hidden">
+
+    <button class="link-btn" onclick="showHome()">← Startseite</button>
+
+    <h1>Wusstest du schon...?</h1>
+
+    <p class="subtitle">Gesundheitsmythen und was dahinter steckt</p>
+
+    <div class="faq myth-faq">
+
+        <details>
+            <summary>
+                <span class="myth-verdict myth-false">Stimmt nicht</span>
+                Wer Rückenschmerzen hat, sollte sich vor allem schonen.
+            </summary>
+            <p>
+                In den meisten Fällen ist behutsame, alltagsnahe Bewegung
+                hilfreicher als strikte Schonung oder Bettruhe. Sie hält
+                Muskulatur und Gelenke aktiv und kann die Genesung sogar
+                beschleunigen. Genau das empfiehlt auch die ärztliche
+                Leitlinie zu Kreuzschmerzen in Deutschland.
+            </p>
+            <p class="myth-source">
+                Quelle:
+                <a href="https://register.awmf.org/assets/guidelines/nvl-007l_S3_Kreuzschmerz_2017-03-abgelaufen.pdf"
+                   target="_blank" rel="noopener">
+                    Nationale VersorgungsLeitlinie Kreuzschmerz (AWMF-Register)
+                </a>
+            </p>
+        </details>
+
+        <details>
+            <summary>
+                <span class="myth-verdict myth-false">Stimmt nicht</span>
+                Mit den Fingern knacken verursacht Arthrose.
+            </summary>
+            <p>
+                Mehrere Untersuchungen, darunter ein bekannter 50-jähriger
+                Selbstversuch eines Arztes, konnten keinen Zusammenhang
+                zwischen Fingerknacken und Arthrose nachweisen. Das
+                Knackgeräusch entsteht durch kleine Gasbläschen, die in
+                der Gelenkflüssigkeit kollabieren.
+            </p>
+            <p class="myth-source">
+                Quelle:
+                <a href="https://www.aok.de/pk/magazin/koerper-psyche/muskel-skelett-system/ist-knacken-mit-den-fingern-ungesund/"
+                   target="_blank" rel="noopener">
+                    AOK-Gesundheitsmagazin: Ist Knacken mit den Fingern ungesund?
+                </a>
+            </p>
+        </details>
+
+        <details>
+            <summary>
+                <span class="myth-verdict myth-mixed">Teilweise richtig</span>
+                Dehnen vor dem Sport schützt zuverlässig vor Verletzungen.
+            </summary>
+            <p>
+                Für langes statisches Dehnen direkt vor dem Sport ist der
+                Schutz vor Verletzungen wissenschaftlich kaum belegt. Es
+                kann die Muskelleistung kurz danach sogar etwas verringern.
+                Ein dynamisches, bewegungsnahes Aufwärmen gilt als
+                sinnvollere Vorbereitung, statisches Dehnen eignet sich
+                eher für danach oder für separate Beweglichkeitseinheiten.
+            </p>
+            <p class="myth-source">
+                Quelle:
+                <a href="https://www.zeitschrift-sportmedizin.de/stretching-zur-verletzungspraevention-ein-konzept-zwischen-tradition-evidenzluecken-dehnuebungen/"
+                   target="_blank" rel="noopener">
+                    Deutsche Zeitschrift für Sportmedizin: Stretching zur Verletzungsprävention
+                </a>
+            </p>
+        </details>
+
+        <details>
+            <summary>
+                <span class="myth-verdict myth-false">Stimmt nicht</span>
+                Muskelkater ist ein Zeichen für effektives Training.
+            </summary>
+            <p>
+                Muskelkater (DOMS) zeigt vor allem, dass die Muskulatur
+                ungewohnt beansprucht wurde, nicht, wie wirksam das
+                Training war. Auch ohne Muskelkater lassen sich gute
+                Trainingsfortschritte erzielen, und häufiger starker
+                Muskelkater ist eher ein Zeichen für zu schnell
+                gesteigerte Belastung.
+            </p>
+            <p class="myth-source">
+                Quelle:
+                <a href="https://sportaerztezeitung.com/rubriken/therapie/4501/delayed-onset-muscle-soreness-doms/"
+                   target="_blank" rel="noopener">
+                    Sportärztezeitung: Delayed Onset Muscle Soreness (DOMS)
+                </a>
+            </p>
+        </details>
+
+        <details>
+            <summary>
+                <span class="myth-verdict myth-false">Stimmt nicht</span>
+                Ein Bandscheibenvorfall muss fast immer operiert werden.
+            </summary>
+            <p>
+                In vielen Fällen bessern sich die Beschwerden durch
+                konservative Therapie wie Physiotherapie und gezielte
+                Bewegung, und der Vorfall kann sich im Lauf der Zeit von
+                selbst zurückbilden. Eine Operation wird meist erst bei
+                bestimmten Befunden empfohlen, etwa bei ausgeprägten
+                Lähmungen oder anhaltenden, therapieresistenten Beschwerden.
+            </p>
+            <p class="myth-source">
+                Quelle:
+                <a href="https://www.aerztezeitung.de/Medizin/Bandscheibenvorfall-Ist-die-konservative-Therapie-der-Operation-ueberlegen-439304.html"
+                   target="_blank" rel="noopener">
+                    Ärzte Zeitung: Bandscheibenvorfall – konservative Therapie vs. Operation
+                </a>
+            </p>
+        </details>
+
+        <details>
+            <summary>
+                <span class="myth-verdict myth-false">Stimmt nicht</span>
+                Je älter man wird, desto weniger sollte man trainieren.
+            </summary>
+            <p>
+                Regelmäßiges, angepasstes Training, insbesondere
+                Krafttraining, erhält Muskelkraft, Beweglichkeit und
+                Gleichgewicht bis ins hohe Alter und senkt nachweislich
+                das Sturzrisiko. Die WHO empfiehlt älteren Erwachsenen
+                ausdrücklich muskelkräftigende Übungen an mehreren Tagen
+                pro Woche, zusätzlich zu Ausdaueraktivität.
+            </p>
+            <p class="myth-source">
+                Quelle:
+                WHO-Leitlinien für körperliche Aktivität und sitzendes
+                Verhalten (2020), who.int
+            </p>
+        </details>
+
+    </div>
+
+    <p class="myth-disclaimer">
+        Diese Übersicht ersetzt keine individuelle Diagnose oder Beratung.
+        Bei anhaltenden oder starken Beschwerden sprich bitte mit einer
+        Ärztin, einem Arzt oder deiner Physiotherapeutin bzw. deinem
+        Physiotherapeuten.
+    </p>
+
+</div>
+
+
+
+<!-- =====================================================
+     ANALYSE: KÖRPERAUSWAHL
+===================================================== -->
+
+<div id="startScreen" class="screen card analysis hidden">
+
+    <button class="link-btn" onclick="showHome()">← Startseite</button>
+
+    <h1>Wo hast du Beschwerden?</h1>
+
+    <p class="subtitle">
+        Wähle zunächst die Körperregion aus,
+        in der du Beschwerden hast.
+    </p>
+
+    <div class="figure-wrap" id="analysisFigure">
+
+        <div class="view-toggle">
+            <button class="view-btn active" data-view="front"
+                    aria-pressed="true"
+                    onclick="showFront()">Vorderseite</button>
+            <button class="view-btn" data-view="back"
+                    aria-pressed="false"
+                    onclick="showBack()">Rückseite</button>
+        </div>
+
+        <div class="figure-svgs"></div>
+
+        <p class="figure-caption" aria-live="polite"></p>
+
+        <p class="hint">Die Seiten werden aus Sicht der Person angegeben.</p>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     ANALYSE: DETAILAUSWAHL
+===================================================== -->
+
+<div id="detailScreen" class="screen card hidden">
+
+    <button class="link-btn" onclick="goBack()">← Zurück</button>
+
+    <h2 id="detailTitle"></h2>
+
+    <p class="subtitle">Wo genau befindet sich die Beschwerde?</p>
+
+    <div id="detailGrid" class="detail-grid"></div>
+
+</div>
+
+
+
+<!-- =====================================================
+     ANALYSE: FRAGEBOGEN (fragt die jeweils nächstlogische Frage)
+===================================================== -->
+
+<div id="questionScreen" class="screen card hidden">
+
+    <button class="link-btn" onclick="questionGoBack()">← Zurück</button>
+
+    <p class="question-progress" id="questionProgress"></p>
+
+    <h2 id="questionText"></h2>
+
+    <div id="questionOptions" class="detail-grid"></div>
+
+    <div id="questionScaleWrap" class="vas-field hidden">
+
+        <div class="vas-scale">
+            <input id="questionScaleInput" type="range"
+                   min="0" max="10" value="5"
+                   oninput="updateQuestionScaleReadout()">
+            <span id="questionScaleValue" class="vas-value">5</span>
+        </div>
+
+        <div class="vas-endpoints">
+            <span>Kein Schmerz</span>
+            <span>Stärkster vorstellbarer Schmerz</span>
+        </div>
+
+        <button class="btn btn-primary" style="margin-top: 20px;"
+                onclick="submitScaleAnswer()">Weiter</button>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     ANALYSE: ERGEBNIS
+===================================================== -->
+
+<div id="resultScreen" class="screen card hidden">
+
+    <h2>Deine Einschätzung</h2>
+    <p class="subtitle" id="resultTitle"></p>
+
+    <div id="resultRedflag" class="analysis-redflag hidden" role="alert"></div>
+
+    <div class="analysis-block">
+        <span class="analysis-tag">Mögliches Muster</span>
+        <p id="resultNarrative" class="analysis-lead"></p>
+        <p class="analysis-advice-title">Das kann jetzt helfen</p>
+        <ul id="resultAdvice" class="analysis-advice"></ul>
+    </div>
+
+    <h3 class="analysis-details-title">Deine Angaben im Überblick</h3>
+    <div class="prose">
+        <dl id="resultDetails"></dl>
+    </div>
+
+    <p class="myth-disclaimer">
+        Das ist eine automatische Einschätzung möglicher Muster auf Basis deiner Angaben –
+        keine Diagnose und kein Ersatz für eine ärztliche oder physiotherapeutische
+        Untersuchung. Bei starken, plötzlichen oder sich verschlimmernden Beschwerden,
+        Taubheitsgefühlen, Lähmungserscheinungen oder Fieber wende dich bitte zeitnah an
+        eine Ärztin, einen Arzt oder deine Physiotherapeutin bzw. deinen Physiotherapeuten.
+    </p>
+
+    <div class="button-row">
+        <button class="btn btn-primary" onclick="restart()">Neue Auswahl</button>
+        <button class="btn btn-soft" onclick="showHome()">Zur Startseite</button>
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     INFOSEITEN
+===================================================== -->
+
+<div id="infoScreen" class="screen card hidden">
+
+    <button class="link-btn" onclick="showHome()">← Startseite</button>
+
+    <h1 id="infoTitle"></h1>
+
+    <div id="infoBody" class="prose"></div>
+
+</div>
+
+
+
+<!-- =====================================================
+     LOGIN
+===================================================== -->
+
+<div id="loginScreen" class="screen card auth-card hidden">
+
+    <button class="link-btn" onclick="showHome()">← Startseite</button>
+
+    <h1>Login</h1>
+
+    <p class="subtitle">Schön, dass du wieder da bist.</p>
+
+    <form id="loginForm" onsubmit="handleLogin(event)">
+
+        <div class="field">
+            <label for="loginEmail">E-Mail-Adresse</label>
+            <input id="loginEmail" type="email"
+                   autocomplete="email" required>
+        </div>
+
+        <div class="field">
+            <label for="loginPassword">Passwort</label>
+            <input id="loginPassword" type="password"
+                   autocomplete="current-password" required>
+        </div>
+
+        <p id="loginError" class="form-error" role="alert"></p>
+
+        <button type="submit" class="btn btn-primary">Anmelden</button>
+
+    </form>
+
+    <div id="loginNote" class="form-note hidden" role="status"></div>
+
+    <p class="auth-switch">
+        Noch keinen Account?
+        <button class="inline-link" onclick="showRegister()">Account erstellen</button>
+    </p>
+
+</div>
+
+
+
+<!-- =====================================================
+     ACCOUNT ERSTELLEN
+===================================================== -->
+
+<div id="registerScreen" class="screen card auth-card hidden">
+
+    <button class="link-btn" onclick="showHome()">← Startseite</button>
+
+    <h1>Account erstellen</h1>
+
+    <p class="subtitle">Ein Account dauert nur eine Minute.</p>
+
+    <form id="registerForm" onsubmit="handleRegister(event)">
+
+        <div class="field">
+            <label for="regName">Name</label>
+            <input id="regName" type="text"
+                   autocomplete="name" required>
+        </div>
+
+        <div class="field">
+            <label for="regEmail">E-Mail-Adresse</label>
+            <input id="regEmail" type="email"
+                   autocomplete="email" required>
+        </div>
+
+        <div class="field">
+            <label for="regPassword">Passwort</label>
+            <input id="regPassword" type="password"
+                   autocomplete="new-password" minlength="8" required>
+            <p class="field-help">Mindestens 8 Zeichen.</p>
+        </div>
+
+        <div class="field">
+            <label for="regPassword2">Passwort wiederholen</label>
+            <input id="regPassword2" type="password"
+                   autocomplete="new-password" minlength="8" required>
+        </div>
+
+        <label class="check-row">
+            <input id="regPrivacy" type="checkbox" required>
+            <span>
+                Ich habe die
+                <button type="button" class="inline-link"
+                        onclick="openPage('datenschutz')">Datenschutzerklärung</button>
+                gelesen.
+            </span>
+        </label>
+
+        <p id="registerError" class="form-error" role="alert"></p>
+
+        <button type="submit" class="btn btn-primary">Account erstellen</button>
+
+    </form>
+
+    <div id="registerNote" class="form-note hidden" role="status"></div>
+
+    <p class="auth-switch">
+        Schon einen Account?
+        <button class="inline-link" onclick="showLogin()">Login</button>
+    </p>
+
+</div>
+
+
+
+<!-- =====================================================
+     ARBEITSPROFIL (nach der Registrierung, auch später
+     jederzeit über die Profil-Karte bearbeitbar)
+===================================================== -->
+
+<div id="workProfileScreen" class="screen card auth-card hidden">
+
+    <h1>Dein Arbeitsalltag</h1>
+
+    <p class="subtitle">
+        Damit MOVIQ dich so gut wie möglich unterstützen kann, erzähl uns
+        kurz etwas über deine Arbeit. Alle Angaben sind freiwillig und
+        können später jederzeit geändert werden.
+    </p>
+
+    <form id="workProfileForm" onsubmit="saveWorkProfile(event)">
+
+        <div class="field">
+            <label for="wpField">In welchem Bereich arbeitest du?</label>
+            <select id="wpField" required onchange="handleWpFieldChange()"></select>
+        </div>
+
+        <div class="field">
+            <label for="wpProfession">Was ist dein Beruf?</label>
+            <select id="wpProfession" required onchange="handleWpProfessionChange()"></select>
+        </div>
+
+        <div id="wpProfessionOtherField" class="field hidden">
+            <label for="wpProfessionOther">Wie lautet dein Beruf genau?</label>
+            <input id="wpProfessionOther" type="text" placeholder="z. B. Konditormeisterin">
+        </div>
+
+        <div class="field">
+            <label for="wpWeeklyHours">Wie viele Stunden arbeitest du durchschnittlich pro Woche?</label>
+            <input id="wpWeeklyHours" type="number" min="1" max="80" step="1" required>
+        </div>
+
+        <div class="field">
+            <label>Wie würdest du deine körperliche Arbeitsbelastung beschreiben?</label>
+            <div class="workload-options" id="wpWorkloadOptions">
+                <label class="workload-option">
+                    <input type="radio" name="wpWorkload" value="sitzend" required>
+                    <span class="workload-option-text">
+                        <strong>Überwiegend sitzend</strong>
+                        <span>z. B. Bildschirmarbeit, Büro, Fahren</span>
+                    </span>
+                </label>
+                <label class="workload-option">
+                    <input type="radio" name="wpWorkload" value="stehend_gehend">
+                    <span class="workload-option-text">
+                        <strong>Überwiegend stehend/gehend</strong>
+                        <span>z. B. Verkauf, Pflege, Produktion</span>
+                    </span>
+                </label>
+                <label class="workload-option">
+                    <input type="radio" name="wpWorkload" value="koerperlich_schwer">
+                    <span class="workload-option-text">
+                        <strong>Körperlich fordernd</strong>
+                        <span>Heben, Tragen, Kraftaufwand</span>
+                    </span>
+                </label>
+                <label class="workload-option">
+                    <input type="radio" name="wpWorkload" value="feinmotorisch">
+                    <span class="workload-option-text">
+                        <strong>Feinmotorisch/repetitiv</strong>
+                        <span>z. B. Fließband, Tastatur, Werkbank</span>
+                    </span>
+                </label>
+                <label class="workload-option">
+                    <input type="radio" name="wpWorkload" value="wechselnd">
+                    <span class="workload-option-text">
+                        <strong>Wechselnd</strong>
+                        <span>Sitzen, Stehen und Bewegen im Wechsel</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Für welche Körperbereiche ist deine Arbeit besonders anstrengend?</label>
+            <p class="field-note">Mehrfachauswahl möglich.</p>
+            <div class="body-area-grid" id="wpBodyAreas">
+                <label class="body-area-option">
+                    <input type="checkbox" name="wpBodyArea" value="Rücken">
+                    <span>Rücken</span>
+                </label>
+                <label class="body-area-option">
+                    <input type="checkbox" name="wpBodyArea" value="Nacken & Schultern">
+                    <span>Nacken &amp; Schultern</span>
+                </label>
+                <label class="body-area-option">
+                    <input type="checkbox" name="wpBodyArea" value="Arme & Handgelenke">
+                    <span>Arme &amp; Handgelenke</span>
+                </label>
+                <label class="body-area-option">
+                    <input type="checkbox" name="wpBodyArea" value="Knie">
+                    <span>Knie</span>
+                </label>
+                <label class="body-area-option">
+                    <input type="checkbox" name="wpBodyArea" value="Hüfte">
+                    <span>Hüfte</span>
+                </label>
+                <label class="body-area-option">
+                    <input type="checkbox" name="wpBodyArea" value="Füße & Beine">
+                    <span>Füße &amp; Beine</span>
+                </label>
+                <label class="body-area-option">
+                    <input type="checkbox" name="wpBodyArea" value="Augen">
+                    <span>Augen (Bildschirmarbeit)</span>
+                </label>
+                <label class="body-area-option">
+                    <input type="checkbox" name="wpBodyArea" value="Stimme">
+                    <span>Stimme</span>
+                </label>
+                <label class="body-area-option">
+                    <input type="checkbox" name="wpBodyArea" value="Kopf & Konzentration">
+                    <span>Kopf &amp; Konzentration</span>
+                </label>
+            </div>
+        </div>
+
+        <p id="workProfileError" class="form-error" role="alert"></p>
+
+        <button type="submit" class="btn btn-primary">Profil speichern</button>
+
+    </form>
+
+    <p class="profile-skip-row">
+        <button class="inline-link" onclick="skipWorkProfile()">Später ausfüllen</button>
+    </p>
+
+</div>
+
+
+
+<!-- =====================================================
+     TAGEBUCH (nur mit Account)
+===================================================== -->
+
+<div id="diaryScreen" class="screen card hidden">
+
+    <button class="link-btn" onclick="showHome()">← Startseite</button>
+
+    <h1>Dein Tagebuch</h1>
+
+    <p class="subtitle">
+        Halte fest, wie sich deine Beschwerden entwickeln,
+        und bewerte deine Schmerzstärke.
+    </p>
+
+    <form id="diaryForm" onsubmit="saveDiaryEntry(event)">
+
+        <div class="field">
+            <label for="diaryDate">Datum</label>
+            <input id="diaryDate" type="date" required>
+        </div>
+
+        <div class="field vas-field">
+
+            <label for="diaryVas">Schmerzstärke (VAS)</label>
+
+            <div class="vas-scale">
+                <input id="diaryVas" type="range"
+                       min="0" max="10" step="1" value="0"
+                       oninput="updateVasReadout()">
+                <span id="vasValue" class="vas-value">0</span>
+            </div>
+
+            <div class="vas-endpoints">
+                <span>Kein Schmerz</span>
+                <span>Stärkster vorstellbarer Schmerz</span>
+            </div>
+
+        </div>
+
+        <div class="field">
+            <label for="diaryDevelopment">Wie haben sich deine Beschwerden heute entwickelt?</label>
+            <textarea id="diaryDevelopment" rows="3" required></textarea>
+        </div>
+
+        <div class="field">
+            <label for="diaryActions">Was hast du heute dafür getan?</label>
+            <textarea id="diaryActions" rows="3"
+                      placeholder="z. B. Übungen, Wärme, Pausen, Medikamente"></textarea>
+        </div>
+
+        <p id="diaryError" class="form-error hidden" role="alert"></p>
+
+        <button type="submit" class="btn btn-primary">Eintrag speichern</button>
+
+    </form>
+
+    <h2 class="diary-history-title">Deine Einträge</h2>
+
+    <div id="diaryList" class="diary-timeline"></div>
+
+</div>
+
+
+
+<!-- =====================================================
+     SHOP (nur mit Account)
+===================================================== -->
+
+<div id="shopScreen" class="screen card hidden">
+
+    <button class="link-btn" onclick="showHome()">← Startseite</button>
+
+    <h1>Shop</h1>
+
+    <p class="subtitle shop-intro">
+        Therabänder, Fitness Loops, Hanteln und mehr!
+    </p>
+
+    <div id="cartNote" class="form-note cart-note hidden" role="status"></div>
+
+
+    <!-- Widerstandsbänder -->
+
+    <section class="shop-section">
+
+        <h2 class="shop-section-title">Widerstandsbänder</h2>
+        <p class="shop-section-text">
+            Flache Bänder für Kraft- und Reha-Training, in fünf
+            Stärken. Einzeln oder im Set erhältlich.
+        </p>
+
+        <div id="bandGrid" class="product-grid"></div>
+
+    </section>
+
+
+    <!-- Fitness Loops -->
+
+    <section class="shop-section">
+
+        <h2 class="shop-section-title">Fitness Loops</h2>
+        <p class="shop-section-text">
+            Geschlossene Mini-Bänder, ideal für Bein- und
+            Gesäßtraining. Einzeln oder im Set erhältlich.
+        </p>
+
+        <div id="loopGrid" class="product-grid"></div>
+
+    </section>
+
+
+    <!-- Hanteln -->
+
+    <section class="shop-section">
+
+        <h2 class="shop-section-title">Hanteln, 1–20 kg</h2>
+        <p class="shop-section-text">
+            Vinyl-ummantelte Kurzhanteln, einzeln erhältlich.
+        </p>
+
+        <div id="dumbbellGrid" class="dumbbell-grid"></div>
+
+        <p class="shop-note">
+            Du brauchst ein Paar mit dem gleichen Gewicht?
+            Schreib uns über die
+            <button type="button" class="inline-link" onclick="openPage('kontakt')">Kontaktseite</button>.
+        </p>
+
+    </section>
+
+</div>
+
+
+</main>
+
+
+<footer>
+    <button class="footer-link" onclick="openPage('kontakt')">Kontakt</button>
+    <button class="footer-link" onclick="openPage('impressum')">Impressum</button>
+    <button class="footer-link" onclick="openPage('datenschutz')">Datenschutz</button>
+</footer>
+
+
+
+<script>
+
+/* =====================================================
+   BACKEND-ANBINDUNG
+   Wird diese Datei direkt geöffnet (Doppelklick, file://),
+   zeigt API_BASE auf ein lokal laufendes Backend
+   (moviq-backend/, "node server.js", Port 3000).
+   Wird diese Seite dagegen VOM Backend selbst ausgeliefert
+   (lokal über http://localhost:3000 oder online z. B. über
+   https://moviq-xyz.onrender.com), zeigt API_BASE automatisch
+   auf "/api" auf derselben Adresse – keine Anpassung nötig,
+   auch nicht nach dem Online-Stellen.
+===================================================== */
+
+const API_BASE = (window.location.protocol === "file:")
+    ? "http://localhost:3000/api"
+    : (window.location.origin + "/api");
+const AUTH_TOKEN_KEY = "moviq_auth_token";
+
+async function apiFetch(path, options) {
+
+    options = options || {};
+
+    const headers = Object.assign(
+        { "Content-Type": "application/json" },
+        options.headers || {}
+    );
+
+    if (authToken) {
+        headers["Authorization"] = "Bearer " + authToken;
+    }
+
+    let response;
+
+    try {
+
+        response = await fetch(
+            API_BASE + path,
+            Object.assign({}, options, { headers: headers })
+        );
+
+    } catch (networkErr) {
+
+        throw new Error(
+            "Server nicht erreichbar. Läuft das MOVIQ-Backend gerade " +
+            "(node server.js)?"
+        );
+
+    }
+
+    const text = await response.text();
+
+    let data = null;
+
+    if (text) {
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            data = null;
+        }
+    }
+
+    if (!response.ok) {
+        const message = (data && data.error) || "Etwas ist schiefgelaufen.";
+        throw new Error(message);
+    }
+
+    return data;
+
+}
+
+
+
+/* =====================================================
+   VARIABLEN
+===================================================== */
+
+let selectedMainArea = "";
+
+let selectedSide = "";
+
+let selectedSubArea = "";
+
+let currentView = "front";
+
+const screens = [
+    "homeScreen",
+    "sectionScreen",
+    "startScreen",
+    "detailScreen",
+    "questionScreen",
+    "resultScreen",
+    "infoScreen",
+    "loginScreen",
+    "registerScreen",
+    "diaryScreen",
+    "shopScreen",
+    "wheelScreen",
+    "mythScreen",
+    "preventionScreen",
+    "workProfileScreen"
+];
+
+const DEFAULT_CAPTION = "Wähle eine Körperstelle";
+
+
+
+/* =====================================================
+   DETAILBEREICHE
+===================================================== */
+
+const subAreas = {
+
+    "Schulter": [
+        "Vordere Schulter",
+        "Seitliche Schulter",
+        "Hintere Schulter",
+        "Schulterblatt"
+    ],
+
+    "Arm": [
+        "Oberarm",
+        "Ellenbogen",
+        "Unterarm"
+    ],
+
+    "Hand": [
+        "Handfläche",
+        "Handrücken",
+        "Daumen",
+        "Finger"
+    ],
+
+    "Nacken": [
+        "Rechts",
+        "Links",
+        "Mitte",
+        "Übergang Nacken / Schulter"
+    ],
+
+    "Rücken": [
+        "Oberer Rücken",
+        "Mittlerer Rücken",
+        "Unterer Rücken",
+        "Lendenbereich"
+    ],
+
+    "Brust": [
+        "Rechts",
+        "Links",
+        "Mitte"
+    ],
+
+    "Bauch": [
+        "Oberer Bauch",
+        "Mittlerer Bauch",
+        "Unterer Bauch",
+        "Rechts",
+        "Links"
+    ],
+
+    "Becken": [
+        "Vorne",
+        "Hinten",
+        "Rechts",
+        "Links"
+    ],
+
+    "Oberschenkel": [
+        "Vorne",
+        "Hinten",
+        "Innenseite",
+        "Außenseite"
+    ],
+
+    "Knie": [
+        "Vorderseite",
+        "Innenseite",
+        "Außenseite",
+        "Rückseite / Kniekehle"
+    ],
+
+    "Unterschenkel": [
+        "Schienbein",
+        "Wade",
+        "Innenseite",
+        "Außenseite"
+    ],
+
+    "Fuß": [
+        "Ferse",
+        "Fußsohle",
+        "Fußrücken",
+        "Innenkante",
+        "Außenkante",
+        "Zehen"
+    ],
+
+    "Kopf": [
+        "Stirn",
+        "Schläfe",
+        "Hinterkopf",
+        "Gesicht"
+    ]
+
+};
+
+
+
+/* =====================================================
+   KÖRPERGRAFIK: SILHOUETTE
+   Es wird nur die linke Bildhälfte beschrieben (jedes
+   Segment: Kontrollpunkt 1, Kontrollpunkt 2, Endpunkt).
+   Die rechte Hälfte entsteht durch Spiegelung an x = 150.
+===================================================== */
+
+const SILHOUETTE_START = [150, 22];
+
+const SILHOUETTE_HALF = [
+    [131,  22, 117,  38, 117,  60],   /* Kopf              */
+    [117,  78, 126,  92, 137,  99],   /* Kiefer            */
+    [137, 108, 137, 117, 136, 124],   /* Hals              */
+    [126, 128, 114, 129, 104, 135],   /* Nacken zur Schulter */
+    [ 92, 137,  80, 144,  76, 157],   /* Schulterrundung   */
+    [ 72, 186,  62, 222,  55, 249],   /* Oberarm außen     */
+    [ 51, 274,  43, 310,  38, 338],   /* Unterarm außen    */
+    [ 35, 358,  28, 374,  30, 396],   /* Hand außen        */
+    [ 30, 410,  46, 412,  48, 399],   /* Fingerspitzen     */
+    [ 50, 374,  54, 356,  58, 339],   /* Hand innen        */
+    [ 62, 310,  76, 280,  82, 253],   /* Unterarm innen    */
+    [ 86, 229,  92, 205, 100, 184],   /* Oberarm innen     */
+    [104, 204, 109, 229, 108, 254],   /* Rumpf bis Taille  */
+    [107, 276,  90, 294,  90, 318],   /* Hüfte             */
+    [ 90, 356,  96, 424, 111, 479],   /* Oberschenkel außen */
+    [115, 502, 106, 516, 108, 542],   /* Knie zur Wade     */
+    [109, 568, 118, 585, 121, 602],   /* Wade zum Knöchel  */
+    [116, 613, 106, 622, 104, 633],   /* Fuß außen         */
+    [104, 642, 114, 642, 126, 641],   /* Zehen             */
+    [135, 640, 139, 631, 139, 620],   /* Fuß innen         */
+    [139, 596, 141, 568, 142, 542],   /* Wade innen        */
+    [142, 518, 145, 502, 145, 480],   /* Knie innen        */
+    [145, 441, 149, 407, 150, 372]    /* Oberschenkel innen bis Schritt */
+];
+
+function buildSilhouettePath() {
+
+    let d = "M" + SILHOUETTE_START.join(" ");
+
+    /* linke Hälfte, von oben nach unten */
+
+    SILHOUETTE_HALF.forEach(function(s) {
+        d += " C" + s.join(" ");
+    });
+
+    /* rechte Hälfte gespiegelt, von unten nach oben */
+
+    for (let i = SILHOUETTE_HALF.length - 1; i >= 0; i--) {
+
+        const s = SILHOUETTE_HALF[i];
+
+        const prev = i === 0
+            ? SILHOUETTE_START
+            : [SILHOUETTE_HALF[i - 1][4], SILHOUETTE_HALF[i - 1][5]];
+
+        d += " C" + [
+            300 - s[2], s[3],
+            300 - s[0], s[1],
+            300 - prev[0], prev[1]
+        ].join(" ");
+    }
+
+    return d + " Z";
+}
+
+const SILHOUETTE_PATH = buildSilhouettePath();
+
+
+
+/* =====================================================
+   KÖRPERGRAFIK: KLICKZONEN
+   pair: true  = wird für beide Körperhälften erzeugt
+                 (Geometrie gilt für die linke Bildhälfte)
+   views       = in welcher Ansicht die Zone existiert
+   Die Zonen werden auf die Silhouette zugeschnitten und
+   überlappen sich nicht.
+===================================================== */
+
+const ZONES = [
+
+    { area: "Kopf",   pts: "0,0 300,0 300,100 0,100" },
+
+    { area: "Nacken", pts: "118,100 182,100 182,131 118,131" },
+
+    { area: "Brust",  views: ["front"],
+      pts: "122,131 178,131 178,149 200,178 196,225 104,225 100,178 122,149" },
+
+    { area: "Bauch",  views: ["front"],
+      pts: "104,225 196,225 216,300 84,300" },
+
+    { area: "Rücken", views: ["back"],
+      pts: "122,131 178,131 178,149 200,178 196,225 216,300 84,300 104,225 100,178 122,149" },
+
+    { area: "Becken", pts: "70,300 230,300 230,367 70,367" },
+
+    { area: "Schulter",      pair: true, pts: "122,131 30,131 30,178 100,178 122,149" },
+
+    { area: "Arm",           pair: true, pts: "20,178 100,178 104,249 80,339 20,339" },
+
+    { area: "Hand",          pair: true, pts: "20,339 80,339 80,424 20,424" },
+
+    { area: "Oberschenkel",  pair: true, pts: "70,367 150,367 150,461 70,461" },
+
+    { area: "Knie",          pair: true, pts: "70,461 150,461 150,509 70,509" },
+
+    { area: "Unterschenkel", pair: true, pts: "70,509 150,509 150,598 70,598" },
+
+    { area: "Fuß",           pair: true, pts: "70,598 150,598 150,651 70,651" }
+
+];
+
+
+
+/* =====================================================
+   KÖRPERGRAFIK AUFBAUEN
+===================================================== */
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+let bodyCounter = 0;
+
+function makeZone(zone, view, mirrored) {
+
+    /* Seite aus Sicht der Person:
+       Vorne  -> linke Bildhälfte = rechte Körperseite
+       Hinten -> linke Bildhälfte = linke Körperseite */
+
+    let side = null;
+
+    if (zone.pair) {
+
+        const viewerLeftIsPersonRight = (view === "front");
+
+        side = (viewerLeftIsPersonRight !== mirrored)
+            ? "rechts"
+            : "links";
+    }
+
+    const label = side
+        ? zone.area + " " + side
+        : zone.area;
+
+    const el = document.createElementNS(SVG_NS, "polygon");
+
+    el.setAttribute("points", zone.pts);
+    el.setAttribute("class", "click-zone");
+    el.setAttribute("role", "button");
+    el.setAttribute("tabindex", "0");
+    el.setAttribute("aria-label", label);
+    el.dataset.label = label;
+
+    if (mirrored) {
+        el.setAttribute("transform", "translate(300 0) scale(-1 1)");
+    }
+
+    el.addEventListener("click", function() {
+        selectArea(zone.area, side);
+    });
+
+    el.addEventListener("keydown", function(event) {
+
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            selectArea(zone.area, side);
+        }
+
+    });
+
+    return el;
+}
+
+function makeFace() {
+
+    const face = document.createElementNS(SVG_NS, "g");
+
+    face.setAttribute("aria-hidden", "true");
+
+    const leftEye = document.createElementNS(SVG_NS, "circle");
+    leftEye.setAttribute("class", "face-eye");
+    leftEye.setAttribute("cx", "137");
+    leftEye.setAttribute("cy", "56");
+    leftEye.setAttribute("r", "3.2");
+
+    const rightEye = document.createElementNS(SVG_NS, "circle");
+    rightEye.setAttribute("class", "face-eye");
+    rightEye.setAttribute("cx", "163");
+    rightEye.setAttribute("cy", "56");
+    rightEye.setAttribute("r", "3.2");
+
+    const mouth = document.createElementNS(SVG_NS, "path");
+    mouth.setAttribute("class", "face-mouth");
+    mouth.setAttribute("d", "M136 76 Q150 85 164 76");
+
+    face.appendChild(leftEye);
+    face.appendChild(rightEye);
+    face.appendChild(mouth);
+
+    return face;
+}
+
+function makeBodySvg(view) {
+
+    bodyCounter++;
+
+    const clipId = "bodyClip" + bodyCounter;
+
+    const svg = document.createElementNS(SVG_NS, "svg");
+
+    svg.setAttribute("viewBox", "0 0 300 650");
+    svg.setAttribute("class", "body-svg");
+    svg.setAttribute("role", "group");
+    svg.setAttribute(
+        "aria-label",
+        view === "front" ? "Körper Vorderseite" : "Körper Rückseite"
+    );
+    svg.dataset.view = view;
+
+    /* Silhouette als Zuschnitt für die Klickzonen */
+
+    const defs = document.createElementNS(SVG_NS, "defs");
+    const clip = document.createElementNS(SVG_NS, "clipPath");
+    const clipPath = document.createElementNS(SVG_NS, "path");
+
+    clip.setAttribute("id", clipId);
+    clipPath.setAttribute("d", SILHOUETTE_PATH);
+
+    clip.appendChild(clipPath);
+    defs.appendChild(clip);
+    svg.appendChild(defs);
+
+    /* sichtbare Silhouette */
+
+    const silhouette = document.createElementNS(SVG_NS, "path");
+
+    silhouette.setAttribute("class", "silhouette");
+    silhouette.setAttribute("d", SILHOUETTE_PATH);
+
+    svg.appendChild(silhouette);
+
+    /* Gesicht: nur auf der Vorderseite, damit man Vorder- und
+       Rückseite auf einen Blick unterscheiden kann */
+
+    if (view === "front") {
+        svg.appendChild(makeFace());
+    }
+
+    /* Klickzonen */
+
+    const group = document.createElementNS(SVG_NS, "g");
+
+    group.setAttribute("clip-path", "url(#" + clipId + ")");
+
+    ZONES.forEach(function(zone) {
+
+        if (zone.views && zone.views.indexOf(view) === -1) {
+            return;
+        }
+
+        group.appendChild(makeZone(zone, view, false));
+
+        if (zone.pair) {
+            group.appendChild(makeZone(zone, view, true));
+        }
+
+    });
+
+    svg.appendChild(group);
+
+    return svg;
+}
+
+function buildBody(wrap) {
+
+    const holder = wrap.querySelector(".figure-svgs");
+    const caption = wrap.querySelector(".figure-caption");
+
+    holder.appendChild(makeBodySvg("front"));
+    holder.appendChild(makeBodySvg("back"));
+
+    caption.textContent = DEFAULT_CAPTION;
+
+    /* Name der Region unter der Grafik anzeigen */
+
+    function showLabel(event) {
+
+        const zone = event.target.closest(".click-zone");
+
+        if (zone) {
+            caption.textContent = zone.dataset.label;
+        }
+    }
+
+    function resetLabel() {
+        caption.textContent = DEFAULT_CAPTION;
+    }
+
+    holder.addEventListener("mouseover", showLabel);
+    holder.addEventListener("focusin", showLabel);
+    holder.addEventListener("mouseleave", resetLabel);
+    holder.addEventListener("focusout", resetLabel);
+}
+
+
+
+/* =====================================================
+   BILDSCHIRM WECHSELN
+===================================================== */
+
+function showScreen(id) {
+
+    closeMenu();
+
+    screens.forEach(function(screenId) {
+
+        const el = document.getElementById(screenId);
+
+        el.classList.toggle("hidden", screenId !== id);
+
+        if (screenId === id) {
+            el.classList.remove("enter");
+            void el.offsetWidth;
+            el.classList.add("enter");
+        }
+
+    });
+
+    window.scrollTo(0, 0);
+
+}
+
+
+
+/* =====================================================
+   STARTSEITE
+===================================================== */
+
+function showHome() {
+
+    selectedMainArea = "";
+
+    selectedSide = "";
+
+    showFront();
+
+    showScreen("homeScreen");
+
+    if (isLoggedIn) {
+        refreshProfileCard();
+    }
+
+}
+
+
+
+/* =====================================================
+   BESCHWERDEN-ANALYSE STARTEN
+===================================================== */
+
+function startAnalysis() {
+
+    if (!isLoggedIn) {
+        showRegister();
+        return;
+    }
+
+    showScreen("startScreen");
+
+}
+
+
+
+/* =====================================================
+   NOCH NICHT PROGRAMMIERTE BEREICHE
+===================================================== */
+
+function openSection(title) {
+
+    if (!isLoggedIn) {
+        showRegister();
+        return;
+    }
+
+    document
+        .getElementById("sectionTitle")
+        .innerText = title;
+
+    showScreen("sectionScreen");
+
+}
+
+
+
+/* =====================================================
+   KÖRPERREGION AUSWÄHLEN
+===================================================== */
+
+function selectArea(area, side) {
+
+    selectedMainArea = area;
+
+    selectedSide = side;
+
+    showDetailScreen();
+
+}
+
+function areaTitle() {
+
+    let title = selectedMainArea;
+
+    if (selectedSide) {
+        title += " " + selectedSide;
+    }
+
+    return title;
+
+}
+
+
+
+/* =====================================================
+   DETAILSCREEN
+===================================================== */
+
+function showDetailScreen() {
+
+    showScreen("detailScreen");
+
+    document
+        .getElementById("detailTitle")
+        .innerText = areaTitle();
+
+
+    /* Buttons erzeugen */
+
+    const grid =
+        document.getElementById("detailGrid");
+
+    grid.innerHTML = "";
+
+    const areas =
+        subAreas[selectedMainArea] || [];
+
+    areas.forEach(function(area) {
+
+        const button =
+            document.createElement("button");
+
+        button.className =
+            "detail-button";
+
+        button.innerText =
+            area;
+
+        button.onclick =
+            function() {
+
+                chooseSpecificArea(area);
+
+            };
+
+        grid.appendChild(button);
+
+    });
+
+}
+
+
+
+/* =====================================================
+   DETAILBEREICH AUSWÄHLEN
+===================================================== */
+
+function chooseSpecificArea(area) {
+
+    selectedSubArea = area;
+
+    startQuestionnaire();
+
+}
+
+
+
+/* =====================================================
+   FRAGEBOGEN: FRAGT JEWEILS DIE NÄCHSTLOGISCHE FRAGE
+   (Fragen und Verzweigungen wie bei einer adaptiven
+   Anamnese – je nach Antwort wird die passende
+   Folgefrage angezeigt, ähnlich einem Entscheidungsbaum.)
+===================================================== */
+
+const QUESTION_FLOW = {
+
+    quality: {
+        text: "Wie würdest du den Schmerz am ehesten beschreiben?",
+        type: "choice",
+        options: [
+            { value: "stechend", label: "Stechend" },
+            { value: "dumpf", label: "Dumpf / drückend" },
+            { value: "brennend", label: "Brennend" },
+            { value: "ziehend", label: "Ziehend" },
+            { value: "pochend", label: "Pochend" },
+            { value: "taub", label: "Taub / kribbelnd" }
+        ],
+        next: function() { return "onset"; }
+    },
+
+    onset: {
+        text: "Wie haben die Beschwerden begonnen?",
+        type: "choice",
+        options: [
+            { value: "ploetzlich", label: "Plötzlich, z. B. durch ein bestimmtes Ereignis" },
+            { value: "schleichend", label: "Schleichend, über einen längeren Zeitraum" }
+        ],
+        next: function(answers) {
+
+            if (answers.onset.value === "ploetzlich") {
+                delete questionAnswers.load;
+                return "injuryEvent";
+            }
+
+            delete questionAnswers.injuryEvent;
+            return "load";
+
+        }
+    },
+
+    injuryEvent: {
+        text: "Gab es ein konkretes Ereignis dafür (z. B. Sturz, Verdrehen, Heben)?",
+        type: "choice",
+        options: [
+            { value: "ja", label: "Ja, ein bestimmtes Ereignis" },
+            { value: "nein", label: "Nein, es kam einfach so" }
+        ],
+        next: function() { return "duration"; }
+    },
+
+    load: {
+        text: "Wie würdest du deine tägliche Belastung in diesem Bereich einschätzen?",
+        type: "choice",
+        options: [
+            { value: "hoch", label: "Hohe Belastung, z. B. Sport oder körperliche Arbeit" },
+            { value: "sitzend", label: "Überwiegend sitzende Tätigkeit" },
+            { value: "gemischt", label: "Eher gering oder gemischt" }
+        ],
+        next: function() { return "duration"; }
+    },
+
+    duration: {
+        text: "Wie lange bestehen die Beschwerden schon?",
+        type: "choice",
+        options: [
+            { value: "tage", label: "Seit wenigen Tagen" },
+            { value: "wochen", label: "Seit einigen Wochen" },
+            { value: "monate", label: "Seit mehreren Monaten" }
+        ],
+        next: function() { return "trigger"; }
+    },
+
+    trigger: {
+        text: "Wann treten die Beschwerden vor allem auf?",
+        type: "choice",
+        options: [
+            { value: "bewegung", label: "Bei Bewegung oder Belastung" },
+            { value: "ruhe", label: "In Ruhe" },
+            { value: "nachts", label: "Nachts" },
+            { value: "morgens", label: "Morgens nach dem Aufstehen" }
+        ],
+        next: function() { return "radiating"; }
+    },
+
+    radiating: {
+        text: "Strahlen die Beschwerden in angrenzende Bereiche aus?",
+        type: "choice",
+        options: [
+            { value: "ja", label: "Ja" },
+            { value: "nein", label: "Nein, bleiben lokal begrenzt" }
+        ],
+        next: function() { return "intensity"; }
+    },
+
+    intensity: {
+        text: "Wie stark sind die Beschwerden gerade, auf einer Skala von 0 bis 10?",
+        type: "scale",
+        next: function() { return null; }
+    }
+
+};
+
+/* Feste Reihenfolge für die Zusammenfassung am Ende. */
+
+const QUESTION_SUMMARY_ORDER = [
+    "quality", "onset", "injuryEvent", "load",
+    "duration", "trigger", "radiating", "intensity"
+];
+
+const QUESTION_SUMMARY_LABELS = {
+    quality: "Schmerzqualität",
+    onset: "Beginn",
+    injuryEvent: "Ereignis",
+    load: "Belastung",
+    duration: "Dauer",
+    trigger: "Tritt vor allem auf",
+    radiating: "Ausstrahlung",
+    intensity: "Intensität"
+};
+
+const QUESTION_TOTAL = 7;
+
+/* =====================================================
+   MUSTER-EINSCHÄTZUNG (siehe Kommentar bei .analysis-block)
+   Jedes Muster prüft eine bestimmte Kombination von Antworten.
+   Passen mehrere Muster, gewinnt das mit dem höheren Gewicht,
+   also das speziellere/treffendere. Das "allgemein"-Muster mit
+   Gewicht 0 greift immer, wenn nichts Spezifischeres passt.
+===================================================== */
+
+function qv(key) {
+    return questionAnswers[key] ? questionAnswers[key].value : undefined;
+}
+
+const ANALYSIS_PATTERNS = [
+
+    {
+        id: "akute-ueberlastung",
+        weight: 3,
+        match: function() {
+            return qv("onset") === "ploetzlich" &&
+                   qv("injuryEvent") === "ja" &&
+                   (qv("duration") === "tage" || qv("duration") === "wochen");
+        },
+        text: function(area) {
+            return "Ein plötzlicher Beginn durch ein konkretes Ereignis, kombiniert mit " +
+                   "der noch kurzen Dauer, passt zu einem Muster, wie es häufig nach einer " +
+                   "akuten Überlastung oder kleineren Verletzung im Bereich " + area +
+                   " auftritt.";
+        },
+        advice: [
+            "In den ersten Tagen den Bereich schonen, aber nicht komplett ruhigstellen.",
+            "Kühlen kann bei akuten, entzündlich wirkenden Beschwerden guttun.",
+            "Wenn die Beschwerden nach einigen Tagen nicht spürbar nachlassen oder sich verschlimmern, ärztlich oder physiotherapeutisch abklären lassen."
+        ]
+    },
+
+    {
+        id: "chronisch-mechanisch",
+        weight: 3,
+        match: function() {
+            return qv("onset") === "schleichend" &&
+                   (qv("load") === "hoch" || qv("load") === "sitzend") &&
+                   (qv("quality") === "dumpf" || qv("quality") === "ziehend") &&
+                   (qv("duration") === "wochen" || qv("duration") === "monate");
+        },
+        text: function(area) {
+            return "Der schleichende Beginn, die längere Dauer und der dumpf-ziehende " +
+                   "Charakter passen zu einem Muster, das oft mit wiederkehrender " +
+                   "Belastung oder ungünstiger Haltung im Bereich " + area +
+                   " zusammenhängt.";
+        },
+        advice: [
+            "Gezielte Kräftigung und Beweglichkeitsübungen wirken bei diesem Muster oft unterstützend.",
+            "Ergonomie am Arbeitsplatz oder Trainingsplatz sowie regelmäßige Bewegungspausen können entlasten.",
+            "Physiotherapie kann helfen, die genaue Ursache einzugrenzen und ein passendes Übungsprogramm zu erstellen."
+        ]
+    },
+
+    {
+        id: "nervale-reizung",
+        weight: 4,
+        match: function() {
+            return (qv("quality") === "brennend" || qv("quality") === "taub") &&
+                   qv("radiating") === "ja";
+        },
+        text: function(area) {
+            return "Brennende oder taube Beschwerden, die in angrenzende Bereiche " +
+                   "ausstrahlen, können auf eine Reizung eines Nervs im Bereich " + area +
+                   " hindeuten. Das lässt sich aus der Ferne nicht sicher einordnen.";
+        },
+        advice: [
+            "Lass diese Kombination möglichst zeitnah ärztlich oder physiotherapeutisch abklären.",
+            "Achte auf Begleitsymptome wie Kraftverlust oder zunehmende Taubheit und erwähne sie beim Termin."
+        ]
+    },
+
+    {
+        id: "naechtlich-betont",
+        weight: 2,
+        match: function() {
+            return qv("trigger") === "nachts" &&
+                   qv("onset") === "schleichend" &&
+                   (qv("duration") === "wochen" || qv("duration") === "monate");
+        },
+        text: function(area) {
+            return "Beschwerden im Bereich " + area + ", die sich schleichend entwickelt " +
+                   "haben und vor allem nachts auffallen, können unterschiedliche Ursachen " +
+                   "haben und lassen sich am besten ärztlich einordnen.";
+        },
+        advice: [
+            "Eine ärztliche Abklärung ist bei nächtlich betonten, länger bestehenden Beschwerden sinnvoll.",
+            "Notiere dir, ob bestimmte Positionen die Beschwerden lindern oder verstärken – das hilft bei der Einordnung."
+        ]
+    },
+
+    {
+        id: "belastungsabhaengig",
+        weight: 1,
+        match: function() {
+            return qv("trigger") === "bewegung" && qv("radiating") === "nein";
+        },
+        text: function(area) {
+            return "Deine Beschwerden im Bereich " + area + " treten vor allem bei " +
+                   "Bewegung oder Belastung auf und bleiben dabei lokal begrenzt – das " +
+                   "passt zu einem eher mechanisch/belastungsabhängigen Muster.";
+        },
+        advice: [
+            "Beobachte, bei welchen Bewegungen die Beschwerden genau auftreten.",
+            "Ein angepasstes, schrittweises Belastungsaufbau-Programm hilft bei diesem Muster oft am meisten.",
+            "Physiotherapie kann die passende Dosierung für Training und Alltag finden."
+        ]
+    },
+
+    {
+        id: "allgemein",
+        weight: 0,
+        match: function() { return true; },
+        text: function(area) {
+            return "Aus deinen Angaben lässt sich noch kein eindeutiges Muster ableiten. " +
+                   "Beobachte, wie sich die Beschwerden im Bereich " + area +
+                   " über die nächsten Tage entwickeln.";
+        },
+        advice: [
+            "Trag deine Beschwerden im Tagebuch ein, um Entwicklung und Auslöser besser zu erkennen.",
+            "Bei Unsicherheit hilft eine physiotherapeutische Einschätzung, die Ursache einzugrenzen."
+        ]
+    }
+
+];
+
+function pickAnalysisPattern() {
+
+    let best = null;
+
+    ANALYSIS_PATTERNS.forEach(function(pattern) {
+
+        if (pattern.match() && (!best || pattern.weight > best.weight)) {
+            best = pattern;
+        }
+
+    });
+
+    return best;
+
+}
+
+function checkRedFlags() {
+
+    const intensity = qv("intensity");
+    const quality = qv("quality");
+    const radiating = qv("radiating");
+
+    if (typeof intensity === "number" && intensity >= 8 &&
+        (radiating === "ja" || quality === "taub")) {
+        return "Deine Angaben zeigen eine hohe Schmerzstärke in Kombination mit " +
+               "Ausstrahlung bzw. Taubheitsgefühl. Das solltest du zeitnah ärztlich " +
+               "abklären lassen, statt abzuwarten.";
+    }
+
+    if (typeof intensity === "number" && intensity >= 9) {
+        return "Eine Schmerzstärke in diesem Bereich ist ein deutliches Warnsignal. " +
+               "Bitte lass das zeitnah ärztlich abklären.";
+    }
+
+    return null;
+
+}
+
+let questionAnswers = {};
+let questionHistory = [];
+let currentQuestionId = "quality";
+
+function startQuestionnaire() {
+
+    questionAnswers = {};
+    questionHistory = [];
+    currentQuestionId = "quality";
+
+    renderQuestion();
+
+    showScreen("questionScreen");
+
+}
+
+function renderQuestion() {
+
+    const step = QUESTION_FLOW[currentQuestionId];
+
+    document
+        .getElementById("questionProgress")
+        .innerText = "Frage " + (questionHistory.length + 1) + " von " + QUESTION_TOTAL;
+
+    document
+        .getElementById("questionText")
+        .innerText = step.text;
+
+    const optionsWrap = document.getElementById("questionOptions");
+    const scaleWrap = document.getElementById("questionScaleWrap");
+
+    optionsWrap.innerHTML = "";
+
+    if (step.type === "scale") {
+
+        optionsWrap.classList.add("hidden");
+        scaleWrap.classList.remove("hidden");
+
+        const previous = questionAnswers[currentQuestionId];
+
+        const input = document.getElementById("questionScaleInput");
+        input.value = previous ? previous.value : 5;
+
+        updateQuestionScaleReadout();
+
+        return;
+    }
+
+    scaleWrap.classList.add("hidden");
+    optionsWrap.classList.remove("hidden");
+
+    const previous = questionAnswers[currentQuestionId];
+
+    step.options.forEach(function(option) {
+
+        const button = document.createElement("button");
+
+        button.className = "detail-button";
+
+        if (previous && previous.value === option.value) {
+            button.classList.add("is-selected");
+        }
+
+        button.innerText = option.label;
+
+        button.onclick = function() {
+            answerQuestion(option);
+        };
+
+        optionsWrap.appendChild(button);
+
+    });
+
+}
+
+function answerQuestion(option) {
+
+    questionAnswers[currentQuestionId] = option;
+
+    questionHistory.push(currentQuestionId);
+
+    const step = QUESTION_FLOW[currentQuestionId];
+
+    const next = step.next(questionAnswers);
+
+    if (next === null) {
+        showResultScreen();
+        return;
+    }
+
+    currentQuestionId = next;
+
+    renderQuestion();
+
+}
+
+function updateQuestionScaleReadout() {
+
+    const input = document.getElementById("questionScaleInput");
+    const badge = document.getElementById("questionScaleValue");
+
+    badge.innerText = input.value;
+    badge.style.background = vasColor(Number(input.value));
+
+}
+
+function submitScaleAnswer() {
+
+    const value = Number(
+        document.getElementById("questionScaleInput").value
+    );
+
+    answerQuestion({ value: value, label: value + " / 10" });
+
+}
+
+function questionGoBack() {
+
+    if (questionHistory.length === 0) {
+        showDetailScreen();
+        return;
+    }
+
+    currentQuestionId = questionHistory.pop();
+
+    renderQuestion();
+
+}
+
+function showResultScreen() {
+
+    document
+        .getElementById("resultTitle")
+        .innerText = areaTitle() + " – " + selectedSubArea;
+
+    const area = (areaTitle() + " " + selectedSubArea).trim();
+
+    const pattern = pickAnalysisPattern();
+
+    document.getElementById("resultNarrative").innerText = pattern.text(area);
+
+    const adviceList = document.getElementById("resultAdvice");
+
+    adviceList.innerHTML = "";
+
+    pattern.advice.forEach(function(item) {
+        const li = document.createElement("li");
+        li.innerText = item;
+        adviceList.appendChild(li);
+    });
+
+    const redflagText = checkRedFlags();
+    const redflagBox = document.getElementById("resultRedflag");
+
+    if (redflagText) {
+        redflagBox.innerText = "⚠ " + redflagText;
+        redflagBox.classList.remove("hidden");
+    } else {
+        redflagBox.classList.add("hidden");
+    }
+
+    const list = document.getElementById("resultDetails");
+
+    list.innerHTML = "";
+
+    QUESTION_SUMMARY_ORDER.forEach(function(key) {
+
+        const answer = questionAnswers[key];
+
+        if (!answer) {
+            return;
+        }
+
+        const dt = document.createElement("dt");
+        dt.innerText = QUESTION_SUMMARY_LABELS[key];
+
+        const dd = document.createElement("dd");
+        dd.innerText = answer.label;
+
+        list.appendChild(dt);
+        list.appendChild(dd);
+
+    });
+
+    showScreen("resultScreen");
+
+}
+
+
+
+/* =====================================================
+   VORDER- UND RÜCKSEITE
+===================================================== */
+
+function setView(view) {
+
+    currentView = view;
+
+    document.querySelectorAll(".body-svg").forEach(function(svg) {
+
+        svg.classList.toggle("hidden", svg.dataset.view !== view);
+
+    });
+
+    document.querySelectorAll(".view-btn").forEach(function(button) {
+
+        const active = button.dataset.view === view;
+
+        button.classList.toggle("active", active);
+
+        button.setAttribute("aria-pressed", active);
+
+    });
+
+}
+
+function showFront() {
+
+    setView("front");
+
+}
+
+function showBack() {
+
+    setView("back");
+
+}
+
+
+
+/* =====================================================
+   ZURÜCK (vom Detailscreen zur Körperauswahl)
+===================================================== */
+
+function goBack() {
+
+    showScreen("startScreen");
+
+}
+
+
+
+/* =====================================================
+   NEUE AUSWAHL (zurück zur Körperauswahl)
+===================================================== */
+
+function restart() {
+
+    selectedMainArea = "";
+
+    selectedSide = "";
+
+    selectedSubArea = "";
+
+    questionAnswers = {};
+
+    questionHistory = [];
+
+    showFront();
+
+    showScreen("startScreen");
+
+}
+
+
+
+/* =====================================================
+   DROPDOWN-MENÜ
+===================================================== */
+
+function toggleMenu() {
+
+    const panel = document.getElementById("menuPanel");
+
+    if (panel.classList.contains("hidden")) {
+
+        panel.classList.remove("hidden");
+
+        document
+            .getElementById("menuButton")
+            .setAttribute("aria-expanded", "true");
+
+    } else {
+
+        closeMenu();
+
+    }
+
+}
+
+function closeMenu() {
+
+    document
+        .getElementById("menuPanel")
+        .classList
+        .add("hidden");
+
+    document
+        .getElementById("menuButton")
+        .setAttribute("aria-expanded", "false");
+
+}
+
+/* Menü schließen: Klick daneben oder Escape */
+
+document.addEventListener("click", function(event) {
+
+    if (!event.target.closest(".menu-wrap")) {
+        closeMenu();
+    }
+
+});
+
+document.addEventListener("keydown", function(event) {
+
+    if (event.key === "Escape") {
+
+        const wasOpen =
+            !document
+                .getElementById("menuPanel")
+                .classList
+                .contains("hidden");
+
+        closeMenu();
+
+        if (wasOpen) {
+            document.getElementById("menuButton").focus();
+        }
+    }
+
+});
+
+
+
+/* =====================================================
+   INFOSEITEN
+   Gelb hinterlegte Stellen (.placeholder) sind Platzhalter
+   und müssen durch echte Angaben ersetzt werden.
+===================================================== */
+
+const PAGES = {
+
+    "ueber-uns": {
+        title: "Über uns",
+        html: `
+            <h3>Wer wir sind</h3>
+
+            <p>
+                Hey! Wir sind MOVIQ. Wir verbinden Physiotherapie mit
+                künstlicher Intelligenz. Unser Ziel ist es, Menschen
+                einen einfacheren und niedrigschwelligen Zugang zu
+                physiotherapeutischem Wissen zu ermöglichen und sie
+                dabei zu unterstützen, Beschwerden besser zu verstehen
+                und im Alltag damit umzugehen.
+            </p>
+
+            <h3>Was uns antreibt</h3>
+
+            <p>
+                Wir sind überzeugt: Gesundheit sollte für alle
+                zugänglich sein. In einem Zeitalter, wo Gesundheit am
+                Arbeitsplatz immer wichtiger wird, möchten wir
+                Unternehmen einen schnellen Zugang zu moderner
+                Physiotherapie verschaffen. Mit MOVIQ möchten wir die
+                Möglichkeiten von KI sinnvoll in die Physiotherapie
+                integrieren und Menschen dort unterstützen, wo
+                Beschwerden entstehen.
+            </p>
+
+            <p>
+                Gemeinsam mit Unternehmen möchten wir deutschlandweit
+                einen Beitrag zu mehr Gesundheit am Arbeitsplatz
+                leisten. Denn weniger Beschwerden, mehr Bewegung und
+                ein bewussterer Umgang mit dem eigenen Körper können
+                langfristig zu mehr Wohlbefinden und Lebensqualität
+                beitragen.
+            </p>
+
+            <h3>Unser Team</h3>
+
+            <div class="team-member">
+                <p class="team-name">Leo — Physiotherapeut &amp; Gründer von MOVIQ</p>
+                <p>
+                    Leo ist 23 Jahre alt und ausgebildeter
+                    Physiotherapeut. Seine praktische Erfahrung aus der
+                    Physiotherapie verbindet er mit seiner Begeisterung
+                    für moderne Technologien und künstliche Intelligenz.
+                </p>
+                <p>
+                    Mit MOVIQ verfolgt er die Vision, physiotherapeutisches
+                    Wissen für mehr Menschen zugänglich zu machen und die
+                    klassische Physiotherapie durch intelligente digitale
+                    Lösungen sinnvoll zu ergänzen.
+                </p>
+            </div>
+        `
+    },
+
+    "kontakt": {
+        title: "Kontakt",
+        html: `
+            <p>Wir freuen uns auf deine Nachricht.</p>
+            <dl>
+                <dt>E-Mail</dt>
+                <dd><span class="placeholder">[E-Mail-Adresse]</span></dd>
+
+                <dt>Telefon</dt>
+                <dd><span class="placeholder">[Telefonnummer]</span></dd>
+
+                <dt>Adresse</dt>
+                <dd><span class="placeholder">[Straße, PLZ, Ort]</span></dd>
+
+                <dt>Erreichbarkeit</dt>
+                <dd><span class="placeholder">[Zeiten]</span></dd>
+            </dl>
+        `
+    },
+
+    "faq": {
+        title: "Häufige Fragen",
+        html: `
+            <div class="faq">
+
+                <details>
+                    <summary>Ersetzt die Analyse einen Arztbesuch?</summary>
+                    <p>Nein. Die Analyse ist eine erste Orientierung und keine Diagnose. Bei starken Schmerzen, Taubheitsgefühlen, Fieber oder Lähmungserscheinungen wende dich bitte an eine Ärztin oder einen Arzt.</p>
+                </details>
+
+                <details>
+                    <summary>Wie vereinbare ich einen Termin?</summary>
+                    <p><span class="placeholder">[Antwort]</span></p>
+                </details>
+
+                <details>
+                    <summary>Was kostet MOVIQ?</summary>
+                    <p><span class="placeholder">[Antwort]</span></p>
+                </details>
+
+                <details>
+                    <summary>Was passiert mit meinen Daten?</summary>
+                    <p><span class="placeholder">[Antwort, mit Verweis auf die Datenschutzerklärung]</span></p>
+                </details>
+
+            </div>
+        `
+    },
+
+    "impressum": {
+        title: "Impressum",
+        html: `
+            <p>Angaben gemäß § 5 DDG</p>
+
+            <h3>Anbieter</h3>
+            <p><span class="placeholder">[Name bzw. Firma, Rechtsform]</span></p>
+            <p><span class="placeholder">[Straße, PLZ, Ort]</span></p>
+
+            <h3>Kontakt</h3>
+            <p><span class="placeholder">[E-Mail-Adresse, Telefonnummer]</span></p>
+
+            <h3>Berufsbezeichnung und berufsrechtliche Regelungen</h3>
+            <p><span class="placeholder">[falls zutreffend]</span></p>
+
+            <h3>Umsatzsteuer-Identifikationsnummer</h3>
+            <p><span class="placeholder">[falls vorhanden]</span></p>
+
+            <h3>Verantwortlich für den Inhalt</h3>
+            <p><span class="placeholder">[Name und Anschrift]</span></p>
+        `
+    },
+
+    "datenschutz": {
+        title: "Datenschutz",
+        html: `
+            <h3>Verantwortlicher</h3>
+            <p><span class="placeholder">[Name und Kontaktdaten]</span></p>
+
+            <h3>Welche Daten wir verarbeiten</h3>
+            <p><span class="placeholder">[z. B. Account-Daten, Angaben in der Beschwerdeanalyse, Kontaktanfragen]</span></p>
+
+            <h3>Zwecke und Rechtsgrundlagen</h3>
+            <p><span class="placeholder">[Text]</span></p>
+
+            <h3>Deine Rechte</h3>
+            <p><span class="placeholder">[Auskunft, Berichtigung, Löschung, Widerspruch, Beschwerde bei der Aufsichtsbehörde]</span></p>
+        `
+    }
+
+};
+
+function openPage(key) {
+
+    const page = PAGES[key];
+
+    document.getElementById("infoTitle").innerText = page.title;
+
+    document.getElementById("infoBody").innerHTML = page.html;
+
+    showScreen("infoScreen");
+
+}
+
+
+
+/* =====================================================
+   LOGIN UND ACCOUNT
+   Spricht das MOVIQ-Backend an (siehe API_BASE oben): echte
+   Accounts mit Passwort, echtes Sitzungstoken. Nur das Token
+   selbst liegt im Browser (localStorage) – alle eigentlichen
+   Daten liegen serverseitig in der Datenbank.
+===================================================== */
+
+let isLoggedIn = false;
+let authToken = null;
+let currentUser = null;
+let workProfile = null;
+
+async function loadAuthState() {
+
+    try {
+        authToken = localStorage.getItem(AUTH_TOKEN_KEY);
+    } catch (e) {
+        authToken = null;
+    }
+
+    if (!authToken) {
+        isLoggedIn = false;
+        return;
+    }
+
+    try {
+
+        const data = await apiFetch("/auth/me");
+
+        currentUser = data.user;
+        isLoggedIn = true;
+
+    } catch (e) {
+
+        // Token abgelaufen/ungültig oder Server gerade nicht erreichbar:
+        // sicherheitshalber als abgemeldet behandeln.
+        clearAuthToken();
+        currentUser = null;
+        isLoggedIn = false;
+
+    }
+
+}
+
+function persistAuthToken(token) {
+
+    authToken = token;
+
+    try {
+        localStorage.setItem(AUTH_TOKEN_KEY, token);
+    } catch (e) {
+        /* z. B. privater Modus: Sitzung gilt dann nur für diesen Tab */
+    }
+
+}
+
+function clearAuthToken() {
+
+    authToken = null;
+
+    try {
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+    } catch (e) {
+        /* nichts zu tun */
+    }
+
+}
+
+function updateAuthUI() {
+
+    document.querySelectorAll(".auth-in").forEach(function(el) {
+        el.classList.toggle("hidden", !isLoggedIn);
+    });
+
+    document.querySelectorAll(".auth-out").forEach(function(el) {
+        el.classList.toggle("hidden", isLoggedIn);
+    });
+
+}
+
+function showLogin() {
+
+    document.getElementById("loginNote").classList.add("hidden");
+
+    document.getElementById("loginError").innerText = "";
+
+    showScreen("loginScreen");
+
+}
+
+function showRegister() {
+
+    document.getElementById("registerNote").classList.add("hidden");
+
+    document.getElementById("registerError").innerText = "";
+
+    showScreen("registerScreen");
+
+}
+
+async function handleLogin(event) {
+
+    event.preventDefault();
+
+    const email = document.getElementById("loginEmail").value.trim();
+
+    const password = document.getElementById("loginPassword").value;
+
+    const errorEl = document.getElementById("loginError");
+
+    const submitBtn = event.target.querySelector("button[type=submit]");
+
+    errorEl.innerText = "";
+
+    submitBtn.disabled = true;
+
+    try {
+
+        const data = await apiFetch("/auth/login", {
+            method: "POST",
+            body: JSON.stringify({ email: email, password: password })
+        });
+
+        persistAuthToken(data.token);
+
+        currentUser = data.user;
+
+        isLoggedIn = true;
+
+        updateAuthUI();
+
+        document.getElementById("loginPassword").value = "";
+
+        showHome();
+
+    } catch (err) {
+
+        errorEl.innerText = err.message;
+
+    } finally {
+
+        submitBtn.disabled = false;
+
+    }
+
+}
+
+async function handleRegister(event) {
+
+    event.preventDefault();
+
+    const error = document.getElementById("registerError");
+
+    const name = document.getElementById("regName").value.trim();
+
+    const email = document.getElementById("regEmail").value.trim();
+
+    const password = document.getElementById("regPassword").value;
+
+    const repeat = document.getElementById("regPassword2").value;
+
+    const submitBtn = event.target.querySelector("button[type=submit]");
+
+    if (password !== repeat) {
+
+        error.innerText = "Die beiden Passwörter stimmen nicht überein.";
+
+        return;
+    }
+
+    error.innerText = "";
+
+    submitBtn.disabled = true;
+
+    try {
+
+        const data = await apiFetch("/auth/register", {
+            method: "POST",
+            body: JSON.stringify({ name: name, email: email, password: password })
+        });
+
+        persistAuthToken(data.token);
+
+        currentUser = data.user;
+
+        isLoggedIn = true;
+
+        workProfile = null;
+
+        updateAuthUI();
+
+        document.getElementById("regPassword").value = "";
+
+        document.getElementById("regPassword2").value = "";
+
+        openWorkProfile(null);
+
+    } catch (err) {
+
+        error.innerText = err.message;
+
+    } finally {
+
+        submitBtn.disabled = false;
+
+    }
+
+}
+
+async function handleLogout() {
+
+    const tokenToRevoke = authToken;
+
+    isLoggedIn = false;
+
+    currentUser = null;
+
+    workProfile = null;
+
+    clearAuthToken();
+
+    updateAuthUI();
+
+    document.getElementById("profileCard").innerHTML = "";
+
+    showHome();
+
+    if (tokenToRevoke) {
+
+        try {
+
+            await fetch(API_BASE + "/auth/logout", {
+                method: "POST",
+                headers: { "Authorization": "Bearer " + tokenToRevoke }
+            });
+
+        } catch (e) {
+            /* lokal ist der Nutzer so oder so abgemeldet */
+        }
+
+    }
+
+}
+
+
+
+/* =====================================================
+   ARBEITSPROFIL
+   Wird nach der Registrierung abgefragt (und lässt sich später
+   jederzeit über die Profil-Karte auf der Startseite bearbeiten).
+   Grob nach Branchen sortiert, damit jeder Beruf einen passenden
+   Bereich findet; "Anderer Beruf" fängt alles Übrige auf.
+===================================================== */
+
+const JOB_CATEGORIES = [
+    {
+        name: "Gesundheit & Pflege",
+        jobs: [
+            "Ärztin/Arzt", "Gesundheits- und Krankenpfleger/in", "Altenpfleger/in",
+            "Physiotherapeut/in", "Ergotherapeut/in", "Logopäde/Logopädin",
+            "Hebamme/Entbindungspfleger", "Rettungssanitäter/in", "Notfallsanitäter/in",
+            "Zahnärztin/Zahnarzt", "Zahnmedizinische/r Fachangestellte/r (ZFA)",
+            "Medizinische/r Fachangestellte/r (MFA)", "Apotheker/in",
+            "Pharmazeutisch-technische/r Assistent/in (PTA)", "Heilpraktiker/in",
+            "Psychotherapeut/in"
+        ]
+    },
+    {
+        name: "Soziales & Erziehung",
+        jobs: [
+            "Erzieher/in", "Sozialarbeiter/in", "Sozialpädagoge/Sozialpädagogin",
+            "Heilerziehungspfleger/in", "Kinderpfleger/in", "Tagesmutter/Tagesvater",
+            "Streetworker/in", "Suchtberater/in", "Familienhelfer/in",
+            "Betreuungskraft (Senioren)"
+        ]
+    },
+    {
+        name: "Bildung & Lehre",
+        jobs: [
+            "Grundschullehrer/in", "Lehrer/in (weiterführende Schule)",
+            "Berufsschullehrer/in", "Hochschuldozent/in", "Professor/in",
+            "Nachhilfelehrer/in", "Ausbilder/in", "Referent/in (Weiterbildung)",
+            "Bibliothekar/in", "Schulbegleiter/in"
+        ]
+    },
+    {
+        name: "Handwerk & Bau",
+        jobs: [
+            "Elektriker/in", "Tischler/in", "Maurer/in", "Dachdecker/in",
+            "Maler/in & Lackierer/in", "Klempner/in",
+            "Installateur/in (Sanitär/Heizung)", "Zimmermann/Zimmerin",
+            "Fliesenleger/in", "Schweißer/in", "Metallbauer/in",
+            "Kfz-Mechatroniker/in", "Straßenbauer/in", "Gerüstbauer/in"
+        ]
+    },
+    {
+        name: "IT & Technik",
+        jobs: [
+            "Softwareentwickler/in", "Systemadministrator/in",
+            "IT-Support-Mitarbeiter/in", "Data Scientist", "UX/UI-Designer/in",
+            "Netzwerktechniker/in", "DevOps-Ingenieur/in", "IT-Projektleiter/in",
+            "Cybersecurity-Spezialist/in"
+        ]
+    },
+    {
+        name: "Technik & Ingenieurwesen",
+        jobs: [
+            "Maschinenbauingenieur/in", "Elektroingenieur/in", "Bauingenieur/in",
+            "Verfahrenstechniker/in", "Elektroniker/in für Betriebstechnik",
+            "Technische/r Zeichner/in", "Mechatroniker/in", "Qualitätsingenieur/in"
+        ]
+    },
+    {
+        name: "Büro & Verwaltung",
+        jobs: [
+            "Bürokauffrau/-mann", "Sachbearbeiter/in", "Personalreferent/in",
+            "Assistenz der Geschäftsführung", "Buchhalter/in",
+            "Empfangsmitarbeiter/in", "Sekretär/in",
+            "Kundenservice-Mitarbeiter/in (Büro)", "Controller/in"
+        ]
+    },
+    {
+        name: "Industrie & Produktion",
+        jobs: [
+            "Produktionshelfer/in", "Maschinenbediener/in",
+            "Qualitätskontrolleur/in", "Werker/in am Fließband", "CNC-Fräser/in",
+            "Lagerarbeiter/in (Produktion)", "Verpacker/in"
+        ]
+    },
+    {
+        name: "Transport & Logistik",
+        jobs: [
+            "LKW-Fahrer/in", "Berufskraftfahrer/in", "Paketzusteller/in",
+            "Taxi-/Fahrdienstfahrer/in", "Busfahrer/in", "Pilot/in",
+            "Fluglotse/Fluglotsin", "Lagerlogistiker/in", "Gabelstaplerfahrer/in",
+            "Zugführer/in", "Fahrradkurier/in"
+        ]
+    },
+    {
+        name: "Handel & Verkauf",
+        jobs: [
+            "Verkäufer/in (Einzelhandel)", "Kassierer/in",
+            "Einzelhandelskaufmann/-frau", "Vertriebsmitarbeiter/in",
+            "Visual Merchandiser/in", "Filialleiter/in",
+            "E-Commerce-Mitarbeiter/in"
+        ]
+    },
+    {
+        name: "Gastronomie & Hotellerie",
+        jobs: [
+            "Koch/Köchin", "Kellner/in", "Barkeeper/in", "Hotelfachmann/-frau",
+            "Housekeeping-Mitarbeiter/in", "Rezeptionist/in (Hotel)", "Bäcker/in",
+            "Konditor/in", "Fleischer/in", "Restaurantleiter/in"
+        ]
+    },
+    {
+        name: "Landwirtschaft, Natur & Umwelt",
+        jobs: [
+            "Landwirt/in", "Gärtner/in", "Landschaftsgärtner/in", "Förster/in",
+            "Winzer/in", "Tierpfleger/in", "Imker/in", "Fischer/in"
+        ]
+    },
+    {
+        name: "Kunst, Kultur & Medien",
+        jobs: [
+            "Grafikdesigner/in", "Fotograf/in", "Journalist/in", "Redakteur/in",
+            "Musiker/in", "Schauspieler/in", "Regisseur/in", "Bühnenbildner/in",
+            "Content Creator/in", "Cutter/in (Video)"
+        ]
+    },
+    {
+        name: "Recht, Finanzen & Versicherung",
+        jobs: [
+            "Rechtsanwalt/Rechtsanwältin", "Notar/in", "Steuerberater/in",
+            "Bankkaufmann/-frau", "Versicherungskaufmann/-frau",
+            "Finanzberater/in", "Wirtschaftsprüfer/in", "Justizfachangestellte/r"
+        ]
+    },
+    {
+        name: "Öffentlicher Dienst & Sicherheit",
+        jobs: [
+            "Polizist/in", "Feuerwehrmann/-frau", "Soldat/in (Bundeswehr)",
+            "Justizvollzugsbeamter/in", "Zollbeamter/in",
+            "Verwaltungsangestellte/r (Behörde)", "Sicherheitsmitarbeiter/in",
+            "Rettungsdienst (Leitstelle)"
+        ]
+    },
+    {
+        name: "Wissenschaft & Forschung",
+        jobs: [
+            "Wissenschaftliche/r Mitarbeiter/in", "Laborant/in", "Chemiker/in",
+            "Biolog/in", "Physiker/in", "Doktorand/in",
+            "Data Analyst (Forschung)"
+        ]
+    },
+    {
+        name: "Sport & Fitness",
+        jobs: [
+            "Personal Trainer/in", "Fitnesstrainer/in", "Sportlehrer/in",
+            "Berufssportler/in", "Sportphysiotherapeut/in", "Schwimmlehrer/in",
+            "Yoga-/Pilateslehrer/in"
+        ]
+    },
+    {
+        name: "Reinigung, Körperpflege & Facility",
+        jobs: [
+            "Gebäudereiniger/in", "Hausmeister/in", "Facility Manager/in",
+            "Friseur/in", "Kosmetiker/in", "Nageldesigner/in", "Masseur/in"
+        ]
+    },
+    {
+        name: "Ausbildung & Studium",
+        jobs: [
+            "Auszubildende/r", "Student/in", "Praktikant/in", "Werkstudent/in"
+        ]
+    },
+    {
+        name: "Sonstiges",
+        jobs: [
+            "Selbstständige/r / Unternehmer/in", "Rentner/in", "In Elternzeit",
+            "Arbeitssuchend", "Hausfrau/Hausmann"
+        ]
+    }
+];
+
+const OTHER_PROFESSION_VALUE = "__other__";
+
+const WORKLOAD_LABELS = {
+    sitzend: "Überwiegend sitzend",
+    stehend_gehend: "Überwiegend stehend/gehend",
+    koerperlich_schwer: "Körperlich fordernd",
+    feinmotorisch: "Feinmotorisch/repetitiv",
+    wechselnd: "Wechselnd"
+};
+
+function populateWpFieldOptions() {
+
+    const select = document.getElementById("wpField");
+
+    select.innerHTML =
+        '<option value="" disabled selected>Bitte wählen …</option>' +
+        JOB_CATEGORIES.map(function(cat, i) {
+            return '<option value="' + i + '">' + escapeHtml(cat.name) + '</option>';
+        }).join("");
+
+}
+
+function populateWpProfessionOptions(categoryIndex, selectedJob) {
+
+    const select = document.getElementById("wpProfession");
+    const category = JOB_CATEGORIES[categoryIndex];
+
+    if (!category) {
+
+        select.innerHTML = '<option value="" disabled selected>Zuerst Bereich wählen</option>';
+        select.disabled = true;
+
+        return;
+    }
+
+    select.disabled = false;
+
+    const jobOptions = category.jobs.map(function(job) {
+        return '<option value="' + escapeHtml(job) + '">' + escapeHtml(job) + '</option>';
+    }).join("");
+
+    select.innerHTML =
+        '<option value="" disabled' + (selectedJob ? '' : ' selected') + '>Bitte wählen …</option>' +
+        jobOptions +
+        '<option value="' + OTHER_PROFESSION_VALUE + '">Anderer Beruf in diesem Bereich …</option>';
+
+    if (selectedJob) {
+        select.value = category.jobs.indexOf(selectedJob) > -1 ? selectedJob : OTHER_PROFESSION_VALUE;
+    }
+
+}
+
+function handleWpFieldChange() {
+
+    const select = document.getElementById("wpField");
+
+    populateWpProfessionOptions(Number(select.value), null);
+
+    handleWpProfessionChange();
+
+}
+
+function handleWpProfessionChange() {
+
+    const select = document.getElementById("wpProfession");
+    const otherField = document.getElementById("wpProfessionOtherField");
+    const otherInput = document.getElementById("wpProfessionOther");
+
+    const isOther = select.value === OTHER_PROFESSION_VALUE;
+
+    otherField.classList.toggle("hidden", !isOther);
+
+    otherInput.required = isOther;
+
+    if (!isOther) {
+        otherInput.value = "";
+    }
+
+}
+
+function openWorkProfile(profile) {
+
+    populateWpFieldOptions();
+
+    document.getElementById("workProfileError").innerText = "";
+
+    document.getElementById("workProfileForm").reset();
+
+    if (profile) {
+
+        const catIndex = JOB_CATEGORIES.findIndex(function(c) {
+            return c.name === profile.field;
+        });
+
+        document.getElementById("wpField").value = catIndex > -1 ? String(catIndex) : "";
+
+        populateWpProfessionOptions(catIndex, profile.profession);
+
+        handleWpProfessionChange();
+
+        if (document.getElementById("wpProfession").value === OTHER_PROFESSION_VALUE) {
+            document.getElementById("wpProfessionOther").value = profile.profession;
+        }
+
+        document.getElementById("wpWeeklyHours").value = profile.weeklyHours;
+
+        const workloadInput = document.querySelector(
+            'input[name="wpWorkload"][value="' + profile.workload + '"]'
+        );
+
+        if (workloadInput) workloadInput.checked = true;
+
+        document.querySelectorAll('input[name="wpBodyArea"]').forEach(function(cb) {
+            cb.checked = profile.strainedAreas.indexOf(cb.value) > -1;
+        });
+
+    } else {
+
+        populateWpProfessionOptions(-1, null);
+
+    }
+
+    showScreen("workProfileScreen");
+
+}
+
+async function saveWorkProfile(event) {
+
+    event.preventDefault();
+
+    const errorEl = document.getElementById("workProfileError");
+
+    errorEl.innerText = "";
+
+    const fieldSelect = document.getElementById("wpField");
+    const category = JOB_CATEGORIES[Number(fieldSelect.value)];
+
+    if (!category) {
+        errorEl.innerText = "Bitte wähle einen Bereich aus.";
+        return;
+    }
+
+    const professionSelect = document.getElementById("wpProfession");
+
+    let profession = professionSelect.value;
+
+    if (profession === OTHER_PROFESSION_VALUE) {
+
+        profession = document.getElementById("wpProfessionOther").value.trim();
+
+        if (!profession) {
+            errorEl.innerText = "Bitte gib deinen Beruf ein.";
+            return;
+        }
+
+    }
+
+    if (!profession) {
+        errorEl.innerText = "Bitte wähle deinen Beruf aus.";
+        return;
+    }
+
+    const workloadInput = document.querySelector('input[name="wpWorkload"]:checked');
+
+    if (!workloadInput) {
+        errorEl.innerText = "Bitte wähle deine Arbeitsbelastung aus.";
+        return;
+    }
+
+    const weeklyHours = Number(document.getElementById("wpWeeklyHours").value);
+
+    if (!weeklyHours || weeklyHours < 1 || weeklyHours > 80) {
+        errorEl.innerText = "Bitte gib eine gültige Wochenstundenzahl an (1–80).";
+        return;
+    }
+
+    const strainedAreas = Array.from(
+        document.querySelectorAll('input[name="wpBodyArea"]:checked')
+    ).map(function(cb) { return cb.value; });
+
+    const submitBtn = event.target.querySelector("button[type=submit]");
+
+    submitBtn.disabled = true;
+
+    try {
+
+        await apiFetch("/profile", {
+            method: "PUT",
+            body: JSON.stringify({
+                field: category.name,
+                profession: profession,
+                workload: workloadInput.value,
+                weeklyHours: weeklyHours,
+                strainedAreas: strainedAreas
+            })
+        });
+
+        showHome();
+
+    } catch (err) {
+
+        errorEl.innerText = "Profil konnte nicht gespeichert werden: " + err.message;
+
+    } finally {
+
+        submitBtn.disabled = false;
+
+    }
+
+}
+
+function skipWorkProfile() {
+
+    showHome();
+
+}
+
+async function refreshProfileCard() {
+
+    try {
+
+        const data = await apiFetch("/profile");
+
+        workProfile = data.profile;
+
+    } catch (e) {
+
+        workProfile = null;
+
+    }
+
+    renderProfileCard();
+
+}
+
+function renderProfileCard() {
+
+    const container = document.getElementById("profileCard");
+
+    if (!currentUser) {
+        container.innerHTML = "";
+        return;
+    }
+
+    if (!workProfile) {
+
+        container.innerHTML =
+            '<p class="profile-card-name">' + escapeHtml(currentUser.name) + '</p>' +
+            '<div class="profile-card-empty">' +
+                '<p>Du hast dein Arbeitsprofil noch nicht ausgefüllt. ' +
+                'Ein paar Angaben zu deinem Arbeitsalltag helfen MOVIQ, ' +
+                'dich noch gezielter zu unterstützen.</p>' +
+            '</div>' +
+            '<button class="btn btn-soft" onclick="openWorkProfile(null)">Profil ausfüllen</button>';
+
+        return;
+    }
+
+    const workloadLabel = WORKLOAD_LABELS[workProfile.workload] || workProfile.workload;
+
+    const tagsHtml = workProfile.strainedAreas.map(function(area) {
+        return '<span class="profile-card-tag">' + escapeHtml(area) + '</span>';
+    }).join("");
+
+    container.innerHTML =
+        '<p class="profile-card-name">' + escapeHtml(currentUser.name) + '</p>' +
+        '<p class="profile-card-role">' +
+            escapeHtml(workProfile.profession) + ' · ' + escapeHtml(workProfile.field) +
+        '</p>' +
+        '<dl class="profile-card-rows">' +
+            '<div class="profile-card-row"><dt>Wochenstunden</dt><dd>' +
+                workProfile.weeklyHours + ' Std.</dd></div>' +
+            '<div class="profile-card-row"><dt>Belastung</dt><dd>' +
+                escapeHtml(workloadLabel) + '</dd></div>' +
+        '</dl>' +
+        (tagsHtml
+            ? '<p class="profile-card-tags-label">Beanspruchte Bereiche</p>' +
+              '<div class="profile-card-tags">' + tagsHtml + '</div>'
+            : ''
+        ) +
+        '<button class="btn btn-soft" onclick="openWorkProfile(workProfile)">Profil bearbeiten</button>';
+
+}
+
+
+
+/* =====================================================
+   TAGEBUCH
+   Einträge liegen jetzt serverseitig (MOVIQ-Backend), pro
+   angemeldetem Nutzer getrennt – nicht mehr nur im Browser.
+===================================================== */
+
+let diaryEntries = [];
+
+async function fetchDiaryEntries() {
+
+    const data = await apiFetch("/diary");
+
+    diaryEntries = data.entries;
+
+    return diaryEntries;
+
+}
+
+function vasColor(value) {
+
+    if (value <= 3) return "#4F8F73";
+    if (value <= 6) return "#C98A2C";
+    return "#B0402E";
+
+}
+
+function updateVasReadout() {
+
+    const value = document.getElementById("diaryVas").value;
+
+    const badge = document.getElementById("vasValue");
+
+    badge.innerText = value;
+
+    badge.style.background = vasColor(Number(value));
+
+}
+
+function formatDiaryDate(isoDate) {
+
+    const parts = isoDate.split("-");
+
+    const date = new Date(
+        Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])
+    );
+
+    return date.toLocaleDateString("de-DE", {
+        day: "numeric", month: "long", year: "numeric"
+    });
+
+}
+
+function diaryDateParts(isoDate) {
+
+    const parts = isoDate.split("-");
+
+    const date = new Date(
+        Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])
+    );
+
+    return {
+        weekday: date.toLocaleDateString("de-DE", { weekday: "long" }),
+        date: date.toLocaleDateString("de-DE", { day: "numeric", month: "short" })
+    };
+
+}
+
+function escapeHtml(text) {
+
+    const div = document.createElement("div");
+
+    div.innerText = text;
+
+    return div.innerHTML;
+
+}
+
+async function renderDiaryList() {
+
+    const list = document.getElementById("diaryList");
+
+    list.innerHTML = '<p class="diary-empty">Lädt …</p>';
+
+    let entries;
+
+    try {
+
+        entries = await fetchDiaryEntries();
+
+    } catch (err) {
+
+        list.innerHTML =
+            '<p class="diary-empty">Einträge konnten nicht geladen werden: ' +
+            escapeHtml(err.message) + '</p>';
+
+        return;
+    }
+
+    if (entries.length === 0) {
+
+        list.innerHTML =
+            '<p class="diary-empty">Noch keine Einträge. ' +
+            'Trag oben dein erstes Update ein.</p>';
+
+        return;
+    }
+
+    const sorted = entries
+        .slice()
+        .sort(function(a, b) {
+            return b.date.localeCompare(a.date);
+        });
+
+    list.innerHTML = sorted.map(function(entry, index) {
+
+        const when = diaryDateParts(entry.date);
+
+        return (
+            '<div class="diary-day-card' + (index === 0 ? ' is-latest' : '') + '">' +
+                '<button type="button" class="diary-day-delete" ' +
+                    'onclick="deleteDiaryEntry(\'' + entry.id + '\')" ' +
+                    'aria-label="Eintrag vom ' + formatDiaryDate(entry.date) + ' löschen">' +
+                    '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+                        '<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/>' +
+                    '</svg>' +
+                '</button>' +
+                '<div class="diary-day-head">' +
+                    '<span>' +
+                        '<span class="diary-day-weekday">' + when.weekday + '</span>' +
+                        '<span class="diary-day-date">' + when.date + '</span>' +
+                    '</span>' +
+                    '<span class="diary-day-vas" style="background:' +
+                        vasColor(entry.vas) + '" title="Schmerzstärke">' +
+                        entry.vas +
+                    '</span>' +
+                '</div>' +
+                '<p class="diary-day-label">Entwicklung</p>' +
+                '<p>' + escapeHtml(entry.development) + '</p>' +
+                (entry.actions
+                    ? '<p class="diary-day-label">Was getan wurde</p>' +
+                      '<p>' + escapeHtml(entry.actions) + '</p>'
+                    : ''
+                ) +
+            '</div>'
+        );
+
+    }).join('');
+
+}
+
+async function deleteDiaryEntry(id) {
+
+    const errorEl = document.getElementById("diaryError");
+
+    errorEl.classList.add("hidden");
+
+    try {
+
+        await apiFetch("/diary/" + encodeURIComponent(id), { method: "DELETE" });
+
+        await renderDiaryList();
+
+    } catch (err) {
+
+        errorEl.innerText = "Eintrag konnte nicht gelöscht werden: " + err.message;
+
+        errorEl.classList.remove("hidden");
+
+    }
+
+}
+
+async function saveDiaryEntry(event) {
+
+    event.preventDefault();
+
+    const date = document.getElementById("diaryDate").value;
+
+    const vas = Number(document.getElementById("diaryVas").value);
+
+    const development = document.getElementById("diaryDevelopment").value.trim();
+
+    const actions = document.getElementById("diaryActions").value.trim();
+
+    const errorEl = document.getElementById("diaryError");
+
+    errorEl.classList.add("hidden");
+
+    if (!date || !development) {
+        return;
+    }
+
+    const submitBtn = event.target.querySelector("button[type=submit]");
+
+    submitBtn.disabled = true;
+
+    try {
+
+        await apiFetch("/diary", {
+            method: "POST",
+            body: JSON.stringify({
+                date: date,
+                vas: vas,
+                development: development,
+                actions: actions
+            })
+        });
+
+        await renderDiaryList();
+
+        document.getElementById("diaryForm").reset();
+
+        document.getElementById("diaryDate").value = todayIso();
+
+        document.getElementById("diaryVas").value = 0;
+
+        updateVasReadout();
+
+    } catch (err) {
+
+        errorEl.innerText = "Eintrag konnte nicht gespeichert werden: " + err.message;
+
+        errorEl.classList.remove("hidden");
+
+    } finally {
+
+        submitBtn.disabled = false;
+
+    }
+
+}
+
+function todayIso() {
+
+    const now = new Date();
+
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+
+    const day = String(now.getDate()).padStart(2, "0");
+
+    return now.getFullYear() + "-" + month + "-" + day;
+
+}
+
+function openDiary() {
+
+    if (!isLoggedIn) {
+        showRegister();
+        return;
+    }
+
+    document.getElementById("diaryDate").value = todayIso();
+
+    document.getElementById("diaryVas").value = 0;
+
+    updateVasReadout();
+
+    document.getElementById("diaryError").classList.add("hidden");
+
+    showScreen("diaryScreen");
+
+    renderDiaryList();
+
+}
+
+
+
+/* =====================================================
+   SHOP
+   Preise Stand: Prototyp, orientiert an der aktuellen
+   Marktsituation für Widerstandsbänder, Fitness Loops und
+   vinyl-ummantelte Kurzhanteln. "In den Warenkorb" ist eine
+   Demo-Funktion ohne echten Warenkorb oder Zahlung.
+===================================================== */
+
+const RESISTANCE_LEVELS = [
+    { color: "#F4D93E", name: "Gelb",    level: "Extra leicht" },
+    { color: "#D64545", name: "Rot",     level: "Leicht" },
+    { color: "#4F8F73", name: "Grün",    level: "Mittel" },
+    { color: "#3B6FA8", name: "Blau",    level: "Stark" },
+    { color: "#2B2B2B", name: "Schwarz", level: "Extra stark" }
+];
+
+const BAND_UNIT_PRICE = 7.49;
+const BAND_SET_PRICE = 29.99;
+
+const LOOP_UNIT_PRICE = 4.49;
+const LOOP_SET_PRICE = 17.99;
+
+const DUMBBELL_PRICES = {
+    1: 7.99,   2: 10.99,  3: 13.99,  4: 16.99,  5: 19.99,
+    6: 23.99,  7: 27.99,  8: 31.99,  9: 35.99,  10: 39.99,
+    11: 44.99, 12: 49.99, 13: 54.99, 14: 59.99, 15: 64.99,
+    16: 69.99, 17: 74.99, 18: 79.99, 19: 84.99, 20: 89.99
+};
+
+function formatEuro(value) {
+
+    return value.toFixed(2).replace(".", ",") + " €";
+
+}
+
+function showCartNote(productName) {
+
+    const note = document.getElementById("cartNote");
+
+    note.innerText =
+        "„" + productName + "“ zum Warenkorb hinzugefügt. " +
+        "Demo: Dieser Prototyp hat noch keinen echten Warenkorb " +
+        "oder Bezahlvorgang.";
+
+    note.classList.remove("hidden");
+
+    note.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+}
+
+function buildProductCard(container, opts) {
+
+    const card = document.createElement("div");
+
+    card.className = "product-card" + (opts.isSet ? " is-set" : "");
+
+    let swatchHtml = "";
+
+    if (opts.color) {
+        swatchHtml =
+            '<div class="product-swatch">' +
+                '<span class="color-dot" style="background:' + opts.color + '"></span>' +
+                '<span class="product-level">' + opts.level + '</span>' +
+            '</div>';
+    } else {
+        swatchHtml = '<div class="product-level">' + opts.level + '</div>';
+    }
+
+    card.innerHTML =
+        swatchHtml +
+        '<div class="product-name">' + opts.name + '</div>' +
+        '<div class="product-price">' + formatEuro(opts.price) + '</div>' +
+        '<button type="button" class="btn btn-soft">In den Warenkorb</button>';
+
+    card.querySelector("button").addEventListener("click", function() {
+        showCartNote(opts.name);
+    });
+
+    container.appendChild(card);
+
+}
+
+function renderBandShop() {
+
+    const grid = document.getElementById("bandGrid");
+
+    grid.innerHTML = "";
+
+    RESISTANCE_LEVELS.forEach(function(level) {
+
+        buildProductCard(grid, {
+            name: "Widerstandsband " + level.name,
+            level: level.level,
+            color: level.color,
+            price: BAND_UNIT_PRICE
+        });
+
+    });
+
+    buildProductCard(grid, {
+        name: "5er-Set Widerstandsbänder",
+        level: "Extra leicht bis extra stark",
+        price: BAND_SET_PRICE,
+        isSet: true
+    });
+
+}
+
+function renderLoopShop() {
+
+    const grid = document.getElementById("loopGrid");
+
+    grid.innerHTML = "";
+
+    RESISTANCE_LEVELS.forEach(function(level) {
+
+        buildProductCard(grid, {
+            name: "Fitness Loop " + level.name,
+            level: level.level,
+            color: level.color,
+            price: LOOP_UNIT_PRICE
+        });
+
+    });
+
+    buildProductCard(grid, {
+        name: "5er-Set Fitness Loops",
+        level: "Extra leicht bis extra stark",
+        price: LOOP_SET_PRICE,
+        isSet: true
+    });
+
+}
+
+function renderDumbbellShop() {
+
+    const grid = document.getElementById("dumbbellGrid");
+
+    grid.innerHTML = "";
+
+    Object.keys(DUMBBELL_PRICES).forEach(function(kg) {
+
+        const price = DUMBBELL_PRICES[kg];
+
+        const card = document.createElement("div");
+
+        card.className = "dumbbell-card";
+
+        card.innerHTML =
+            '<div class="dumbbell-kg">' + kg + ' kg</div>' +
+            '<div class="dumbbell-price">' + formatEuro(price) + '</div>' +
+            '<button type="button" class="btn btn-soft">Hinzufügen</button>';
+
+        card.querySelector("button").addEventListener("click", function() {
+            showCartNote("Hantel " + kg + " kg");
+        });
+
+        grid.appendChild(card);
+
+    });
+
+}
+
+let shopBuilt = false;
+
+function openShop() {
+
+    if (!isLoggedIn) {
+        showRegister();
+        return;
+    }
+
+    if (!shopBuilt) {
+
+        renderBandShop();
+        renderLoopShop();
+        renderDumbbellShop();
+
+        shopBuilt = true;
+    }
+
+    document.getElementById("cartNote").classList.add("hidden");
+
+    showScreen("shopScreen");
+
+}
+
+
+
+/* =====================================================
+   PERFORMANCE: GESUNDHEITSSCHIRM
+   Ein Netzdiagramm (Radar-Chart) über sechs Lebensbereiche.
+   Werte liegen nur lokal in diesem Browser (localStorage).
+===================================================== */
+
+const WHEEL_CATEGORIES = [
+    "Schlafqualität",
+    "Ernährung",
+    "Bewegung",
+    "Stress & Erholung",
+    "Kraft",
+    "Beweglichkeit"
+];
+
+/* Pro Kategorie fünf Unterfragen, die zusammen den Kategoriewert ergeben. */
+
+const WHEEL_SUBQUESTIONS = {
+
+    "Schlafqualität": [
+        "Regelmäßige Schlafenszeit",
+        "Einschlafdauer",
+        "Durchschlafen (wenig nächtliches Aufwachen)",
+        "Erholsamkeit beim Aufwachen",
+        "Ausreichende Schlafdauer"
+    ],
+
+    "Ernährung": [
+        "Essverhalten allgemein",
+        "Obst & Gemüse",
+        "Flüssigkeitszufuhr",
+        "Regelmäßigkeit der Mahlzeiten",
+        "Wenig Zucker & Fertigprodukte"
+    ],
+
+    "Bewegung": [
+        "Alltagsbewegung (Schritte, Treppen)",
+        "Sportliche Aktivität pro Woche",
+        "Ausdauer",
+        "Abwechslung der Bewegungsformen",
+        "Wenig langes Sitzen"
+    ],
+
+    "Stress & Erholung": [
+        "Stresslevel im Alltag",
+        "Erholungspausen",
+        "Entspannungstechniken",
+        "Work-Life-Balance",
+        "Mentale Belastung"
+    ],
+
+    "Kraft": [
+        "Krafttraining, Häufigkeit",
+        "Rumpfkraft",
+        "Arm- & Griffkraft",
+        "Beinkraft",
+        "Muskuläres Gleichgewicht"
+    ],
+
+    "Beweglichkeit": [
+        "Dehnfähigkeit allgemein",
+        "Schulterbeweglichkeit",
+        "Hüftbeweglichkeit",
+        "Wirbelsäulenbeweglichkeit",
+        "Regelmäßiges Dehnen / Mobility"
+    ]
+
+};
+
+/* Richtwerte zu einzelnen Unterfragen, damit du einschätzen kannst,
+   wo du im Vergleich zu allgemeinen Empfehlungen stehst (u. a. nach
+   DGE, DGSM, WHO). Das sind grobe Orientierungswerte für gesunde
+   Erwachsene, keine individuelle medizinische Beratung. Kategorien
+   bzw. Fragen ohne festen Richtwert bleiben unkommentiert. */
+
+const WHEEL_SUBQUESTION_HINTS = {
+
+    "Schlafqualität": [
+        "Richtwert: möglichst jeden Tag zur gleichen Zeit schlafen gehen und aufstehen, auch am Wochenende.",
+        "Richtwert: Einschlafen innerhalb von ca. 10–20 Minuten gilt als unauffällig.",
+        "Richtwert: höchstens kurzes, gelegentliches Aufwachen – ohne längere Wachphasen.",
+        null,
+        "Richtwert: 7–9 Stunden Schlaf pro Nacht für Erwachsene (DGSM)."
+    ],
+
+    "Ernährung": [
+        "Richtwert: 3 Hauptmahlzeiten, in Ruhe und ohne große Ablenkung.",
+        "Richtwert: mind. 5 Portionen Obst & Gemüse täglich, ca. 400 g Gemüse + 250 g Obst (DGE, „5 am Tag“).",
+        "Richtwert: ca. 1,5 Liter Getränke pro Tag für Erwachsene (DGE), bei Hitze oder Sport entsprechend mehr.",
+        "Richtwert: Mahlzeiten möglichst zu ähnlichen Uhrzeiten am Tag.",
+        "Richtwert: max. ca. 50 g freier Zucker pro Tag (WHO), idealerweise deutlich weniger."
+    ]
+
+};
+
+const WHEEL_SUB_MAX = 5;
+const WHEEL_MAX = 10;
+const WHEEL_CENTER = 180;
+const WHEEL_RADIUS = 122;
+const WHEEL_GRID_LEVELS = [2, 4, 6, 8, 10];
+
+let wheelValues = {};
+let wheelBuilt = false;
+
+async function loadWheelValues() {
+
+    let saved = null;
+
+    const errorEl = document.getElementById("wheelError");
+
+    try {
+
+        const data = await apiFetch("/wheel");
+
+        saved = data.values;
+
+        errorEl.classList.add("hidden");
+
+    } catch (e) {
+
+        saved = null;
+
+        errorEl.innerText =
+            "Deine gespeicherten Werte konnten nicht geladen werden: " + e.message;
+
+        errorEl.classList.remove("hidden");
+
+    }
+
+    WHEEL_CATEGORIES.forEach(function(category) {
+
+        const savedList = saved && saved[category];
+        const questionCount = WHEEL_SUBQUESTIONS[category].length;
+
+        wheelValues[category] = [];
+
+        for (let i = 0; i < questionCount; i++) {
+
+            const value = Array.isArray(savedList) ? savedList[i] : null;
+
+            wheelValues[category].push(
+                (typeof value === "number" && value >= 1 && value <= WHEEL_SUB_MAX)
+                    ? value
+                    : 3
+            );
+
+        }
+
+    });
+
+}
+
+async function saveWheelValues() {
+
+    const errorEl = document.getElementById("wheelError");
+
+    try {
+
+        await apiFetch("/wheel", {
+            method: "PUT",
+            body: JSON.stringify({ values: wheelValues })
+        });
+
+        errorEl.classList.add("hidden");
+
+    } catch (e) {
+
+        errorEl.innerText = "Speichern hat nicht geklappt: " + e.message;
+
+        errorEl.classList.remove("hidden");
+
+    }
+
+}
+
+function wheelCategoryAverage(category) {
+
+    const subValues = wheelValues[category];
+
+    const total = subValues.reduce(function(sum, v) { return sum + v; }, 0);
+
+    return total / subValues.length;
+
+}
+
+/* Rechnet den Durchschnitt der Unterfragen (Skala 1-5) linear
+   auf die Gesamtskala 1-10 um, die im Netzdiagramm erscheint. */
+
+function wheelCategoryScore(category) {
+
+    const avg = wheelCategoryAverage(category);
+
+    return 1 + (avg - 1) * (9 / 4);
+
+}
+
+function wheelAngle(index) {
+
+    /* Start oben (-90°), im Uhrzeigersinn verteilt */
+
+    return (Math.PI * 2 * index) / WHEEL_CATEGORIES.length - Math.PI / 2;
+
+}
+
+function wheelPoint(index, value) {
+
+    const angle = wheelAngle(index);
+
+    const radius = (value / WHEEL_MAX) * WHEEL_RADIUS;
+
+    return {
+        x: WHEEL_CENTER + radius * Math.cos(angle),
+        y: WHEEL_CENTER + radius * Math.sin(angle)
+    };
+
+}
+
+function pointsToString(points) {
+
+    return points.map(function(p) {
+        return p.x.toFixed(1) + "," + p.y.toFixed(1);
+    }).join(" ");
+
+}
+
+function renderWheelChart() {
+
+    const svg = document.getElementById("wheelChart");
+
+    svg.innerHTML = "";
+
+    const svgNS = "http://www.w3.org/2000/svg";
+
+    /* Gitterringe (Stufen 2, 4, 6, 8, 10) */
+
+    WHEEL_GRID_LEVELS.forEach(function(level) {
+
+        const ringPoints = WHEEL_CATEGORIES.map(function(cat, i) {
+            return wheelPoint(i, level);
+        });
+
+        const ring = document.createElementNS(svgNS, "polygon");
+        ring.setAttribute("class", "wheel-grid");
+        ring.setAttribute("points", pointsToString(ringPoints));
+
+        svg.appendChild(ring);
+
+    });
+
+    /* Achsen von der Mitte zu jeder Kategorie */
+
+    WHEEL_CATEGORIES.forEach(function(cat, i) {
+
+        const outer = wheelPoint(i, WHEEL_MAX);
+
+        const axis = document.createElementNS(svgNS, "line");
+        axis.setAttribute("class", "wheel-axis");
+        axis.setAttribute("x1", WHEEL_CENTER);
+        axis.setAttribute("y1", WHEEL_CENTER);
+        axis.setAttribute("x2", outer.x);
+        axis.setAttribute("y2", outer.y);
+
+        svg.appendChild(axis);
+
+    });
+
+    /* Datenfläche */
+
+    const dataPoints = WHEEL_CATEGORIES.map(function(cat, i) {
+        return wheelPoint(i, wheelCategoryScore(cat));
+    });
+
+    const area = document.createElementNS(svgNS, "polygon");
+    area.setAttribute("class", "wheel-area");
+    area.setAttribute("points", pointsToString(dataPoints));
+
+    svg.appendChild(area);
+
+    /* Eckpunkte mit Tooltip (Hover/Fokus zeigt den Wert) */
+
+    dataPoints.forEach(function(p, i) {
+
+        const cat = WHEEL_CATEGORIES[i];
+
+        const vertex = document.createElementNS(svgNS, "circle");
+        vertex.setAttribute("class", "wheel-vertex");
+        vertex.setAttribute("cx", p.x.toFixed(1));
+        vertex.setAttribute("cy", p.y.toFixed(1));
+        vertex.setAttribute("r", "4.5");
+
+        const title = document.createElementNS(svgNS, "title");
+        title.textContent = cat + ": " + wheelCategoryScore(cat).toFixed(1) + " / " + WHEEL_MAX;
+        vertex.appendChild(title);
+
+        svg.appendChild(vertex);
+
+    });
+
+    /* Beschriftung je Kategorie, außerhalb des Rings */
+
+    WHEEL_CATEGORIES.forEach(function(cat, i) {
+
+        const angle = wheelAngle(i);
+
+        const labelPoint = {
+            x: WHEEL_CENTER + (WHEEL_RADIUS + 26) * Math.cos(angle),
+            y: WHEEL_CENTER + (WHEEL_RADIUS + 26) * Math.sin(angle)
+        };
+
+        const cosA = Math.cos(angle);
+        const sinA = Math.sin(angle);
+
+        let anchor = "middle";
+        if (cosA > 0.3) anchor = "start";
+        if (cosA < -0.3) anchor = "end";
+
+        let dy = 4;
+        if (sinA < -0.5) dy = -2;
+        if (sinA > 0.5) dy = 10;
+
+        const label = document.createElementNS(svgNS, "text");
+        label.setAttribute("class", "wheel-axis-label");
+        label.setAttribute("x", labelPoint.x.toFixed(1));
+        label.setAttribute("y", (labelPoint.y + dy).toFixed(1));
+        label.setAttribute("text-anchor", anchor);
+        label.textContent = cat;
+
+        svg.appendChild(label);
+
+    });
+
+}
+
+let wheelOpenCategories = new Set();
+
+function renderWheelControls() {
+
+    const container = document.getElementById("wheelControls");
+
+    container.innerHTML = "";
+
+    WHEEL_CATEGORIES.forEach(function(category) {
+
+        const details = document.createElement("details");
+        details.className = "wheel-category";
+        details.open = wheelOpenCategories.has(category);
+
+        details.addEventListener("toggle", function() {
+
+            if (details.open) {
+                wheelOpenCategories.add(category);
+            } else {
+                wheelOpenCategories.delete(category);
+            }
+
+        });
+
+        const summaryEl = document.createElement("summary");
+
+        const nameWrap = document.createElement("span");
+        nameWrap.className = "wheel-category-name";
+
+        const chevron = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        chevron.setAttribute("class", "wheel-category-chevron");
+        chevron.setAttribute("viewBox", "0 0 24 24");
+        chevron.setAttribute("aria-hidden", "true");
+        chevron.innerHTML = '<path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+
+        const nameText = document.createElement("span");
+        nameText.textContent = category;
+
+        nameWrap.appendChild(chevron);
+        nameWrap.appendChild(nameText);
+
+        const score = document.createElement("span");
+        score.className = "wheel-category-score";
+        score.textContent = wheelCategoryScore(category).toFixed(1) + " / " + WHEEL_MAX;
+
+        summaryEl.appendChild(nameWrap);
+        summaryEl.appendChild(score);
+
+        const subWrap = document.createElement("div");
+        subWrap.className = "wheel-subquestions";
+
+        WHEEL_SUBQUESTIONS[category].forEach(function(question, qIndex) {
+
+            const row = document.createElement("div");
+            row.className = "wheel-row";
+
+            const textWrap = document.createElement("span");
+            textWrap.className = "wheel-subrow-text";
+
+            const label = document.createElement("span");
+            label.className = "wheel-subrow-label";
+            label.textContent = question;
+
+            textWrap.appendChild(label);
+
+            const hintList = WHEEL_SUBQUESTION_HINTS[category];
+            const hintText = hintList ? hintList[qIndex] : null;
+
+            if (hintText) {
+                const hint = document.createElement("span");
+                hint.className = "wheel-subrow-hint";
+                hint.textContent = hintText;
+                textWrap.appendChild(hint);
+            }
+
+            const dots = document.createElement("div");
+            dots.className = "wheel-dots";
+            dots.setAttribute("role", "radiogroup");
+            dots.setAttribute("aria-label", question + ", bewerten von 1 bis " + WHEEL_SUB_MAX);
+
+            for (let value = 1; value <= WHEEL_SUB_MAX; value++) {
+
+                const dot = document.createElement("button");
+                dot.type = "button";
+                dot.className = "wheel-dot";
+                dot.textContent = String(value);
+                dot.setAttribute("role", "radio");
+                dot.setAttribute("aria-checked", wheelValues[category][qIndex] === value);
+                dot.setAttribute("aria-label", question + ": " + value + " von " + WHEEL_SUB_MAX);
+
+                if (value <= wheelValues[category][qIndex]) {
+                    dot.classList.add("is-active");
+                }
+
+                dot.addEventListener("click", async function() {
+
+                    wheelValues[category][qIndex] = value;
+
+                    wheelOpenCategories.add(category);
+
+                    renderWheelChart();
+                    renderWheelControls();
+                    renderWheelSummary();
+
+                    await saveWheelValues();
+
+                });
+
+                dots.appendChild(dot);
+
+            }
+
+            row.appendChild(textWrap);
+            row.appendChild(dots);
+
+            subWrap.appendChild(row);
+
+        });
+
+        details.appendChild(summaryEl);
+        details.appendChild(subWrap);
+
+        container.appendChild(details);
+
+    });
+
+}
+
+function renderWheelSummary() {
+
+    const summary = document.getElementById("wheelSummary");
+
+    const entries = WHEEL_CATEGORIES.map(function(cat) {
+        return { category: cat, value: wheelCategoryScore(cat) };
+    });
+
+    const total = entries.reduce(function(sum, e) { return sum + e.value; }, 0);
+
+    const average = total / entries.length;
+
+    const allEqual = entries.every(function(e) {
+        return Math.abs(e.value - entries[0].value) < 0.05;
+    });
+
+    if (allEqual) {
+
+        summary.innerHTML =
+            "Durchschnitt: <strong>" + average.toFixed(1) + " / " + WHEEL_MAX + "</strong>. " +
+            "Alle Bereiche stehen aktuell gleich da.";
+
+        return;
+    }
+
+    const strongest = entries.reduce(function(a, b) {
+        return b.value > a.value ? b : a;
+    });
+
+    const weakest = entries.reduce(function(a, b) {
+        return b.value < a.value ? b : a;
+    });
+
+    summary.innerHTML =
+        "Durchschnitt: <strong>" + average.toFixed(1) + " / " + WHEEL_MAX + "</strong>. " +
+        "Am stärksten: <strong>" + strongest.category + "</strong> (" + strongest.value.toFixed(1) + "/" + WHEEL_MAX + "). " +
+        "Größtes Potenzial: <strong>" + weakest.category + "</strong> (" + weakest.value.toFixed(1) + "/" + WHEEL_MAX + ").";
+
+}
+
+async function openHealthWheel() {
+
+    if (!isLoggedIn) {
+        showRegister();
+        return;
+    }
+
+    showScreen("wheelScreen");
+
+    if (!wheelBuilt) {
+
+        await loadWheelValues();
+
+        wheelBuilt = true;
+    }
+
+    renderWheelChart();
+    renderWheelControls();
+    renderWheelSummary();
+
+}
+
+
+
+/* =====================================================
+   WUSSTEST DU SCHON: GESUNDHEITSMYTHEN
+===================================================== */
+
+function openMyths() {
+
+    if (!isLoggedIn) {
+        showRegister();
+        return;
+    }
+
+    showScreen("mythScreen");
+
+}
+
+
+
+/* =====================================================
+   PRÄVENTION
+===================================================== */
+
+const EXERCISE_LIBRARY = {
+
+    "katze-kuh": {
+        name: "Katze-Kuh",
+        target: "Rücken · Mobilität",
+        steps: [
+            "Vierfüßlerstand einnehmen, Hände unter den Schultern, Knie unter der Hüfte.",
+            "Einatmen: Bauch Richtung Boden sinken lassen, Brustkorb heben, Blick leicht nach vorn oben (Kuh).",
+            "Ausatmen: Rücken runden, Kinn zur Brust, Bauchnabel Richtung Wirbelsäule ziehen (Katze).",
+            "Fließend zwischen beiden Positionen wechseln, jede Bewegung mit dem Atem verbinden."
+        ],
+        dosage: "2–3 Sätze à 8–10 Wiederholungen, täglich möglich.",
+        tip: "Die Bewegung sollte aus der gesamten Wirbelsäule kommen, nicht nur aus dem unteren Rücken."
+    },
+
+    "bird-dog": {
+        name: "Bird Dog",
+        target: "Rücken · Rumpfstabilität",
+        steps: [
+            "Vierfüßlerstand, Rücken neutral, Bauchspannung aufbauen.",
+            "Einen Arm nach vorn und das gegenüberliegende Bein nach hinten strecken.",
+            "Becken und Rumpf ruhig halten, nicht zur Seite kippen.",
+            "2–3 Sekunden halten, kontrolliert zurück zur Ausgangsposition, Seite wechseln."
+        ],
+        dosage: "3 Sätze à 8 Wiederholungen pro Seite.",
+        tip: "Lieber langsam und stabil als schnell und wackelig ausführen."
+    },
+
+    "glute-bridge": {
+        name: "Glute Bridge",
+        target: "Rücken/Hüfte · Kraft",
+        steps: [
+            "Rückenlage, Knie angewinkelt, Füße hüftbreit aufgestellt.",
+            "Über die Fersen das Becken nach oben drücken, bis Oberkörper und Oberschenkel eine Linie bilden.",
+            "Gesäß bewusst anspannen, kurz oben halten.",
+            "Langsam und kontrolliert wieder absenken."
+        ],
+        dosage: "3 Sätze à 12–15 Wiederholungen.",
+        tip: "Das Hohlkreuz vermeiden – die Bewegung kommt aus dem Gesäß, nicht aus dem unteren Rücken."
+    },
+
+    "kinngleiten": {
+        name: "Kinngleiten (Chin Tuck)",
+        target: "Nacken/HWS · Haltung",
+        steps: [
+            "Aufrecht sitzen oder stehen, Blick nach vorn.",
+            "Das Kinn langsam gerade nach hinten schieben, als würde man ein Doppelkinn machen.",
+            "Dabei den Blick horizontal halten, nicht nach unten nicken.",
+            "2–3 Sekunden halten, dann locker lassen."
+        ],
+        dosage: "3 Sätze à 10 Wiederholungen, gern mehrmals täglich bei Bildschirmarbeit.",
+        tip: "Wirkt der typischen Vorwärtsneigung des Kopfes am Schreibtisch gezielt entgegen."
+    },
+
+    "nackendehnung": {
+        name: "Seitliche Nackendehnung",
+        target: "Nacken/HWS · Beweglichkeit",
+        steps: [
+            "Aufrecht sitzen, eine Hand locker über den Kopf zur gegenüberliegenden Schläfe führen.",
+            "Kopf sanft zur Seite ziehen, bis eine leichte Dehnung im seitlichen Nacken spürbar ist.",
+            "Schulter der gedehnten Seite bewusst unten und locker lassen.",
+            "Position halten, ruhig weiteratmen."
+        ],
+        dosage: "2 Sätze à 20–30 Sekunden pro Seite.",
+        tip: "Nur bis zu einem leichten Ziehen dehnen, niemals bis in den Schmerz."
+    },
+
+    "pendeluebung": {
+        name: "Pendelübung (Codman)",
+        target: "Schulter · Entlastung",
+        steps: [
+            "Leicht nach vorn gebeugt stehen, freier Arm hängt locker nach unten.",
+            "Aus der Rumpfbewegung heraus den Arm leicht vor und zurück, dann kreisend schwingen lassen.",
+            "Die Schulter selbst dabei möglichst passiv und entspannt lassen.",
+            "Bewegungsrichtung und -größe langsam steigern."
+        ],
+        dosage: "1–2 Minuten, mehrmals täglich, besonders bei akuter Reizung geeignet.",
+        tip: "Es ist keine Kraftübung – je lockerer der Arm hängt, desto besser die Wirkung."
+    },
+
+    "aussenrotation-band": {
+        name: "Außenrotation mit Band",
+        target: "Schulter · Kraft/Stabilität",
+        steps: [
+            "Band auf Ellenbogenhöhe befestigen, seitlich dazu stehen, Ellenbogen im 90°-Winkel am Körper.",
+            "Unterarm langsam nach außen gegen den Widerstand des Bandes drehen.",
+            "Ellenbogen dabei eng am Körper lassen, Schulter nicht mit hochziehen.",
+            "Kontrolliert zurück in die Ausgangsposition führen."
+        ],
+        dosage: "3 Sätze à 12–15 Wiederholungen pro Seite.",
+        tip: "Kräftigt gezielt die Rotatorenmanschette – wichtig zur Vorbeugung von Impingement-Beschwerden."
+    },
+
+    "wandkniebeuge": {
+        name: "Kniebeuge an der Wand",
+        target: "Knie · Kraft",
+        steps: [
+            "Mit dem Rücken an eine Wand stellen, Füße etwa hüftbreit, leicht von der Wand entfernt.",
+            "Langsam in die Kniebeuge gehen, Rücken bleibt an der Wand.",
+            "Knie zeigen in Richtung der Zehen, nicht nach innen einknicken lassen.",
+            "Bis zu einem für dich angenehmen Winkel absenken, dann wieder hochdrücken."
+        ],
+        dosage: "3 Sätze à 10–12 Wiederholungen.",
+        tip: "Die Kniescheibe sollte beim Absenken nicht über die Zehenspitzen hinausragen."
+    },
+
+    "ausfallschritte": {
+        name: "Ausfallschritte",
+        target: "Knie/Hüfte · Kraft & Stabilität",
+        steps: [
+            "Aufrechter Stand, einen großen Schritt nach vorn setzen.",
+            "Beide Knie beugen, bis das hintere Knie sich dem Boden annähert.",
+            "Vorderes Knie bleibt über dem Fuß, Rumpf aufrecht halten.",
+            "Über die Ferse des vorderen Beins zurück in den Stand drücken, Seite wechseln."
+        ],
+        dosage: "3 Sätze à 10 Wiederholungen pro Seite.",
+        tip: "Zu Beginn ohne Zusatzgewicht, kleine Schrittlänge wählen und die Bewegung kontrolliert ausführen."
+    },
+
+    "huftbeuger-dehnung": {
+        name: "Hüftbeuger-Dehnung im Ausfallschritt",
+        target: "Hüfte · Beweglichkeit",
+        steps: [
+            "Großer Ausfallschritt nach vorn, hinteres Knie sinkt Richtung Boden.",
+            "Becken leicht nach vorn kippen, Oberkörper aufrecht lassen.",
+            "Eine spürbare Dehnung vorne an der Hüfte des hinteren Beins sollte entstehen.",
+            "Position halten, ruhig atmen, dann Seite wechseln."
+        ],
+        dosage: "2 Sätze à 30 Sekunden pro Seite.",
+        tip: "Besonders hilfreich bei viel sitzender Tätigkeit, bei der der Hüftbeuger verkürzt."
+    },
+
+    "einbeinstand": {
+        name: "Einbeinstand",
+        target: "Sprunggelenk/Fuß · Propriozeption",
+        steps: [
+            "Auf einem Bein stehen, das andere leicht angehoben.",
+            "Blick nach vorn richten, Rumpf stabil halten.",
+            "Position so lange wie möglich kontrolliert halten.",
+            "Zur Steigerung mit geschlossenen Augen oder auf einer weichen Unterlage üben."
+        ],
+        dosage: "3 Sätze à 20–30 Sekunden pro Seite.",
+        tip: "Trainiert die Koordination und senkt das Risiko für erneutes Umknicken deutlich."
+    },
+
+    "wadenheber": {
+        name: "Wadenheber (exzentrisch betont)",
+        target: "Sprunggelenk/Fuß · Kraft",
+        steps: [
+            "Auf einer Stufenkante stehen, Fersen ragen leicht über die Kante.",
+            "Mit beiden Beinen auf die Zehenspitzen hochdrücken.",
+            "Auf dem betroffenen Bein stehen bleiben und sehr langsam über 3–4 Sekunden die Ferse absenken.",
+            "Unten kurz halten, dann erneut mit beiden Beinen hochdrücken."
+        ],
+        dosage: "3 Sätze à 12–15 Wiederholungen.",
+        tip: "Das langsame Absenken (exzentrisch) ist der wichtigste Teil, z. B. bei Achillessehnenreizung."
+    }
+
+};
+
+const PREVENTION_AREAS = [
+
+    {
+        name: "Rücken",
+        tips: [
+            "Rumpf- und Rückenmuskulatur regelmäßig kräftigen, statt sie nur zu schonen.",
+            "Beim Heben aus den Beinen statt aus dem Rücken arbeiten.",
+            "Sitzhaltung und Position beim Sitzen häufig wechseln, lange Sitzphasen unterbrechen."
+        ],
+        conditions: [
+            { name: "Unspezifischer Rückenschmerz", exercises: ["katze-kuh", "bird-dog"] },
+            { name: "Bandscheibenreizung", exercises: ["katze-kuh", "glute-bridge"] },
+            { name: "Muskuläre Verspannungen im unteren Rücken", exercises: ["glute-bridge", "bird-dog"] }
+        ]
+    },
+
+    {
+        name: "Nacken & Halswirbelsäule",
+        tips: [
+            "Bildschirm auf Augenhöhe positionieren, Kopf nicht dauerhaft nach vorn geneigt halten.",
+            "Regelmäßige Bewegungspausen bei langer Bildschirm- oder Schreibtischarbeit einplanen.",
+            "Nacken- und Schultermuskulatur gezielt kräftigen, nicht nur dehnen."
+        ],
+        conditions: [
+            { name: "Verspannungsbedingte Nackenschmerzen", exercises: ["kinngleiten", "nackendehnung"] },
+            { name: "Spannungskopfschmerz aus dem Nacken", exercises: ["nackendehnung", "kinngleiten"] },
+            { name: "Facettengelenk-Reizung der HWS", exercises: ["kinngleiten", "nackendehnung"] }
+        ]
+    },
+
+    {
+        name: "Schulter",
+        tips: [
+            "Schulterblattstabilität und Rotatorenmanschette gezielt trainieren.",
+            "Überkopfbelastungen dosieren und Technik beachten, besonders bei repetitiven Bewegungen.",
+            "Beweglichkeit der Schulter regelmäßig erhalten, nicht nur bei Beschwerden."
+        ],
+        conditions: [
+            { name: "Impingement-Syndrom", exercises: ["pendeluebung", "aussenrotation-band"] },
+            { name: "Reizung der Rotatorenmanschette", exercises: ["aussenrotation-band", "pendeluebung"] },
+            { name: "Schultersteife (beginnend)", exercises: ["pendeluebung", "aussenrotation-band"] }
+        ]
+    },
+
+    {
+        name: "Knie",
+        tips: [
+            "Oberschenkel- und Gesäßmuskulatur kräftigen, um das Knie zu entlasten.",
+            "Belastung bei Lauf- oder Sprungsport langsam steigern, ausreichend aufwärmen.",
+            "Auf eine gute Ausrichtung von Knie und Fuß bei Kniebeuge, Treppe und Sport achten."
+        ],
+        conditions: [
+            { name: "Patellaspitzensyndrom (Jumper's Knee)", exercises: ["wandkniebeuge", "ausfallschritte"] },
+            { name: "Reizung des Meniskus", exercises: ["wandkniebeuge"] },
+            { name: "IT-Band-Syndrom (Läuferknie)", exercises: ["ausfallschritte", "wandkniebeuge"] }
+        ]
+    },
+
+    {
+        name: "Hüfte",
+        tips: [
+            "Nach langem Sitzen den Hüftbeuger regelmäßig dehnen.",
+            "Gesäßmuskulatur aktiv kräftigen, um die Hüfte zu stabilisieren.",
+            "Einseitige Belastungen im Alltag und Sport bewusst ausgleichen."
+        ],
+        conditions: [
+            { name: "Hüftbeugerverkürzung", exercises: ["huftbeuger-dehnung"] },
+            { name: "Trochantere Bursitis (Schleimbeutelreizung)", exercises: ["glute-bridge", "huftbeuger-dehnung"] },
+            { name: "Beginnende Hüftarthrose-Beschwerden", exercises: ["huftbeuger-dehnung", "glute-bridge"] }
+        ]
+    },
+
+    {
+        name: "Sprunggelenk & Fuß",
+        tips: [
+            "Koordination und Gleichgewicht regelmäßig trainieren, besonders nach einer Verletzung.",
+            "Wadenmuskulatur und Achillessehne gezielt und dosiert belasten.",
+            "Passendes Schuhwerk für die jeweilige Sportart wählen und Untergründe beachten."
+        ],
+        conditions: [
+            { name: "Umknicktrauma (Supinationstrauma)", exercises: ["einbeinstand"] },
+            { name: "Achillessehnenreizung", exercises: ["wadenheber"] },
+            { name: "Plantarfasziitis (Fersenschmerz)", exercises: ["wadenheber", "einbeinstand"] }
+        ]
+    }
+
+];
+
+function openPrevention() {
+
+    if (!isLoggedIn) {
+        showRegister();
+        return;
+    }
+
+    renderPreventionAreas();
+
+    showScreen("preventionScreen");
+
+}
+
+function renderExerciseCard(id) {
+
+    const ex = EXERCISE_LIBRARY[id];
+
+    return `
+        <div class="prevention-exercise-card">
+            <div class="exercise-card-head">
+                <span class="exercise-name">${ex.name}</span>
+                <span class="exercise-target">${ex.target}</span>
+            </div>
+            <p class="exercise-steps-title">Ausführung</p>
+            <ol class="exercise-steps">
+                ${ex.steps.map(s => `<li>${s}</li>`).join("")}
+            </ol>
+            <p class="exercise-dosage-title">Dosierung</p>
+            <p class="exercise-dosage">${ex.dosage}</p>
+            <p class="exercise-tip-title">Tipp</p>
+            <p class="exercise-tip">${ex.tip}</p>
+        </div>
+    `;
+
+}
+
+function renderPreventionAreas() {
+
+    const wrap = document.getElementById("preventionAreasList");
+
+    wrap.innerHTML = "";
+
+    PREVENTION_AREAS.forEach(area => {
+
+        const details = document.createElement("details");
+        details.className = "prevention-area";
+
+        const conditionsHtml = area.conditions
+            .map(cond => `
+                <details class="condition-item">
+                    <summary>
+                        <span>${cond.name}</span>
+                        <svg class="condition-chevron" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2"
+                             aria-hidden="true">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </summary>
+                    <div class="condition-exercises">
+                        ${cond.exercises.map(renderExerciseCard).join("")}
+                    </div>
+                </details>
+            `)
+            .join("");
+
+        details.innerHTML = `
+            <summary>
+                <span class="prevention-area-name">${area.name}</span>
+                <svg class="prevention-area-chevron" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2"
+                     aria-hidden="true">
+                    <path d="M6 9l6 6 6-6"/>
+                </svg>
+            </summary>
+            <div class="prevention-area-body">
+                <div>
+                    <p class="prevention-area-sub">Präventiv vorgehen</p>
+                    <ul class="prevention-tips">
+                        ${area.tips.map(t => `<li>${t}</li>`).join("")}
+                    </ul>
+                </div>
+                <div>
+                    <p class="prevention-area-sub">Gängige Beschwerden & Krankheitsbilder</p>
+                    <div class="condition-list">${conditionsHtml}</div>
+                </div>
+            </div>
+        `;
+
+        wrap.appendChild(details);
+
+    });
+
+}
+
+
+
+/* =====================================================
+   START
+===================================================== */
+
+buildBody(document.getElementById("analysisFigure"));
+
+setView("front");
+
+updateAuthUI();
+
+loadAuthState().then(function() {
+
+    updateAuthUI();
+
+    if (isLoggedIn) {
+        refreshProfileCard();
+    }
+
+});
+
+</script>
+
+
+</body>
+
+</html>
