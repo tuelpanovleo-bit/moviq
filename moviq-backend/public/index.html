@@ -1339,6 +1339,46 @@ header {
     color: var(--muted);
 }
 
+/* =====================================================
+   MEHRFACHAUSWAHL (Checkliste) BEI DER BESCHWERDEANALYSE
+   Wird u. a. für die Warnzeichen-Checklisten der LWS-Analyse
+   genutzt, bei denen mehrere Punkte gleichzeitig zutreffen
+   können statt nur einer einzigen Antwort.
+===================================================== */
+
+.multi-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 18px 0;
+}
+
+.multi-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--sand-100);
+    border-radius: 14px;
+    cursor: pointer;
+    line-height: 1.4;
+}
+
+.multi-option input[type="checkbox"] {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    accent-color: var(--green-700);
+}
+
+.multi-hint {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: -6px;
+    margin-bottom: 14px;
+}
+
 .diary-history-title {
     margin-top: 44px;
     font-size: 22px;
@@ -3145,6 +3185,16 @@ footer {
 
     <div id="questionOptions" class="detail-grid"></div>
 
+    <div id="questionMultiWrap" class="hidden">
+
+        <p class="multi-hint">Mehrfachauswahl möglich – lass alles leer, wenn nichts davon zutrifft.</p>
+
+        <div id="questionMultiList" class="multi-list"></div>
+
+        <button class="btn btn-primary" onclick="submitMultiAnswer()">Weiter</button>
+
+    </div>
+
     <div id="questionScaleWrap" class="vas-field hidden">
 
         <div class="vas-scale">
@@ -4441,6 +4491,13 @@ function qv(key) {
     return questionAnswers[key] ? questionAnswers[key].value : undefined;
 }
 
+/* Für Mehrfachauswahl-Fragen (type: "multi") – liefert immer ein Array,
+   auch wenn noch nichts beantwortet oder nichts angekreuzt wurde. */
+function qvArr(key) {
+    const answer = questionAnswers[key];
+    return (answer && Array.isArray(answer.value)) ? answer.value : [];
+}
+
 const ANALYSIS_PATTERNS = [
 
     {
@@ -4596,15 +4653,366 @@ function checkRedFlags() {
 
 }
 
+/* =====================================================
+   LWS/RÜCKEN: EIGENER, DEUTLICH DETAILLIERTERER
+   ENTSCHEIDUNGSBAUM (statt des allgemeinen QUESTION_FLOW)
+   ---------------------------------------------------
+   Gilt nur für selectedMainArea === "Rücken" mit
+   selectedSubArea "Unterer Rücken" oder "Lendenbereich"
+   (siehe startQuestionnaire()). Bildet sinngemäß das
+   klinische Vorgehen bei Rückenschmerzen nach einem
+   Stufenschema nach, wie es in der Manuelle-Therapie-
+   Fortbildung vermittelt wird:
+
+   1. Cauda-equina-Notfallzeichen ausschließen
+   2. Allgemeine Warnsignale ("rote Flaggen") ausschließen
+   3. Ausstrahlung ins Bein differenzieren (radikulär /
+      pseudoradikulär / keine Ausstrahlung)
+   4. Bei > 6 Wochen: psychosoziale Faktoren ("gelbe
+      Flaggen") erfassen
+   5. Sonst: die bewegungs-/haltungsabhängige
+      Schmerzauslösung differenzieren
+
+   Jeder Endknoten setzt "lwsResultId" direkt selbst,
+   statt hinterher über ein Muster-Matching zu gehen –
+   dadurch bestimmt jede Antwort unmittelbar den nächsten
+   Schritt, und der Fragebogen ist je nach Antwortpfad
+   unterschiedlich lang (kürzester Weg: 1 Frage bei einem
+   Notfallzeichen, längster Weg: 7 Fragen).
+===================================================== */
+
+let lwsResultId = null;
+
+const LWS_QUESTION_FLOW = {
+
+    caudaCheck: {
+        text: "Bemerkst du aktuell eines der folgenden Warnzeichen?",
+        type: "multi",
+        options: [
+            { value: "reithosen", label: "Taubheitsgefühl zwischen den Beinen bzw. um den After (Reithosenregion)" },
+            { value: "blase", label: "Neu aufgetretene Probleme beim Wasserlassen oder beim Stuhlgang" },
+            { value: "beidseitig", label: "Ausstrahlung mit Kraftverlust in beide Beine gleichzeitig" },
+            { value: "laehmung", label: "Plötzliche, deutliche Lähmung in einem Bein" }
+        ],
+        next: function() {
+            if (qvArr("caudaCheck").length > 0) {
+                lwsResultId = "notfall-cauda";
+                return null;
+            }
+            return "generalRedFlags";
+        }
+    },
+
+    generalRedFlags: {
+        text: "Trifft aktuell eines der folgenden auf dich zu?",
+        type: "multi",
+        options: [
+            { value: "unfall", label: "Ein Unfall oder eine stärkere Verletzung ist Auslöser" },
+            { value: "tumor", label: "Eine bekannte Tumorerkrankung, aktuell oder in der Vorgeschichte" },
+            { value: "gewicht", label: "Unerklärlicher Gewichtsverlust in letzter Zeit" },
+            { value: "fieber", label: "Fieber oder ein Infekt zusammen mit den Rückenschmerzen" },
+            { value: "kortison", label: "Längere Einnahme von Kortison" },
+            { value: "alter", label: "Erstmaliges Auftreten nach dem 50. Lebensjahr, ohne erkennbaren Grund" },
+            { value: "ruheschmerz", label: "Schmerz, der auch in Ruhe oder nachts besteht, unabhängig von Bewegung" },
+            { value: "krank", label: "Ausgeprägtes allgemeines Krankheitsgefühl" }
+        ],
+        next: function() {
+            if (qvArr("generalRedFlags").length > 0) {
+                lwsResultId = "warnsignale-arzt";
+                return null;
+            }
+            return "legRadiating";
+        }
+    },
+
+    legRadiating: {
+        text: "Strahlen die Schmerzen über das Gesäß hinaus ins Bein aus?",
+        type: "choice",
+        options: [
+            { value: "ja", label: "Ja" },
+            { value: "nein", label: "Nein, bleiben im Rücken" }
+        ],
+        next: function(answers) {
+            return answers.legRadiating.value === "ja" ? "legCough" : "onsetPattern";
+        }
+    },
+
+    legCough: {
+        text: "Verstärkt sich der Beinschmerz beim Husten, Niesen oder Pressen (z. B. auf der Toilette)?",
+        type: "choice",
+        options: [
+            { value: "ja", label: "Ja, deutlich" },
+            { value: "nein", label: "Nein, kein Unterschied" }
+        ],
+        next: function() { return "legFlexion"; }
+    },
+
+    legFlexion: {
+        text: "Wird der Beinschmerz deutlich schlimmer, wenn du im Sitzen das Bein streckst oder dich im Stehen mit gestreckten Knien nach vorne beugst?",
+        type: "choice",
+        options: [
+            { value: "ja", label: "Ja, deutlich" },
+            { value: "nein", label: "Nein, kein Unterschied" }
+        ],
+        next: function() {
+            if (qv("legCough") === "ja" || qv("legFlexion") === "ja") {
+                return "legSensation";
+            }
+            return "onsetPattern";
+        }
+    },
+
+    legSensation: {
+        text: "Bemerkst du zusätzlich eines der folgenden im betroffenen Bein oder Fuß?",
+        type: "multi",
+        options: [
+            { value: "taubheit", label: "Taubheit oder Kribbeln" },
+            { value: "kraft", label: "Spürbare Kraftminderung, z. B. beim Zehen- oder Fersenstand" },
+            { value: "reflex", label: "Vom Arzt festgestellte Reflexabschwächung" }
+        ],
+        next: function() {
+            lwsResultId = qvArr("legSensation").length > 0 ? "radikulaer-mit-ausfall" : "radikulaer-ohne-ausfall";
+            return null;
+        }
+    },
+
+    onsetPattern: {
+        text: "Wie haben die Rückenschmerzen begonnen?",
+        type: "choice",
+        options: [
+            { value: "ereignis", label: "Plötzlich, durch ein bestimmtes Ereignis (z. B. Heben, Verdrehen)" },
+            { value: "schleichend", label: "Schleichend, ohne erkennbaren Auslöser" }
+        ],
+        next: function() { return "durationLWS"; }
+    },
+
+    durationLWS: {
+        text: "Seit wann bestehen die Beschwerden?",
+        type: "choice",
+        options: [
+            { value: "akut", label: "Seit weniger als 6 Wochen" },
+            { value: "chronisch", label: "Seit mehr als 6 Wochen" }
+        ],
+        next: function(answers) {
+            return answers.durationLWS.value === "akut" ? "movementPattern" : "yellowFlags";
+        }
+    },
+
+    movementPattern: {
+        text: "Bei welcher Bewegung bzw. Position sind die Schmerzen am stärksten?",
+        type: "choice",
+        options: [
+            { value: "flexion", label: "Beim Bücken oder Nach-vorne-beugen" },
+            { value: "extension", label: "Beim Aufrichten oder Nach-hinten-beugen" },
+            { value: "sitzen", label: "Bei längerem Sitzen" },
+            { value: "wechselnd", label: "Wechselnd, kein klares Muster erkennbar" }
+        ],
+        next: function(answers) {
+            const map = {
+                flexion: "funktionsgruppe-flexion",
+                extension: "funktionsgruppe-extension",
+                sitzen: "funktionsgruppe-sitzen",
+                wechselnd: "funktionsgruppe-unspezifisch"
+            };
+            lwsResultId = map[answers.movementPattern.value];
+            return null;
+        }
+    },
+
+    yellowFlags: {
+        text: "Länger bestehende Rückenschmerzen hängen oft auch mit Gedanken und Belastungen zusammen. Trifft eines der folgenden auf dich zu?",
+        type: "multi",
+        options: [
+            { value: "angst", label: "Angst, dass Bewegung oder Belastung schadet" },
+            { value: "hoffnungslos", label: "Das Gefühl, dass es nicht besser wird" },
+            { value: "stimmung", label: "Gedrückte Stimmung im Zusammenhang mit den Beschwerden" },
+            { value: "rueckzug", label: "Sozialer Rückzug wegen der Beschwerden" },
+            { value: "belastung", label: "Aktuell hohe Belastung im Job oder privat" }
+        ],
+        next: function() {
+            lwsResultId = qvArr("yellowFlags").length > 0 ? "chronisch-gelbe-flaggen" : "chronisch-ohne-gelbe-flaggen";
+            return null;
+        }
+    }
+
+};
+
+const LWS_SUMMARY_ORDER = [
+    "caudaCheck", "generalRedFlags", "legRadiating", "legCough",
+    "legFlexion", "legSensation", "onsetPattern", "durationLWS",
+    "movementPattern", "yellowFlags"
+];
+
+const LWS_SUMMARY_LABELS = {
+    caudaCheck: "Akute Warnzeichen",
+    generalRedFlags: "Allgemeine Warnsignale",
+    legRadiating: "Ausstrahlung ins Bein",
+    legCough: "Verstärkung bei Husten/Pressen",
+    legFlexion: "Verstärkung bei Beugung/Dehnung",
+    legSensation: "Taubheit / Kraft / Reflex",
+    onsetPattern: "Beginn",
+    durationLWS: "Dauer",
+    movementPattern: "Schmerzauslösende Bewegung",
+    yellowFlags: "Psychosoziale Faktoren"
+};
+
+/* Ergebnistexte je Endknoten. "redflag" wird, wenn gesetzt, direkt (statt
+   checkRedFlags()) im Warnhinweis-Kasten angezeigt. */
+
+const LWS_RESULTS = {
+
+    "notfall-cauda": {
+        redflag: "Deine Angaben deuten auf mögliche Notfallzeichen im Bereich des unteren Rückenmarks hin (Cauda-equina-Symptomatik). Das muss sofort ärztlich abgeklärt werden – bitte suche umgehend eine Notaufnahme auf oder ruf den Rettungsdienst, warte nicht ab.",
+        text: function(area) {
+            return "Deine Angaben zu " + area + " enthalten mindestens ein akutes Warnzeichen, das sofortiges Handeln erfordert.";
+        },
+        advice: [
+            "Suche jetzt umgehend eine Notaufnahme auf oder ruf den Rettungsdienst – warte nicht bis morgen.",
+            "Physiotherapie oder Abwarten sind in dieser Situation nicht der richtige nächste Schritt."
+        ]
+    },
+
+    "warnsignale-arzt": {
+        redflag: "Deine Angaben enthalten mindestens ein allgemeines Warnsignal, das eine ärztliche Abklärung vor einer weiteren physiotherapeutischen Einschätzung sinnvoll macht.",
+        text: function(area) {
+            return "Bei " + area + " hast du mindestens ein allgemeines Warnsignal angegeben, das erst ärztlich abgeklärt werden sollte, bevor eine physiotherapeutische Einschätzung sinnvoll weiterhilft.";
+        },
+        advice: [
+            "Vereinbare zeitnah einen Arzttermin, statt zunächst abzuwarten.",
+            "Nimm die von dir angekreuzten Punkte konkret mit zum Termin.",
+            "Eine physiotherapeutische Behandlung kann sinnvoll ergänzen, sobald ernsthafte Ursachen ausgeschlossen sind."
+        ]
+    },
+
+    "radikulaer-mit-ausfall": {
+        redflag: "Die Kombination aus ausstrahlendem Beinschmerz und zusätzlicher Taubheit, Kraftminderung oder Reflexabschwächung spricht für eine Nervenwurzelreizung mit neurologischem Ausfall. Das sollte zeitnah ärztlich bzw. physiotherapeutisch abgeklärt werden.",
+        text: function(area) {
+            return "Deine Angaben zu " + area + " – Ausstrahlung ins Bein, Verstärkung bei Husten/Beugung sowie zusätzliche Taubheit, Kraftminderung oder Reflexauffälligkeit – passen zu einer Reizung einer Nervenwurzel im Bereich der Lendenwirbelsäule (radikuläres Muster) mit begleitendem neurologischem Ausfall.";
+        },
+        advice: [
+            "Lass diese Kombination zeitnah ärztlich abklären, insbesondere wegen der Kraftminderung bzw. Reflexauffälligkeit.",
+            "Physiotherapeutisch lässt sich parallel oft schon schmerzlindernd und stabilisierend unterstützen.",
+            "Beobachte, ob die Kraft oder Taubheit zunimmt – das wäre ein Grund, nicht länger zu warten."
+        ]
+    },
+
+    "radikulaer-ohne-ausfall": {
+        redflag: null,
+        text: function(area) {
+            return "Deine Angaben zu " + area + " – Ausstrahlung ins Bein mit Verstärkung bei Husten, Pressen oder Beugung, aber ohne Taubheit, Kraftminderung oder Reflexauffälligkeit – passen zu einer Reizung einer Nervenwurzel im Bereich der Lendenwirbelsäule (radikuläres Muster) ohne neurologischen Ausfall.";
+        },
+        advice: [
+            "Bewegungen und Positionen meiden, die den Beinschmerz deutlich verstärken, ohne dich komplett zu schonen.",
+            "Eine physiotherapeutische Untersuchung hilft, die genaue Richtung der Entlastung zu finden.",
+            "Wenn Taubheit, Kraftminderung oder zunehmende Schmerzen dazukommen, zeitnah ärztlich abklären lassen."
+        ]
+    },
+
+    "funktionsgruppe-flexion": {
+        redflag: null,
+        text: function(area) {
+            return "Bei " + area + " werden die Schmerzen vor allem durch Bücken bzw. Vorbeugen ausgelöst, ohne Ausstrahlung mit neurologischen Auffälligkeiten – das passt zu einem einfachen, mechanischen Muster mit Beugungsempfindlichkeit.";
+        },
+        advice: [
+            "Aufrichtende Übungen (Streckung/Extension) sind bei diesem Muster oft hilfreicher als tiefes Bücken.",
+            "Längeres Sitzen mit rundem Rücken sowie schweres Heben aus gebeugter Haltung vorerst reduzieren.",
+            "Bleib im Alltag trotzdem in Bewegung – komplette Schonung verzögert die Besserung eher."
+        ]
+    },
+
+    "funktionsgruppe-extension": {
+        redflag: null,
+        text: function(area) {
+            return "Bei " + area + " werden die Schmerzen vor allem durch Aufrichten bzw. Rückbeugen ausgelöst, ohne Ausstrahlung mit neurologischen Auffälligkeiten – das passt zu einem einfachen, mechanischen Muster mit Streckungsempfindlichkeit.";
+        },
+        advice: [
+            "Übungen, die den unteren Rücken sanft beugen bzw. entlasten, sind bei diesem Muster oft hilfreicher als Rückbeugen.",
+            "Längeres Stehen mit starkem Hohlkreuz sowie Tätigkeiten mit viel Rückbeugen vorerst reduzieren.",
+            "Eine gezielte Rumpfstabilisation kann helfen, die Position im Alltag besser zu halten."
+        ]
+    },
+
+    "funktionsgruppe-sitzen": {
+        redflag: null,
+        text: function(area) {
+            return "Bei " + area + " werden die Schmerzen vor allem durch längeres Sitzen ausgelöst, ohne Ausstrahlung mit neurologischen Auffälligkeiten – ein häufiges, meist gut beeinflussbares Muster.";
+        },
+        advice: [
+            "Regelmäßige Haltungswechsel und kurze Bewegungspausen (alle 30–45 Minuten) helfen oft spürbar.",
+            "Ergonomie am Sitzplatz prüfen: Sitzhöhe, Rückenlehne, Bildschirmhöhe.",
+            "Gezielte Kräftigung der Rumpf- und Rückenmuskulatur wirkt diesem Muster langfristig entgegen."
+        ]
+    },
+
+    "funktionsgruppe-unspezifisch": {
+        redflag: null,
+        text: function(area) {
+            return "Bei " + area + " lässt sich keine eindeutige bewegungs- oder haltungsabhängige Auslösung erkennen, und es liegt keine Ausstrahlung mit neurologischen Auffälligkeiten vor – das passt zu einem unspezifischen, einfachen Rückenschmerzmuster, wie es sehr häufig vorkommt.";
+        },
+        advice: [
+            "Bleib so gut wie möglich in normaler Alltagsbewegung – Schonung verlängert unspezifische Rückenschmerzen meist eher.",
+            "Wärme kann bei diesem Muster oft angenehm und lindernd wirken.",
+            "Wenn sich nach 1–2 Wochen nichts bessert, ist eine physiotherapeutische Einschätzung sinnvoll."
+        ]
+    },
+
+    "chronisch-ohne-gelbe-flaggen": {
+        redflag: null,
+        text: function(area) {
+            return "Bei " + area + " bestehen die Beschwerden schon länger als 6 Wochen, ohne dass du ausgeprägte psychosoziale Belastungsfaktoren angegeben hast – das passt zu einem eher normal verlaufenden, längeren Rückenschmerzverlauf ohne zusätzliche Risikofaktoren.";
+        },
+        advice: [
+            "Bleib aktiv und baue Belastung schrittweise wieder auf, statt weiter zu schonen.",
+            "Ein strukturiertes Bewegungs- bzw. Kräftigungsprogramm ist bei diesem Verlauf meist der wirksamste nächste Schritt.",
+            "Physiotherapie kann helfen, die Belastungssteigerung sinnvoll zu dosieren."
+        ]
+    },
+
+    "chronisch-gelbe-flaggen": {
+        redflag: "Neben der längeren Dauer hast du auch psychosoziale Belastungsfaktoren angegeben (z. B. Bewegungsangst, gedrückte Stimmung, hohe Belastung). Das ist kein Grund zur Sorge, sollte aber bei der weiteren Behandlung mit berücksichtigt werden.",
+        text: function(area) {
+            return "Bei " + area + " bestehen die Beschwerden schon länger als 6 Wochen, und zusätzlich hast du psychosoziale Belastungsfaktoren angegeben (z. B. Bewegungsangst, gedrückte Stimmung oder hohe Belastung). Erfahrungsgemäß spielen bei so einem Verlauf neben der körperlichen auch diese Faktoren eine wichtige Rolle für die Genesung.";
+        },
+        advice: [
+            "Ein Ansatz, der körperliche Aktivierung UND die psychosozialen Faktoren mit einbezieht, ist bei diesem Verlauf meist am wirksamsten.",
+            "Sprich offen an, wovor du dich bei Bewegung fürchtest – oft lässt sich das gezielt und in kleinen Schritten abbauen.",
+            "Wenn die Belastung oder die Stimmung sehr im Vordergrund stehen, kann zusätzliche psychologische Unterstützung sinnvoll sein."
+        ]
+    },
+
+    fallback: {
+        redflag: null,
+        text: function(area) {
+            return "Aus deinen Angaben zu " + area + " lässt sich noch kein eindeutiges Muster ableiten.";
+        },
+        advice: [
+            "Trag deine Beschwerden im Tagebuch ein, um Entwicklung und Auslöser besser zu erkennen.",
+            "Bei Unsicherheit hilft eine physiotherapeutische Einschätzung, die Ursache einzugrenzen."
+        ]
+    }
+
+};
+
 let questionAnswers = {};
 let questionHistory = [];
 let currentQuestionId = "quality";
+let activeFlowKey = "generic";
+
+function getActiveFlow() {
+    return activeFlowKey === "lws" ? LWS_QUESTION_FLOW : QUESTION_FLOW;
+}
 
 function startQuestionnaire() {
 
     questionAnswers = {};
     questionHistory = [];
-    currentQuestionId = "quality";
+    lwsResultId = null;
+
+    const isLWS = selectedMainArea === "Rücken" &&
+        (selectedSubArea === "Unterer Rücken" || selectedSubArea === "Lendenbereich");
+
+    activeFlowKey = isLWS ? "lws" : "generic";
+    currentQuestionId = isLWS ? "caudaCheck" : "quality";
 
     renderQuestion();
 
@@ -4614,11 +5022,13 @@ function startQuestionnaire() {
 
 function renderQuestion() {
 
-    const step = QUESTION_FLOW[currentQuestionId];
+    const step = getActiveFlow()[currentQuestionId];
 
     document
         .getElementById("questionProgress")
-        .innerText = "Frage " + (questionHistory.length + 1) + " von " + QUESTION_TOTAL;
+        .innerText = (activeFlowKey === "lws")
+            ? "Frage " + (questionHistory.length + 1)
+            : "Frage " + (questionHistory.length + 1) + " von " + QUESTION_TOTAL;
 
     document
         .getElementById("questionText")
@@ -4626,12 +5036,16 @@ function renderQuestion() {
 
     const optionsWrap = document.getElementById("questionOptions");
     const scaleWrap = document.getElementById("questionScaleWrap");
+    const multiWrap = document.getElementById("questionMultiWrap");
+    const multiList = document.getElementById("questionMultiList");
 
     optionsWrap.innerHTML = "";
+    multiList.innerHTML = "";
 
     if (step.type === "scale") {
 
         optionsWrap.classList.add("hidden");
+        multiWrap.classList.add("hidden");
         scaleWrap.classList.remove("hidden");
 
         const previous = questionAnswers[currentQuestionId];
@@ -4644,7 +5058,39 @@ function renderQuestion() {
         return;
     }
 
+    if (step.type === "multi") {
+
+        optionsWrap.classList.add("hidden");
+        scaleWrap.classList.add("hidden");
+        multiWrap.classList.remove("hidden");
+
+        const previousValues = qvArr(currentQuestionId);
+
+        step.options.forEach(function(option) {
+
+            const row = document.createElement("label");
+            row.className = "multi-option";
+
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.value = option.value;
+            checkbox.checked = previousValues.indexOf(option.value) !== -1;
+
+            const span = document.createElement("span");
+            span.innerText = option.label;
+
+            row.appendChild(checkbox);
+            row.appendChild(span);
+
+            multiList.appendChild(row);
+
+        });
+
+        return;
+    }
+
     scaleWrap.classList.add("hidden");
+    multiWrap.classList.add("hidden");
     optionsWrap.classList.remove("hidden");
 
     const previous = questionAnswers[currentQuestionId];
@@ -4677,7 +5123,7 @@ function answerQuestion(option) {
 
     questionHistory.push(currentQuestionId);
 
-    const step = QUESTION_FLOW[currentQuestionId];
+    const step = getActiveFlow()[currentQuestionId];
 
     const next = step.next(questionAnswers);
 
@@ -4689,6 +5135,27 @@ function answerQuestion(option) {
     currentQuestionId = next;
 
     renderQuestion();
+
+}
+
+function submitMultiAnswer() {
+
+    const step = getActiveFlow()[currentQuestionId];
+
+    const checked = Array.from(
+        document.querySelectorAll("#questionMultiList input[type=checkbox]:checked")
+    );
+
+    const values = checked.map(function(cb) { return cb.value; });
+
+    const labels = step.options
+        .filter(function(o) { return values.indexOf(o.value) !== -1; })
+        .map(function(o) { return o.label; });
+
+    answerQuestion({
+        value: values,
+        label: values.length ? labels.join(", ") : "Keine der genannten"
+    });
 
 }
 
@@ -4733,21 +5200,38 @@ function showResultScreen() {
 
     const area = (areaTitle() + " " + selectedSubArea).trim();
 
-    const pattern = pickAnalysisPattern();
+    let narrative, advice, redflagText;
 
-    document.getElementById("resultNarrative").innerText = pattern.text(area);
+    if (activeFlowKey === "lws") {
+
+        const result = LWS_RESULTS[lwsResultId] || LWS_RESULTS.fallback;
+
+        narrative = result.text(area);
+        advice = result.advice;
+        redflagText = result.redflag;
+
+    } else {
+
+        const pattern = pickAnalysisPattern();
+
+        narrative = pattern.text(area);
+        advice = pattern.advice;
+        redflagText = checkRedFlags();
+
+    }
+
+    document.getElementById("resultNarrative").innerText = narrative;
 
     const adviceList = document.getElementById("resultAdvice");
 
     adviceList.innerHTML = "";
 
-    pattern.advice.forEach(function(item) {
+    advice.forEach(function(item) {
         const li = document.createElement("li");
         li.innerText = item;
         adviceList.appendChild(li);
     });
 
-    const redflagText = checkRedFlags();
     const redflagBox = document.getElementById("resultRedflag");
 
     if (redflagText) {
@@ -4761,7 +5245,10 @@ function showResultScreen() {
 
     list.innerHTML = "";
 
-    QUESTION_SUMMARY_ORDER.forEach(function(key) {
+    const summaryOrder = (activeFlowKey === "lws") ? LWS_SUMMARY_ORDER : QUESTION_SUMMARY_ORDER;
+    const summaryLabels = (activeFlowKey === "lws") ? LWS_SUMMARY_LABELS : QUESTION_SUMMARY_LABELS;
+
+    summaryOrder.forEach(function(key) {
 
         const answer = questionAnswers[key];
 
@@ -4770,7 +5257,7 @@ function showResultScreen() {
         }
 
         const dt = document.createElement("dt");
-        dt.innerText = QUESTION_SUMMARY_LABELS[key];
+        dt.innerText = summaryLabels[key];
 
         const dd = document.createElement("dd");
         dd.innerText = answer.label;
