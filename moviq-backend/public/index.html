@@ -3865,11 +3865,19 @@ footer {
 
         <p id="loginError" class="form-error" role="alert"></p>
 
+        <div id="loginResendRow" class="form-note hidden" role="status">
+            <button type="button" class="inline-link" onclick="handleResendFromLogin()">Bestätigungslink erneut senden</button>
+        </div>
+
         <button type="submit" class="btn btn-primary">Anmelden</button>
 
     </form>
 
     <div id="loginNote" class="form-note hidden" role="status"></div>
+
+    <p class="auth-switch">
+        <button class="inline-link" onclick="showForgotPassword()">Passwort vergessen?</button>
+    </p>
 
     <p class="auth-switch">
         Noch keinen Account?
@@ -3941,6 +3949,136 @@ footer {
         Schon einen Account?
         <button class="inline-link" onclick="showLogin()">Login</button>
     </p>
+
+</div>
+
+
+
+<!-- =====================================================
+     E-MAIL BESTÄTIGEN: Wartebildschirm direkt nach der
+     Registrierung
+===================================================== -->
+
+<div id="verifyPendingScreen" class="screen card auth-card hidden">
+
+    <h1>Fast geschafft!</h1>
+
+    <p class="subtitle">
+        Wir haben eine E-Mail an <strong id="verifyPendingEmail"></strong>
+        geschickt. Klick dort auf den Bestätigungslink, um deinen Account
+        zu aktivieren.
+    </p>
+
+    <p id="verifyPendingError" class="form-error" role="alert"></p>
+
+    <div id="verifyPendingNote" class="form-note hidden" role="status"></div>
+
+    <button class="btn btn-soft" onclick="handleResendFromPending()">E-Mail erneut senden</button>
+
+    <p class="auth-switch">
+        Schon bestätigt?
+        <button class="inline-link" onclick="showLogin()">Zum Login</button>
+    </p>
+
+</div>
+
+
+
+<!-- =====================================================
+     E-MAIL BESTÄTIGEN: Ergebnis-Bildschirm, wenn der Link aus
+     der E-Mail angeklickt wird (?verify=TOKEN in der URL)
+===================================================== -->
+
+<div id="emailVerifyScreen" class="screen card auth-card hidden">
+
+    <h1 id="verifyResultTitle">E-Mail wird bestätigt …</h1>
+
+    <p id="verifyResultText" class="subtitle"></p>
+
+    <div id="verifyResultResendBox" class="hidden">
+
+        <div class="field">
+            <label for="verifyResendEmail">E-Mail-Adresse</label>
+            <input id="verifyResendEmail" type="email" autocomplete="email">
+        </div>
+
+        <button class="btn btn-soft" onclick="handleResendFromVerifyScreen()">Neuen Bestätigungslink senden</button>
+
+        <div id="verifyResendNote" class="form-note hidden" role="status"></div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     PASSWORT VERGESSEN: E-Mail-Adresse eingeben
+===================================================== -->
+
+<div id="forgotPasswordScreen" class="screen card auth-card hidden">
+
+    <button class="link-btn" onclick="showLogin()">← Zurück zum Login</button>
+
+    <h1>Passwort vergessen?</h1>
+
+    <p class="subtitle">
+        Gib deine E-Mail-Adresse ein, wir schicken dir einen Link zum
+        Zurücksetzen deines Passworts.
+    </p>
+
+    <form id="forgotPasswordForm" onsubmit="handleForgotPassword(event)">
+
+        <div class="field">
+            <label for="forgotEmail">E-Mail-Adresse</label>
+            <input id="forgotEmail" type="email" autocomplete="email" required>
+        </div>
+
+        <p id="forgotPasswordError" class="form-error" role="alert"></p>
+
+        <button type="submit" class="btn btn-primary">Link anfordern</button>
+
+    </form>
+
+    <div id="forgotPasswordNote" class="form-note hidden" role="status"></div>
+
+</div>
+
+
+
+<!-- =====================================================
+     PASSWORT VERGESSEN: neues Passwort setzen
+     (?reset=TOKEN in der URL)
+===================================================== -->
+
+<div id="resetPasswordScreen" class="screen card auth-card hidden">
+
+    <h1>Neues Passwort setzen</h1>
+
+    <p class="subtitle">Vergib ein neues Passwort für deinen Account.</p>
+
+    <form id="resetPasswordForm" onsubmit="handleResetPassword(event)">
+
+        <div class="field">
+            <label for="resetPassword1">Neues Passwort</label>
+            <input id="resetPassword1" type="password"
+                   autocomplete="new-password" minlength="8" required>
+            <p class="field-help">Mindestens 8 Zeichen.</p>
+        </div>
+
+        <div class="field">
+            <label for="resetPassword2">Passwort wiederholen</label>
+            <input id="resetPassword2" type="password"
+                   autocomplete="new-password" minlength="8" required>
+        </div>
+
+        <p id="resetPasswordError" class="form-error" role="alert"></p>
+
+        <button type="submit" class="btn btn-primary">Passwort speichern</button>
+
+    </form>
+
+    <div id="resetPasswordNote" class="form-note hidden" role="status"></div>
 
 </div>
 
@@ -4290,7 +4428,9 @@ async function apiFetch(path, options) {
 
     if (!response.ok) {
         const message = (data && data.error) || "Etwas ist schiefgelaufen.";
-        throw new Error(message);
+        const err = new Error(message);
+        if (data && data.code) err.code = data.code;
+        throw err;
     }
 
     return data;
@@ -4327,6 +4467,10 @@ const screens = [
     "infoScreen",
     "loginScreen",
     "registerScreen",
+    "verifyPendingScreen",
+    "emailVerifyScreen",
+    "forgotPasswordScreen",
+    "resetPasswordScreen",
     "diaryScreen",
     "shopScreen",
     "wheelScreen",
@@ -10021,11 +10165,16 @@ function updateAuthUI() {
 
 }
 
+let pendingVerifyEmail = "";
+let resetPasswordToken = null;
+
 function showLogin() {
 
     document.getElementById("loginNote").classList.add("hidden");
 
     document.getElementById("loginError").innerText = "";
+
+    document.getElementById("loginResendRow").classList.add("hidden");
 
     showScreen("loginScreen");
 
@@ -10041,6 +10190,16 @@ function showRegister() {
 
 }
 
+function showForgotPassword() {
+
+    document.getElementById("forgotPasswordError").innerText = "";
+
+    document.getElementById("forgotPasswordNote").classList.add("hidden");
+
+    showScreen("forgotPasswordScreen");
+
+}
+
 async function handleLogin(event) {
 
     event.preventDefault();
@@ -10051,9 +10210,13 @@ async function handleLogin(event) {
 
     const errorEl = document.getElementById("loginError");
 
+    const resendRow = document.getElementById("loginResendRow");
+
     const submitBtn = event.target.querySelector("button[type=submit]");
 
     errorEl.innerText = "";
+
+    resendRow.classList.add("hidden");
 
     submitBtn.disabled = true;
 
@@ -10079,6 +10242,11 @@ async function handleLogin(event) {
     } catch (err) {
 
         errorEl.innerText = err.message;
+
+        if (err.code === "EMAIL_NOT_VERIFIED") {
+            pendingVerifyEmail = email;
+            resendRow.classList.remove("hidden");
+        }
 
     } finally {
 
@@ -10141,6 +10309,244 @@ async function handleRegister(event) {
     } catch (err) {
 
         error.innerText = err.message;
+
+    } finally {
+
+        submitBtn.disabled = false;
+
+    }
+
+}
+
+// Gemeinsamer Aufruf für alle drei Stellen, von denen aus eine neue
+// Bestätigungs-E-Mail angefordert werden kann (Login-Fehler, Warte-
+// bildschirm nach der Registrierung, Fehlerfall beim Linkklick).
+async function requestResendVerification(email) {
+    return apiFetch("/auth/resend-verification", {
+        method: "POST",
+        body: JSON.stringify({ email: email })
+    });
+}
+
+async function handleResendFromLogin() {
+
+    const email = document.getElementById("loginEmail").value.trim() || pendingVerifyEmail;
+
+    const row = document.getElementById("loginResendRow");
+
+    if (!email) return;
+
+    try {
+        const data = await requestResendVerification(email);
+        row.innerText = data.message;
+    } catch (e) {
+        row.innerText = e.message;
+    }
+
+}
+
+async function handleResendFromPending() {
+
+    const errorEl = document.getElementById("verifyPendingError");
+
+    const noteEl = document.getElementById("verifyPendingNote");
+
+    errorEl.innerText = "";
+
+    if (!pendingVerifyEmail) return;
+
+    try {
+
+        const data = await requestResendVerification(pendingVerifyEmail);
+
+        noteEl.innerText = data.message;
+
+        noteEl.classList.remove("hidden");
+
+    } catch (e) {
+
+        errorEl.innerText = e.message;
+
+    }
+
+}
+
+async function handleResendFromVerifyScreen() {
+
+    const email = document.getElementById("verifyResendEmail").value.trim();
+
+    const noteEl = document.getElementById("verifyResendNote");
+
+    if (!email) return;
+
+    try {
+
+        const data = await requestResendVerification(email);
+
+        noteEl.innerText = data.message;
+
+        noteEl.classList.remove("hidden");
+
+    } catch (e) {
+
+        noteEl.innerText = e.message;
+
+        noteEl.classList.remove("hidden");
+
+    }
+
+}
+
+// Wird beim Laden der Seite aufgerufen, wenn die URL "?verify=TOKEN"
+// enthält (Klick auf den Bestätigungslink aus der E-Mail). Bestätigt
+// die E-Mail-Adresse serverseitig und loggt bei Erfolg direkt ein,
+// damit es gleich mit dem Arbeitsprofil-Fragebogen weitergehen kann.
+async function handleEmailVerifyFromUrl(token) {
+
+    showScreen("emailVerifyScreen");
+
+    const titleEl = document.getElementById("verifyResultTitle");
+
+    const textEl = document.getElementById("verifyResultText");
+
+    const resendBox = document.getElementById("verifyResultResendBox");
+
+    titleEl.innerText = "E-Mail wird bestätigt …";
+
+    textEl.innerText = "";
+
+    resendBox.classList.add("hidden");
+
+    try {
+
+        const data = await apiFetch("/auth/verify-email", {
+            method: "POST",
+            body: JSON.stringify({ token: token })
+        });
+
+        persistAuthToken(data.token);
+
+        currentUser = data.user;
+
+        isLoggedIn = true;
+
+        workProfile = null;
+
+        updateAuthUI();
+
+        openWorkProfile(null);
+
+    } catch (e) {
+
+        titleEl.innerText = "Link ungültig oder abgelaufen";
+
+        textEl.innerText = e.message;
+
+        resendBox.classList.remove("hidden");
+
+    }
+
+}
+
+async function handleForgotPassword(event) {
+
+    event.preventDefault();
+
+    const email = document.getElementById("forgotEmail").value.trim();
+
+    const errorEl = document.getElementById("forgotPasswordError");
+
+    const noteEl = document.getElementById("forgotPasswordNote");
+
+    const submitBtn = event.target.querySelector("button[type=submit]");
+
+    errorEl.innerText = "";
+
+    submitBtn.disabled = true;
+
+    try {
+
+        const data = await apiFetch("/auth/request-password-reset", {
+            method: "POST",
+            body: JSON.stringify({ email: email })
+        });
+
+        noteEl.innerText = data.message;
+
+        noteEl.classList.remove("hidden");
+
+        event.target.reset();
+
+    } catch (e) {
+
+        errorEl.innerText = e.message;
+
+    } finally {
+
+        submitBtn.disabled = false;
+
+    }
+
+}
+
+// Wird beim Laden der Seite aufgerufen, wenn die URL "?reset=TOKEN"
+// enthält (Klick auf den Link aus der "Passwort vergessen"-E-Mail).
+function handleResetPasswordUrlToken(token) {
+
+    resetPasswordToken = token;
+
+    document.getElementById("resetPasswordError").innerText = "";
+
+    document.getElementById("resetPasswordNote").classList.add("hidden");
+
+    showScreen("resetPasswordScreen");
+
+}
+
+async function handleResetPassword(event) {
+
+    event.preventDefault();
+
+    const p1 = document.getElementById("resetPassword1").value;
+
+    const p2 = document.getElementById("resetPassword2").value;
+
+    const errorEl = document.getElementById("resetPasswordError");
+
+    const noteEl = document.getElementById("resetPasswordNote");
+
+    const submitBtn = event.target.querySelector("button[type=submit]");
+
+    if (p1 !== p2) {
+
+        errorEl.innerText = "Die beiden Passwörter stimmen nicht überein.";
+
+        return;
+
+    }
+
+    errorEl.innerText = "";
+
+    submitBtn.disabled = true;
+
+    try {
+
+        await apiFetch("/auth/reset-password", {
+            method: "POST",
+            body: JSON.stringify({ token: resetPasswordToken, password: p1 })
+        });
+
+        noteEl.innerText = "Passwort gespeichert! Du kannst dich jetzt mit deinem neuen Passwort einloggen.";
+
+        noteEl.classList.remove("hidden");
+
+        event.target.reset();
+
+        setTimeout(function() { showLogin(); }, 1800);
+
+    } catch (e) {
+
+        errorEl.innerText = e.message;
 
     } finally {
 
@@ -12111,6 +12517,32 @@ buildBody(document.getElementById("analysisFigure"));
 setView("front");
 
 updateAuthUI();
+
+// Prüft beim Laden der Seite, ob ein Bestätigungs- oder Passwort-
+// Reset-Link aus einer E-Mail angeklickt wurde ("?verify=..." bzw.
+// "?reset=..." in der URL) und öffnet dafür direkt den passenden
+// Bildschirm. Die Parameter werden danach aus der URL entfernt, damit
+// ein Neuladen der Seite nicht denselben Link erneut verarbeitet.
+(function handleAuthUrlParams() {
+
+    const params = new URLSearchParams(window.location.search);
+
+    const verifyToken = params.get("verify");
+    const resetToken = params.get("reset");
+
+    if (verifyToken) {
+
+        handleEmailVerifyFromUrl(verifyToken);
+        history.replaceState({}, "", window.location.pathname);
+
+    } else if (resetToken) {
+
+        handleResetPasswordUrlToken(resetToken);
+        history.replaceState({}, "", window.location.pathname);
+
+    }
+
+})();
 
 loadAuthState().then(function() {
 
