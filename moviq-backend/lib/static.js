@@ -1,75 +1,41 @@
-// server.js
+// lib/static.js
 //
-// Einstiegspunkt des MOVIQ-Backends. Baut eine kleine, klar strukturierte
-// REST-API: Accounts (Register/Login/Logout), Tagebuch, Gesundheitsschirm
-// und Arbeitsprofil. Läuft komplett ohne "npm install" – nur mit den in
-// Node eingebauten Modulen (http, node:sqlite, crypto).
+// Liefert die Website (moviq.html) direkt über diesen Server aus, unter
+// "/". Dadurch reicht EIN Deployment (z. B. auf Render) für Website +
+// Backend zusammen – keine zweite Hosting-Adresse nötig, und moviq.html
+// spricht automatisch die eigene Adresse an (siehe API_BASE dort).
 //
-// Start:  node server.js   (oder: npm start)
+// Bewusst ohne npm-Paket (kein "serve-static" o. ä.), nur node:fs.
 
-const http = require("http");
-const { loadEnv } = require("./lib/env");
+const fs = require("fs");
+const path = require("path");
 
-loadEnv();
+const PUBLIC_DIR = path.join(__dirname, "..", "public");
+const INDEX_FILE = path.join(PUBLIC_DIR, "index.html");
 
-const { Router, sendJson } = require("./lib/http");
-const { serveStatic } = require("./lib/static");
+function serveStatic(req, res, pathname) {
 
-const authRoutes = require("./routes/auth");
-const diaryRoutes = require("./routes/diary");
-const wheelRoutes = require("./routes/wheel");
-const profileRoutes = require("./routes/profile");
+    if (req.method !== "GET" && req.method !== "HEAD") return false;
 
-const router = new Router();
+    if (pathname === "/" || pathname === "/index.html" || pathname === "/moviq.html") {
 
-authRoutes.register(router);
-diaryRoutes.register(router);
-wheelRoutes.register(router);
-profileRoutes.register(router);
+        if (!fs.existsSync(INDEX_FILE)) return false;
 
-router.get("/api/health", async (req, res) => {
-    sendJson(res, 200, { status: "ok" });
-});
+        const html = fs.readFileSync(INDEX_FILE);
 
-const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
+        res.writeHead(200, {
+            "Content-Type": "text/html; charset=utf-8",
+            "Content-Length": Buffer.byteLength(html)
+        });
 
-function applyCors(res) {
-    res.setHeader("Access-Control-Allow-Origin", CORS_ORIGIN);
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        res.end(req.method === "HEAD" ? undefined : html);
+
+        return true;
+
+    }
+
+    return false;
+
 }
 
-const server = http.createServer(async (req, res) => {
-
-    applyCors(res);
-
-    if (req.method === "OPTIONS") {
-        res.writeHead(204);
-        return res.end();
-    }
-
-    const pathname = req.url.split("?")[0];
-
-    if (pathname.startsWith("/api/")) {
-
-        const handled = await router.handle(req, res, pathname);
-
-        if (!handled) {
-            sendJson(res, 404, { error: "Nicht gefunden." });
-        }
-
-        return;
-
-    }
-
-    if (serveStatic(req, res, pathname)) return;
-
-    sendJson(res, 404, { error: "Nicht gefunden." });
-
-});
-
-const PORT = process.env.PORT || 3000;
-
-server.listen(PORT, () => {
-    console.log(`MOVIQ-Backend läuft auf http://localhost:${PORT}`);
-});
+module.exports = { serveStatic };
