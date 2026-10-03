@@ -1521,19 +1521,12 @@ header {
    BENUTZERPROFIL-KARTE (Startseite, eingeloggt)
 ===================================================== */
 
-.home-body {
-    display: flex;
-    align-items: flex-start;
-    gap: 36px;
-}
-
 .home-main {
-    flex: 1;
+    width: 100%;
     min-width: 0;
 }
 
 .profile-card {
-    flex: 0 0 300px;
     width: 300px;
     margin: 0;
     padding: 24px 26px;
@@ -1541,26 +1534,66 @@ header {
     border: 1px solid var(--sand-200);
     border-radius: 22px;
     box-shadow: var(--shadow);
-    position: sticky;
-    top: 24px;
 }
 
-/* Wenn nicht eingeloggt ist die Profilkarte "hidden" und nimmt in der
-   Flex-Zeile keinen Platz ein - die Kachelübersicht rückt dann ganz
-   natürlich wieder in die Mitte der Seite. */
+/* Wenn nicht eingeloggt ist die Profilkarte "hidden" - die
+   Kachelübersicht ist dann ganz normal die Mitte der Seite. */
 .home-body > .profile-card.hidden {
     display: none;
+}
+
+/* Auf breiten Bildschirmen schwebt die Profilkarte frei links neben
+   dem eigentlichen Seiteninhalt, im Rand neben dem Container, statt
+   in der normalen Spaltenbreite Platz wegzunehmen. Dadurch bleibt die
+   Kachelübersicht exakt so mittig wie im abgemeldeten Zustand (der
+   Container ist ja selbst über margin:auto zentriert - "50% - 540px"
+   ist also die linke Containerkante; die Karte (280px breit) sitzt
+   mit 28px Abstand noch weiter links davon). */
+@media (min-width: 1700px) {
+
+    .profile-card {
+        position: fixed;
+        top: 120px;
+        left: calc(50% - 540px - 28px - 300px);
+        width: 280px;
+    }
+
+}
+
+/* Auf schmaleren Bildschirmen ist links nicht genug Platz für die
+   freischwebende Karte - dort bleibt sie wie bisher direkt neben dem
+   Inhalt (nicht ganz exakt mittig, aber weiterhin gut sichtbar und
+   beim Scrollen "sticky"). */
+@media (max-width: 1699px) and (min-width: 861px) {
+
+    .home-body {
+        display: flex;
+        align-items: flex-start;
+        gap: 36px;
+    }
+
+    .profile-card {
+        flex: 0 0 300px;
+        position: sticky;
+        top: 24px;
+    }
+
+    .home-main {
+        flex: 1;
+        min-width: 0;
+    }
+
 }
 
 @media (max-width: 860px) {
 
     .home-body {
+        display: flex;
         flex-direction: column;
         gap: 24px;
     }
 
     .profile-card {
-        flex: none;
         width: 100%;
         max-width: none;
         position: static;
