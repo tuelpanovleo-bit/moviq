@@ -1002,6 +1002,14 @@ header {
     color: var(--green-900);
 }
 
+/* 6b. Verlauf / Liniendiagramm */
+
+.tile-chart,
+.tile-chart-locked {
+    background: var(--green-200);
+    color: var(--green-900);
+}
+
 /* 7. Wusstest du schon...? */
 
 .tile-myths,
@@ -1788,66 +1796,53 @@ header {
 }
 
 /* Beim Klick auf das Buch (siehe openDiaryEntries()): der Einband
-   klappt kurz auf, bevor die ganze Seite ins Buch hineinzoomt. */
+   klappt WIRKLICH weit auf (fast senkrecht zur Seite), während man
+   gleichzeitig durch die offene Seite "hineinfliegt" (siehe
+   .diary-fly-overlay unten). */
 .diary-book-opening .diary-book-cover {
     transform-origin: left center;
-    animation: diary-cover-open 0.3s ease-in forwards;
+    animation: diary-cover-open 0.46s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @keyframes diary-cover-open {
     0%   { transform: rotateY(0deg); }
-    100% { transform: rotateY(-50deg); }
+    100% { transform: rotateY(-146deg); }
 }
 
-/* Übergang beim Aufschlagen des Buchs: die GANZE Tagebuch-Seite
-   zoomt - ausgehend von der Buch-Mitte (transformOrigin wird in
-   openDiaryEntries() per JS gesetzt, auf BEIDEN Screens identisch,
-   damit der "Kamera"-Punkt durchgehend derselbe bleibt) - groß
-   heran, OHNE dabei auszublenden (keine Opacity-Animation mehr) -
-   nur eine leichte Bewegungsunschärfe verstärkt den Flug-Eindruck.
-   Der nächste Screen (diaryEntriesScreen) startet direkt bei der
-   gleichen großen Skalierung/Unschärfe und zoomt von dort auf
-   normal herunter - der Schwung reißt dadurch nie ab, es ist EIN
-   durchgehender Zoom statt zwei Animationen mit einer Lücke
-   dazwischen. Während des gesamten Übergangs wird am body
-   overflow:hidden gesetzt (.diary-zoom-active), damit die stark
-   vergrößerte Seite sauber im Viewport beschnitten wird. */
+/* Übergang beim Aufschlagen des Buchs: KEIN Verschwimmen/Auflösen
+   des eigentlichen Bildschirminhalts mehr. Stattdessen "fliegt" ein
+   eigenes, blickdichtes Papier-Overlay (.diary-fly-overlay, ein
+   fixes Element ganz oben im DOM, siehe HTML) von genau der
+   Position/Größe des Buchs auf volle Bildschirmgröße heran - eine
+   reine Formänderung, kein Zoom auf echten (dadurch unscharf
+   werdenden) Text. Sobald es den ganzen Bildschirm bedeckt, wird
+   dahinter unsichtbar der Screen gewechselt, und das Overlay blendet
+   erst danach wieder aus. openDiaryEntries() steuert das komplett
+   per JS (dynamische Start-Position/-Größe), die CSS-Regeln hier
+   liefern nur den Ausgangszustand. */
 body.diary-zoom-active {
     overflow: hidden;
 }
 
-/* Spezifität per ID+Klasse (statt nur Klasse), damit diese Regel
-   zuverlässig die generische `.screen.enter`-Fade-Regel (zwei
-   Klassen) aussticht, selbst wenn diaryScreen zufällig noch seine
-   "enter"-Klasse von einem früheren Aufruf trägt - sonst gewinnt
-   sonst die FALSCHE Animation den "animation"-Shorthand und die
-   Zoom-Animation startet nie (genau das hat den Flug vorher schon
-   VOR dem ersten sichtbaren Frame abgewürgt). */
-#diaryScreen.diary-zoom-out {
-    animation: diary-zoom-out 0.4s cubic-bezier(0.5, 0, 0.85, 0.25) forwards;
-    will-change: transform, filter;
+.diary-fly-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #FFFDF5;
+    box-shadow: 0 18px 36px rgba(40, 24, 10, 0.32);
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transform-origin: top left;
+    will-change: transform;
 }
 
-@keyframes diary-zoom-out {
-    0%   { transform: scale(1);   filter: blur(0px); }
-    55%  { filter: blur(3px); }
-    100% { transform: scale(7.5); filter: blur(11px); }
-}
-
-#diaryEntriesScreen.diary-zoom-in {
-    animation: diary-zoom-in 0.42s cubic-bezier(0.15, 0.75, 0.3, 1) both;
-    will-change: transform, filter;
-}
-
-@keyframes diary-zoom-in {
-    0%   { transform: scale(7.5); filter: blur(11px); }
-    45%  { filter: blur(3px); }
-    100% { transform: scale(1);   filter: blur(0px); }
+.diary-fly-overlay.diary-fly-visible {
+    visibility: visible;
+    opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .diary-zoom-out,
-    .diary-zoom-in,
     .diary-book-opening .diary-book-cover {
         animation: none !important;
     }
@@ -1982,18 +1977,6 @@ body.diary-desk-mode {
         linear-gradient(160deg, #8A5A34 0%, #714624 45%, #5B3A22 100%);
 }
 
-/* Die generische `.screen.enter`-Fade-Animation (reine Opacity)
-   würde den nahtlosen Zoom-Schwung aus dem Buch-Aufschlagen wieder
-   kaputt machen (Opacity-Sprung mitten im Zoom) - für diesen einen
-   Screen wird sie deshalb per ID-Selektor deaktiviert. Die
-   eigentliche Eintritts-Animation ist die JS-gesteuerte Klasse
-   `.diary-zoom-in` (siehe oben), die openDiaryEntries() exakt mit
-   demselben Zoom-Ursprung wie beim Austritt aus #diaryScreen
-   startet. */
-#diaryEntriesScreen.screen.enter {
-    animation: none;
-}
-
 #diaryEntriesScreen.diary-desk.card {
     position: relative;
     max-width: none;
@@ -2113,6 +2096,72 @@ body.diary-desk-mode {
 
 .diary-empty {
     color: var(--muted);
+}
+
+.diary-chart-link {
+    display: inline-block;
+    margin-top: 4px;
+}
+
+/* =====================================================
+   VERLAUF: LINIENDIAGRAMM
+   Einfaches, eine-Serie-Liniendiagramm (VAS 0-10 über die Zeit) als
+   Inline-SVG. Eine einzelne Serie braucht keine Legende (der Titel
+   benennt sie) - Farbe bleibt deshalb konstant für die ganze Linie,
+   statt pro Punkt nach Wert einzufärben (Farbe folgt der Entität,
+   nicht ihrem Rang). Nativer <title>-Tooltip pro Punkt als leichte
+   Hover-Ebene.
+===================================================== */
+
+.diary-chart-container {
+    margin-top: 8px;
+}
+
+.diary-chart-empty {
+    padding: 36px 20px;
+    text-align: center;
+    color: var(--muted);
+    background: var(--sand-50);
+    border: 1px dashed var(--sand-300);
+    border-radius: 14px;
+}
+
+.diary-chart-svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.diary-chart-grid {
+    stroke: var(--sand-200);
+    stroke-width: 1;
+}
+
+.diary-chart-axis-label {
+    fill: var(--muted);
+    font-size: 11px;
+    font-family: inherit;
+}
+
+.diary-chart-line {
+    fill: none;
+    stroke: var(--green-700);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.diary-chart-point {
+    fill: #FFFDF8;
+    stroke: var(--green-700);
+    stroke-width: 2;
+}
+
+.diary-chart-point-label {
+    fill: var(--ink);
+    font-size: 11px;
+    font-weight: 600;
+    font-family: inherit;
 }
 
 /* =====================================================
@@ -3079,6 +3128,13 @@ footer {
 <body>
 
 
+<!-- Fliegt beim Aufschlagen des Tagebuchs von der Buch-Position auf
+     volle Bildschirmgröße (siehe openDiaryEntries()) - rein
+     dekorativ/technisch, liegt deshalb außerhalb aller .screen-
+     Container, damit position:fixed unabhängig vom sichtbaren
+     Screen funktioniert. -->
+<div id="diaryFlyOverlay" class="diary-fly-overlay" aria-hidden="true"></div>
+
 <!-- =====================================================
      DYNAMISCHER HINTERGRUND (rein dekorativ)
 ===================================================== -->
@@ -3566,6 +3622,40 @@ footer {
                 <span>
                     <span class="tile-title">Tagebuch</span>
                     <span class="tile-text">Trag ein, wie es dir heute geht, und verfolge deine Schmerzstärke über die Zeit.</span>
+                </span>
+            </button>
+
+            <!-- 6b. Verlauf (Liniendiagramm aus den Tagebuch-Einträgen):
+                 eingeloggt -->
+
+            <button class="tile tile-chart tile-light auth-in hidden"
+                    onclick="openDiaryChart()">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M4 19h16"/>
+                        <path d="M4 19V5"/>
+                        <path d="M4 15l4.5-5 3.5 3 4-6 4 4.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="tile-title">Dein Verlauf</span>
+                    <span class="tile-text">Deine Schmerzstärke über die Zeit, als Liniendiagramm aus deinen Tagebucheinträgen.</span>
+                </span>
+            </button>
+
+            <!-- 6b. Verlauf: nicht eingeloggt -->
+
+            <button class="tile tile-chart-locked tile-light auth-out"
+                    onclick="showRegister()">
+                <span class="tile-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="5" y="10" width="14" height="10" rx="2"/>
+                        <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="tile-title">Dein Verlauf</span>
+                    <span class="tile-text">Deine Schmerzstärke über die Zeit, als Liniendiagramm aus deinen Tagebucheinträgen.</span>
                 </span>
             </button>
 
@@ -4845,7 +4935,31 @@ footer {
 
         <div id="diaryList" class="diary-timeline"></div>
 
+        <button class="link-btn diary-chart-link" onclick="openDiaryChart()">
+            Verlauf als Diagramm ansehen →
+        </button>
+
     </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     VERLAUF: LINIENDIAGRAMM AUS DEN TAGEBUCH-EINTRÄGEN
+===================================================== -->
+
+<div id="diaryChartScreen" class="screen card hidden">
+
+    <button class="link-btn" onclick="showHome()">← Startseite</button>
+
+    <h1>Dein Verlauf</h1>
+
+    <p class="subtitle">
+        Deine Schmerzstärke (VAS, 0–10) aus dem Tagebuch, als Linie über die Zeit.
+    </p>
+
+    <div id="diaryChartContainer" class="diary-chart-container"></div>
 
 </div>
 
@@ -5131,6 +5245,7 @@ const screens = [
     "changePasswordScreen",
     "diaryScreen",
     "diaryEntriesScreen",
+    "diaryChartScreen",
     "shopScreen",
     "wheelScreen",
     "mythScreen",
@@ -12110,86 +12225,237 @@ function openDiaryEntries() {
         window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const bookCol = document.querySelector("#diaryScreen .diary-book-col");
-    const diaryScreenEl = document.getElementById("diaryScreen");
-    const entriesScreenEl = document.getElementById("diaryEntriesScreen");
+    const bookVisual = bookCol && bookCol.querySelector(".diary-book-visual");
+    const overlay = document.getElementById("diaryFlyOverlay");
 
-    if (prefersReducedMotion || !bookCol || !diaryScreenEl || !entriesScreenEl) {
+    if (prefersReducedMotion || !bookCol || !bookVisual || !overlay) {
         enterEntries();
         return;
     }
 
-    // Zoom-Ursprung auf die Mitte des Buchs legen - wird auf BEIDEN
-    // Screens (Austritt UND Eintritt) identisch gesetzt, damit die
-    // "Kamera" durchgehend auf denselben Punkt zoomt, statt dass der
-    // Eintritts-Zoom woanders neu ansetzt. Zusammen mit dem Verzicht
-    // auf jede Opacity-Änderung (siehe CSS .diary-zoom-out/-in) sorgt
-    // das dafür, dass der Flug ins Buch nie "abbricht", sondern EIN
-    // durchgehender Zoom von Anfang bis Ende ist.
-    const rect = bookCol.getBoundingClientRect();
-    const originX = ((rect.left + rect.width / 2) / window.innerWidth) * 100;
-    const originY = ((rect.top + rect.height / 2) / window.innerHeight) * 100;
-    const origin = originX + "% " + originY + "%";
+    // Statt den echten Bildschirminhalt zu vergrößern (und dadurch
+    // unscharf werden zu lassen), "fliegt" ein eigenes, blickdichtes
+    // Papier-Overlay von genau der Position/Größe des Buchs auf volle
+    // Bildschirmgröße - eine reine Formänderung ohne jede Unschärfe.
+    // Start: Overlay deckungsgleich mit dem Buch-Rechteck.
+    const rect = bookVisual.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const scaleX = rect.width / vw;
+    const scaleY = rect.height / vh;
 
     document.body.classList.add("diary-zoom-active");
-    diaryScreenEl.style.transformOrigin = origin;
+
+    // Der Buchdeckel klappt WIRKLICH weit auf (siehe CSS
+    // @keyframes diary-cover-open, bis -146deg) - dadurch sieht man
+    // für einen Moment direkt auf die aufgeschlagene Seite, bevor man
+    // "hineinfliegt".
     bookCol.classList.add("diary-book-opening");
-    diaryScreenEl.classList.add("diary-zoom-out");
-    // Zusätzlich per Inline-Style gesetzt: #diaryScreen trägt oft noch
-    // die Klasse "enter" von seinem letzten Aufruf, und deren
-    // `.screen.enter`-Regel ist spezifischer als eine einfache
-    // Klassen-Regel - würde also sonst gewinnen und die Zoom-Animation
-    // verhindern, bevor sie überhaupt startet. Inline-Styles schlagen
-    // jede normale Stylesheet-Regel, daher hier doppelt gesichert.
-    diaryScreenEl.style.animation =
-        "diary-zoom-out 0.4s cubic-bezier(0.5, 0, 0.85, 0.25) forwards";
 
-    // WICHTIG: animationend-Events BUBBLEN im DOM nach oben. Der
-    // Buchdeckel (.diary-book-cover, ein Kind-Element von
-    // diaryScreenEl) hat seine eigene, kürzere "Aufklapp"-Animation -
-    // ohne den Filter auf den Animationsnamen würde deren Ende
-    // fälschlicherweise HIER ankommen und den Screen-Wechsel viel zu
-    // früh auslösen (genau das hat den Zoom vorher "abgewürgt",
-    // bevor er richtig losging). Deshalb explizit auf den eigenen
-    // Animationsnamen prüfen und alles andere ignorieren.
-    diaryScreenEl.addEventListener("animationend", function handleZoomOut(e) {
+    overlay.style.transition = "none";
+    overlay.style.borderRadius = "14px";
+    overlay.style.transform =
+        "translate(" + rect.left + "px, " + rect.top + "px) " +
+        "scale(" + scaleX + ", " + scaleY + ")";
+    overlay.classList.add("diary-fly-visible");
 
-        if (e.target !== diaryScreenEl || e.animationName !== "diary-zoom-out") {
+    // Erzwungener Reflow, damit der obige Ausgangszustand (ohne
+    // Transition) sicher angewendet ist, bevor im nächsten Frame die
+    // eigentliche Flug-Animation zum Zielzustand gestartet wird -
+    // sonst könnte der Browser beide Zustände zusammenfassen und die
+    // Animation würde nie sichtbar ablaufen (abbrechen, bevor sie
+    // beginnt).
+    overlay.getBoundingClientRect();
+
+    requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+            overlay.style.transition =
+                "transform 0.56s cubic-bezier(0.62, 0, 0.18, 1), " +
+                "border-radius 0.56s ease";
+            overlay.style.transform = "translate(0px, 0px) scale(1, 1)";
+            overlay.style.borderRadius = "0px";
+        });
+    });
+
+    overlay.addEventListener("transitionend", function handleFlyIn(e) {
+
+        if (e.target !== overlay || e.propertyName !== "transform") {
             return;
         }
 
-        diaryScreenEl.removeEventListener("animationend", handleZoomOut);
-        diaryScreenEl.classList.remove("diary-zoom-out");
-        diaryScreenEl.style.transformOrigin = "";
-        diaryScreenEl.style.animation = "";
+        overlay.removeEventListener("transitionend", handleFlyIn);
         bookCol.classList.remove("diary-book-opening");
 
-        // Den neuen Screen schon VOR dem Sichtbarwerden auf denselben
-        // Ursprung + die Eintritts-Zoom-Animation vorbereiten (auch
-        // hier per Inline-Style, aus demselben Spezifitätsgrund wie
-        // oben), damit es nahtlos an exakt der Stelle/Skalierung
-        // weiterläuft, bei der der Austritt aufgehört hat.
-        entriesScreenEl.style.transformOrigin = origin;
-        entriesScreenEl.classList.add("diary-zoom-in");
-        entriesScreenEl.style.animation =
-            "diary-zoom-in 0.42s cubic-bezier(0.15, 0.75, 0.3, 1) both";
-
+        // Das Overlay bedeckt jetzt den GESAMTEN Bildschirm (reine
+        // Papierfläche) - der eigentliche Screen-Wechsel passiert
+        // dahinter unsichtbar, bevor das Overlay wieder ausblendet.
         enterEntries();
 
-        entriesScreenEl.addEventListener("animationend", function handleZoomIn(e2) {
+        requestAnimationFrame(function () {
+            overlay.style.transition = "opacity 0.26s ease-out";
+            overlay.style.opacity = "0";
 
-            if (e2.target !== entriesScreenEl || e2.animationName !== "diary-zoom-in") {
-                return;
-            }
+            overlay.addEventListener("transitionend", function handleFade(e2) {
 
-            entriesScreenEl.removeEventListener("animationend", handleZoomIn);
-            entriesScreenEl.classList.remove("diary-zoom-in");
-            entriesScreenEl.style.transformOrigin = "";
-            entriesScreenEl.style.animation = "";
-            document.body.classList.remove("diary-zoom-active");
+                if (e2.target !== overlay || e2.propertyName !== "opacity") {
+                    return;
+                }
+
+                overlay.removeEventListener("transitionend", handleFade);
+                overlay.classList.remove("diary-fly-visible");
+                overlay.style.transition = "";
+                overlay.style.transform = "";
+                overlay.style.opacity = "";
+                overlay.style.borderRadius = "";
+                document.body.classList.remove("diary-zoom-active");
+
+            });
 
         });
 
     });
+
+}
+
+function openDiaryChart() {
+
+    if (!isLoggedIn) {
+        showRegister();
+        return;
+    }
+
+    showScreen("diaryChartScreen");
+
+    renderDiaryChart();
+
+}
+
+// Baut das Liniendiagramm (VAS über die Zeit) aus den Tagebuch-
+// Einträgen als Inline-SVG. Mit 0 oder 1 Einträgen gibt es noch
+// keine sinnvolle Linie zu zeichnen - dann zeigt der Screen einen
+// freundlichen Leerzustand statt eines leeren/kaputten Diagramms.
+async function renderDiaryChart() {
+
+    const container = document.getElementById("diaryChartContainer");
+
+    container.innerHTML = '<p class="diary-chart-empty">Lädt …</p>';
+
+    let entries;
+
+    try {
+        entries = await fetchDiaryEntries();
+    } catch (e) {
+        container.innerHTML =
+            '<p class="diary-chart-empty">Einträge konnten nicht geladen werden.</p>';
+        return;
+    }
+
+    const sorted = entries.slice().sort(function(a, b) {
+        return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
+    });
+
+    if (sorted.length < 2) {
+
+        const message = sorted.length === 0
+            ? "Noch keine Tagebucheinträge. Trag ein paar Tage lang ein, " +
+              "wie es dir geht - sobald mindestens zwei Einträge da sind, " +
+              "zeigen wir hier deinen Verlauf als Liniendiagramm."
+            : "Erst 1 Eintrag bisher. Trag noch mindestens einen weiteren " +
+              "Tag ein, dann zeigen wir hier deinen Verlauf als " +
+              "Liniendiagramm.";
+
+        container.innerHTML = '<p class="diary-chart-empty"></p>';
+        container.querySelector(".diary-chart-empty").innerText = message;
+        return;
+
+    }
+
+    // Feste Zeichenfläche (SVG viewBox), per CSS responsiv skaliert.
+    const width = 640;
+    const height = 280;
+    const padding = { top: 20, right: 24, bottom: 34, left: 38 };
+    const plotW = width - padding.left - padding.right;
+    const plotH = height - padding.top - padding.bottom;
+
+    // Eine Achse: y ist immer die VAS-Skala 0-10 (fixer, bekannter
+    // Wertebereich), nie zweite Skala für die x-Achse.
+    const yFor = function(vas) {
+        return padding.top + plotH * (1 - vas / 10);
+    };
+    const xFor = function(index) {
+        return sorted.length === 1
+            ? padding.left + plotW / 2
+            : padding.left + (plotW * index) / (sorted.length - 1);
+    };
+
+    let svg = '<svg class="diary-chart-svg" viewBox="0 0 ' + width + ' ' + height +
+        '" role="img" aria-label="Liniendiagramm: Schmerzstärke über die Zeit">';
+
+    // Gitterlinien + Achsen-Beschriftung für die y-Achse (0-10,
+    // zurückhaltend, dezent - keine dominanten Gridlines).
+    [0, 2, 4, 6, 8, 10].forEach(function(tick) {
+        const y = yFor(tick);
+        svg += '<line class="diary-chart-grid" x1="' + padding.left + '" y1="' + y +
+            '" x2="' + (width - padding.right) + '" y2="' + y + '"/>';
+        svg += '<text class="diary-chart-axis-label" x="' + (padding.left - 10) +
+            '" y="' + y + '" text-anchor="end" dominant-baseline="middle">' +
+            tick + '</text>';
+    });
+
+    // x-Achse: nur Anfang, Ende und - falls Platz ist - die Mitte
+    // beschriften, damit sich die Datumslabel nicht überlappen.
+    const labelIndices = [0, sorted.length - 1];
+    const midIndex = Math.floor((sorted.length - 1) / 2);
+    if (sorted.length >= 5 && !labelIndices.includes(midIndex)) {
+        labelIndices.push(midIndex);
+    }
+
+    labelIndices.forEach(function(i) {
+        const parts = diaryDateParts(sorted[i].date);
+        svg += '<text class="diary-chart-axis-label" x="' + xFor(i) + '" y="' +
+            (height - padding.bottom + 18) + '" text-anchor="middle">' +
+            escapeHtml(parts.date) + '</text>';
+    });
+
+    // Die Linie selbst - eine durchgehende Serie, konstante Farbe.
+    const linePoints = sorted.map(function(entry, i) {
+        return xFor(i) + "," + yFor(entry.vas);
+    }).join(" ");
+
+    svg += '<polyline class="diary-chart-line" points="' + linePoints + '"/>';
+
+    // Datenpunkte als Kreise (>= 8px Durchmesser), mit nativem
+    // Tooltip (Datum + Wert) als leichte Hover-Ebene. Direkt
+    // beschriftet werden nur der erste und letzte Punkt (selektive
+    // direkte Labels statt eine Zahl auf jedem Punkt).
+    sorted.forEach(function(entry, i) {
+        const x = xFor(i);
+        const y = yFor(entry.vas);
+        const dateText = formatDiaryDate(entry.date);
+
+        svg += '<circle class="diary-chart-point" cx="' + x + '" cy="' + y +
+            '" r="4"><title>' + escapeHtml(dateText) + ': VAS ' + entry.vas +
+            '</title></circle>';
+
+        if (i === 0 || i === sorted.length - 1) {
+            // Erster Punkt: Label nach rechts versetzt (sonst
+            // Überlappung mit der y-Achsen-Beschriftung links).
+            // Letzter Punkt: nach links versetzt (sonst am rechten
+            // Rand abgeschnitten). Punkte nahe der Diagramm-Oberkante
+            // bekommen ihr Label unterhalb statt oberhalb, damit es
+            // nicht über den Plot-Rand hinausragt.
+            const isFirst = i === 0;
+            const labelX = isFirst ? x + 10 : x - 10;
+            const anchor = isFirst ? "start" : "end";
+            const labelY = entry.vas >= 9 ? y + 18 : y - 12;
+            svg += '<text class="diary-chart-point-label" x="' + labelX + '" y="' +
+                labelY + '" text-anchor="' + anchor + '">' + entry.vas + '</text>';
+        }
+    });
+
+    svg += "</svg>";
+
+    container.innerHTML = svg;
 
 }
 
