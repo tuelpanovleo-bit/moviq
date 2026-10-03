@@ -2932,7 +2932,7 @@ footer {
 
         <!-- Eingeloggt -->
 
-        <button class="btn btn-sm btn-ghost hide-mobile auth-in hidden"
+        <button class="btn btn-sm btn-ghost hide-mobile auth-in hidden hide-no-login"
                 onclick="handleLogout()">
             Abmelden
         </button>
@@ -2960,15 +2960,15 @@ footer {
                 <button class="menu-item mobile-only auth-out"
                         onclick="showRegister()">Account erstellen</button>
 
-                <button class="menu-item mobile-only auth-in hidden"
+                <button class="menu-item mobile-only auth-in hidden hide-no-login"
                         onclick="handleLogout()">Abmelden</button>
 
-                <div class="menu-divider mobile-only"></div>
+                <div class="menu-divider mobile-only hide-no-login"></div>
 
-                <button class="menu-item auth-in hidden"
+                <button class="menu-item auth-in hidden hide-no-login"
                         onclick="showChangePassword()">Passwort ändern</button>
 
-                <div class="menu-divider auth-in hidden"></div>
+                <div class="menu-divider auth-in hidden hide-no-login"></div>
 
                 <button class="menu-item"
                         onclick="openPage('ueber-uns')">Über uns</button>
@@ -4470,7 +4470,97 @@ const API_BASE = (window.location.protocol === "file:")
     : (window.location.origin + "/api");
 const AUTH_TOKEN_KEY = "moviq_auth_token";
 
+/* =====================================================
+   NOCH OHNE LOGIN/ACCOUNT (vorübergehend, auf Wunsch)
+   Login und Account-Erstellung sind auf der Seite aktuell
+   bewusst ausgeblendet - man kann sich frei durch alle
+   Bereiche klicken, ohne sich anzumelden. Alles, was sonst
+   beim Server gespeichert würde (Arbeitsprofil, Tagebuch,
+   Gesundheitsschirm-Werte), bleibt nur im Arbeitsspeicher des
+   Browsers und geht beim Verlassen/Neuladen der Seite wieder
+   verloren - es wird nirgendwo dauerhaft gespeichert.
+   Der komplette Login/Account-Code (auch serverseitig in
+   moviq-backend) bleibt unverändert im Hintergrund bestehen
+   und lässt sich später einfach wieder aktivieren, indem
+   NO_LOGIN_MODE unten auf false gesetzt wird.
+===================================================== */
+
+const NO_LOGIN_MODE = true;
+
+const NO_LOGIN_USER = { id: "guest", name: "Gast", email: "" };
+
+const noLoginStore = {
+    profile: null,
+    diary: [],
+    diaryNextId: 1,
+    wheel: null
+};
+
+function noLoginApiFetch(path, options) {
+
+    options = options || {};
+
+    const method = (options.method || "GET").toUpperCase();
+
+    const body = options.body ? JSON.parse(options.body) : {};
+
+    if (path === "/profile" && method === "GET") {
+        return Promise.resolve({ profile: noLoginStore.profile });
+    }
+
+    if (path === "/profile" && method === "PUT") {
+        noLoginStore.profile = {
+            field: body.field,
+            profession: body.profession,
+            workload: body.workload,
+            weeklyHours: body.weeklyHours,
+            strainedAreas: body.strainedAreas || []
+        };
+        return Promise.resolve({ profile: noLoginStore.profile });
+    }
+
+    if (path === "/diary" && method === "GET") {
+        return Promise.resolve({ entries: noLoginStore.diary });
+    }
+
+    if (path === "/diary" && method === "POST") {
+        const entry = {
+            id: "guest-" + (noLoginStore.diaryNextId++),
+            date: body.date,
+            vas: body.vas,
+            development: body.development,
+            actions: body.actions
+        };
+        noLoginStore.diary.push(entry);
+        return Promise.resolve({ entry: entry });
+    }
+
+    if (path.indexOf("/diary/") === 0 && method === "DELETE") {
+        const id = decodeURIComponent(path.slice("/diary/".length));
+        noLoginStore.diary = noLoginStore.diary.filter(function(e) { return e.id !== id; });
+        return Promise.resolve({ success: true });
+    }
+
+    if (path === "/wheel" && method === "GET") {
+        return Promise.resolve({ values: noLoginStore.wheel });
+    }
+
+    if (path === "/wheel" && method === "PUT") {
+        noLoginStore.wheel = body.values;
+        return Promise.resolve({ success: true });
+    }
+
+    return Promise.reject(
+        new Error("Diese Funktion ist aktuell nicht verfügbar.")
+    );
+
+}
+
 async function apiFetch(path, options) {
+
+    if (NO_LOGIN_MODE) {
+        return noLoginApiFetch(path, options);
+    }
 
     options = options || {};
 
@@ -10187,6 +10277,12 @@ let workProfile = null;
 
 async function loadAuthState() {
 
+    if (NO_LOGIN_MODE) {
+        isLoggedIn = true;
+        currentUser = NO_LOGIN_USER;
+        return;
+    }
+
     try {
         authToken = localStorage.getItem(AUTH_TOKEN_KEY);
     } catch (e) {
@@ -10250,6 +10346,15 @@ function updateAuthUI() {
     document.querySelectorAll(".auth-out").forEach(function(el) {
         el.classList.toggle("hidden", isLoggedIn);
     });
+
+    // Solange NO_LOGIN_MODE aktiv ist, gibt es keinen echten Account -
+    // "Abmelden" und "Passwort ändern" ergeben dann keinen Sinn und
+    // werden zusätzlich ausgeblendet (unabhängig vom auth-in/out-Status).
+    if (NO_LOGIN_MODE) {
+        document.querySelectorAll(".hide-no-login").forEach(function(el) {
+            el.classList.add("hidden");
+        });
+    }
 
 }
 
