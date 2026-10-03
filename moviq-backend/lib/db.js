@@ -73,4 +73,23 @@ db.exec(`
     );
 `);
 
+// Nachträgliche Spalten an "users" für E-Mail-Bestätigung und
+// Passwort-Reset (per Migration statt in der CREATE TABLE-Anweisung
+// oben, damit bereits bestehende Datenbanken beim nächsten Start
+// automatisch mitziehen, ohne Daten zu verlieren).
+
+const userColumns = db.prepare("PRAGMA table_info(users)").all().map(c => c.name);
+
+function addUserColumnIfMissing(name, definition) {
+    if (!userColumns.includes(name)) {
+        db.exec(`ALTER TABLE users ADD COLUMN ${name} ${definition}`);
+    }
+}
+
+addUserColumnIfMissing("email_verified", "INTEGER NOT NULL DEFAULT 0");
+addUserColumnIfMissing("verification_token", "TEXT");
+addUserColumnIfMissing("verification_expires", "TEXT");
+addUserColumnIfMissing("reset_token", "TEXT");
+addUserColumnIfMissing("reset_expires", "TEXT");
+
 module.exports = db;
