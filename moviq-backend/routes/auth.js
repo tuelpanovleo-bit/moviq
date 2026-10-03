@@ -328,6 +328,50 @@ function register(router) {
 
     });
 
+    // Passwort direkt auf der Seite ändern (eingeloggt, mit aktuellem
+    // Passwort als Nachweis) - unabhängig von "Passwort vergessen" oben,
+    // das über einen E-Mail-Link läuft.
+    router.post("/api/auth/change-password", async (req, res) => {
+
+        const userId = getUserIdFromRequest(req);
+
+        if (!userId) {
+            return sendJson(res, 401, { error: "Nicht angemeldet." });
+        }
+
+        const body = await readJsonBody(req);
+        const { currentPassword, newPassword } = body;
+
+        if (!currentPassword || !newPassword) {
+            return sendJson(res, 400, { error: "Aktuelles und neues Passwort werden benötigt." });
+        }
+
+        if (newPassword.length < 8) {
+            return sendJson(res, 400, { error: "Das neue Passwort muss mindestens 8 Zeichen lang sein." });
+        }
+
+        const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
+
+        if (!user || !verifyPassword(currentPassword, user.password_hash)) {
+            return sendJson(res, 401, { error: "Das aktuelle Passwort ist falsch." });
+        }
+
+        const passwordHash = hashPassword(newPassword);
+
+        db.prepare("UPDATE users SET password_hash = ? WHERE id = ?").run(passwordHash, userId);
+
+        // Sicherheitshalber alle ANDEREN Sitzungen beenden (z. B. falls das
+        // Konto woanders offen war) - die aktuelle Sitzung bleibt bestehen,
+        // damit man nicht direkt wieder ausgeloggt wird.
+        const header = req.headers["authorization"] || "";
+        const [, currentToken] = header.split(" ");
+
+        db.prepare("DELETE FROM sessions WHERE user_id = ? AND token != ?").run(userId, currentToken || "");
+
+        sendJson(res, 200, { success: true });
+
+    });
+
     router.post("/api/auth/logout", async (req, res) => {
 
         const header = req.headers["authorization"] || "";
