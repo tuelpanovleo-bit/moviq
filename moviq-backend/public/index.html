@@ -2932,6 +2932,11 @@ footer {
 
                 <div class="menu-divider mobile-only"></div>
 
+                <button class="menu-item auth-in hidden"
+                        onclick="showChangePassword()">Passwort ändern</button>
+
+                <div class="menu-divider auth-in hidden"></div>
+
                 <button class="menu-item"
                         onclick="openPage('ueber-uns')">Über uns</button>
 
@@ -4085,6 +4090,55 @@ footer {
 
 
 <!-- =====================================================
+     PASSWORT ÄNDERN (eingeloggt, direkt auf der Seite -
+     keine E-Mail-Bestätigung nötig, anders als "Passwort
+     vergessen" oben)
+===================================================== -->
+
+<div id="changePasswordScreen" class="screen card auth-card hidden">
+
+    <button class="link-btn" onclick="showHome()">← Zurück</button>
+
+    <h1>Passwort ändern</h1>
+
+    <p class="subtitle">
+        Gib dein aktuelles und dein neues Passwort ein.
+    </p>
+
+    <form id="changePasswordForm" onsubmit="handleChangePassword(event)">
+
+        <div class="field">
+            <label for="currentPassword">Aktuelles Passwort</label>
+            <input id="currentPassword" type="password"
+                   autocomplete="current-password" required>
+        </div>
+
+        <div class="field">
+            <label for="newPassword1">Neues Passwort</label>
+            <input id="newPassword1" type="password"
+                   autocomplete="new-password" minlength="8" required>
+            <p class="field-help">Mindestens 8 Zeichen.</p>
+        </div>
+
+        <div class="field">
+            <label for="newPassword2">Neues Passwort wiederholen</label>
+            <input id="newPassword2" type="password"
+                   autocomplete="new-password" minlength="8" required>
+        </div>
+
+        <p id="changePasswordError" class="form-error" role="alert"></p>
+
+        <button type="submit" class="btn btn-primary">Passwort speichern</button>
+
+    </form>
+
+    <div id="changePasswordNote" class="form-note hidden" role="status"></div>
+
+</div>
+
+
+
+<!-- =====================================================
      ARBEITSPROFIL (nach der Registrierung, auch später
      jederzeit über die Profil-Karte bearbeitbar)
 ===================================================== -->
@@ -4471,6 +4525,7 @@ const screens = [
     "emailVerifyScreen",
     "forgotPasswordScreen",
     "resetPasswordScreen",
+    "changePasswordScreen",
     "diaryScreen",
     "shopScreen",
     "wheelScreen",
@@ -10543,6 +10598,75 @@ async function handleResetPassword(event) {
         event.target.reset();
 
         setTimeout(function() { showLogin(); }, 1800);
+
+    } catch (e) {
+
+        errorEl.innerText = e.message;
+
+    } finally {
+
+        submitBtn.disabled = false;
+
+    }
+
+}
+
+// Passwort direkt auf der Seite ändern (eingeloggt, ohne E-Mail-Link -
+// anders als "Passwort vergessen" oben, das über eine E-Mail läuft).
+function showChangePassword() {
+
+    document.getElementById("changePasswordForm").reset();
+
+    document.getElementById("changePasswordError").innerText = "";
+
+    document.getElementById("changePasswordNote").classList.add("hidden");
+
+    showScreen("changePasswordScreen");
+
+}
+
+async function handleChangePassword(event) {
+
+    event.preventDefault();
+
+    const current = document.getElementById("currentPassword").value;
+
+    const p1 = document.getElementById("newPassword1").value;
+
+    const p2 = document.getElementById("newPassword2").value;
+
+    const errorEl = document.getElementById("changePasswordError");
+
+    const noteEl = document.getElementById("changePasswordNote");
+
+    const submitBtn = event.target.querySelector("button[type=submit]");
+
+    if (p1 !== p2) {
+
+        errorEl.innerText = "Die beiden neuen Passwörter stimmen nicht überein.";
+
+        return;
+
+    }
+
+    errorEl.innerText = "";
+
+    noteEl.classList.add("hidden");
+
+    submitBtn.disabled = true;
+
+    try {
+
+        await apiFetch("/auth/change-password", {
+            method: "POST",
+            body: JSON.stringify({ currentPassword: current, newPassword: p1 })
+        });
+
+        event.target.reset();
+
+        noteEl.innerText = "Passwort erfolgreich geändert.";
+
+        noteEl.classList.remove("hidden");
 
     } catch (e) {
 
