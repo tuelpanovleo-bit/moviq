@@ -1778,12 +1778,48 @@ header {
     width: 100%;
     max-width: 230px;
     aspect-ratio: 3 / 4;
+    perspective: 700px;
     transition: transform 0.18s ease;
 }
 
 .diary-book-col:hover .diary-book-visual,
 .diary-book-col:focus-visible .diary-book-visual {
     transform: translateY(-4px) rotate(-1deg);
+}
+
+/* Beim Klick auf das Buch (siehe openDiaryEntries()): der Einband
+   klappt kurz auf, bevor die ganze Seite ins Buch hineinzoomt. */
+.diary-book-opening .diary-book-cover {
+    transform-origin: left center;
+    animation: diary-cover-open 0.3s ease-in forwards;
+}
+
+@keyframes diary-cover-open {
+    0%   { transform: rotateY(0deg); }
+    100% { transform: rotateY(-50deg); }
+}
+
+/* Übergang beim Aufschlagen des Buchs: die GANZE Tagebuch-Seite
+   zoomt - ausgehend von der Buch-Mitte (transformOrigin wird in
+   openDiaryEntries() per JS gesetzt) - groß heran und blendet aus,
+   als würde man ins Buch hineinfliegen. Der nächste Screen
+   (diaryEntriesScreen) zoomt anschließend von groß auf normal
+   herunter (siehe weiter unten), wodurch der Schwung nahtlos
+   weitergeht. */
+.diary-zoom-out {
+    animation: diary-zoom-out 0.34s cubic-bezier(0.45, 0, 0.8, 0.2) forwards;
+}
+
+@keyframes diary-zoom-out {
+    0%   { transform: scale(1);    opacity: 1; }
+    100% { transform: scale(2.8);  opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .diary-zoom-out,
+    .diary-book-opening .diary-book-cover {
+        animation: none !important;
+    }
 }
 
 /* Angedeutete Papierseiten - liegen leicht versetzt hinter dem
@@ -1894,62 +1930,116 @@ header {
 
 /* =====================================================
    TAGEBUCH-EINTRÄGE: "ECHTES TAGEBUCH"-DESIGN
-   Sobald man das Buch aufschlägt, wechselt die Seite auf einen
-   Holztisch-Hintergrund mit Kritzeleien und einem Kugelschreiber -
-   die eigentlichen Einträge liegen auf einer hellen "Papierseite"
-   obendrauf, wie ein wirklich handschriftlich geführtes Tagebuch.
+   Sobald man das Buch aufschlägt, wechselt die GANZE SEITE (nicht
+   nur eine Karte) auf einen Holztisch-Hintergrund mit Kritzeleien
+   und einem Kugelschreiber - die eigentlichen Einträge liegen auf
+   einer hellen "Papierseite" obendrauf, wie ein wirklich
+   handschriftlich geführtes Tagebuch. Der Holztisch wird über eine
+   body-Klasse gesetzt, damit er seitenfüllend ist (auch Header-
+   Rand/Footer-Bereich), nicht nur innerhalb der Karte.
 ===================================================== */
+
+body.diary-desk-mode {
+    background:
+        radial-gradient(ellipse at 18% 10%, rgba(255, 255, 255, 0.06), transparent 50%),
+        repeating-linear-gradient(90deg,
+            rgba(0, 0, 0, 0.055) 0px, rgba(0, 0, 0, 0.055) 2px,
+            transparent 2px, transparent 25px),
+        repeating-linear-gradient(90deg,
+            rgba(255, 255, 255, 0.025) 0px, rgba(255, 255, 255, 0.025) 1px,
+            transparent 1px, transparent 9px),
+        linear-gradient(160deg, #8A5A34 0%, #714624 45%, #5B3A22 100%);
+}
+
+/* Setzt den Schwung aus dem Buch-Aufschlagen (.diary-zoom-out)
+   fort: die Einträge-Seite zoomt von groß auf normal herunter und
+   blendet ein, statt nur zu faden - überschreibt die generische
+   `.screen.enter`-Animation gezielt für diesen einen Screen (ID-
+   Selektor sticht die beiden Klassen der generischen Regel aus). */
+@media (prefers-reduced-motion: no-preference) {
+    #diaryEntriesScreen.screen.enter {
+        animation: diary-zoom-in 0.4s cubic-bezier(0.2, 0.7, 0.3, 1);
+    }
+}
+
+@keyframes diary-zoom-in {
+    0%   { transform: scale(1.35); opacity: 0; }
+    100% { transform: scale(1);    opacity: 1; }
+}
 
 #diaryEntriesScreen.diary-desk.card {
     position: relative;
-    max-width: 980px;
-    padding: 46px 40px;
-    overflow: hidden;
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    padding: 54px 24px 60px;
+    overflow: visible;
     color: #FFFDF8;
-    background:
-        radial-gradient(ellipse at 20% 15%, rgba(255, 255, 255, 0.07), transparent 55%),
-        repeating-linear-gradient(90deg,
-            rgba(0, 0, 0, 0.05) 0px, rgba(0, 0, 0, 0.05) 2px,
-            transparent 2px, transparent 26px),
-        linear-gradient(160deg, #8A5A34 0%, #714624 45%, #5B3A22 100%);
-    border: 1px solid #4A2E1A;
-    box-shadow: 0 24px 48px rgba(40, 24, 10, 0.35);
+    background: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
 }
 
 .diary-doodle {
     position: absolute;
     width: 54px;
     height: auto;
-    color: rgba(255, 253, 248, 0.28);
+    color: rgba(255, 253, 248, 0.3);
     pointer-events: none;
 }
 
-.diary-doodle-swirl   { top: 26px;    right: 48px;  width: 60px; }
-.diary-doodle-heart   { bottom: 34px; left: 30px;   width: 34px; }
-.diary-doodle-star    { top: 50%;     left: 14px;   width: 28px; transform: translateY(-50%); }
-.diary-doodle-underline {
-    bottom: 54px;
-    right: 60px;
-    width: 76px;
-    color: rgba(255, 253, 248, 0.22);
+/* Jede Kritzelei besteht aus zwei leicht versetzten, naechsten
+   Pfaden (wie zwei Stiftstriche uebereinander) plus einem
+   SVG-Verzerrungsfilter (#sketchWobble) - das macht sie bewusst
+   "unsauber" statt wie eine perfekte Vektorform. */
+.diary-doodle path {
+    filter: url(#sketchWobble);
 }
 
+.diary-doodle path.stroke-2 {
+    opacity: 0.55;
+}
+
+.diary-doodle-swirl    { top: 30px;    right: 68px;  width: 62px; transform: rotate(-6deg); }
+.diary-doodle-heart    { bottom: 110px; left: 36px;   width: 36px; transform: rotate(8deg); }
+.diary-doodle-star     { top: 46%;     left: 22px;   width: 30px; transform: rotate(-10deg); }
+.diary-doodle-underline {
+    bottom: 70px;
+    right: 90px;
+    width: 80px;
+    color: rgba(255, 253, 248, 0.24);
+    transform: rotate(-2deg);
+}
+.diary-doodle-scribble {
+    top: 90px;
+    left: 54px;
+    width: 46px;
+    color: rgba(255, 253, 248, 0.2);
+    transform: rotate(5deg);
+}
+
+/* Eleganter Kugelschreiber - realistischere Rundung durch mehrere
+   Glanz-/Schattenstreifen auf dem Schaft, Metallclip, facettierte
+   Spitze mit Schreibschlitz und weicher Kontaktschatten auf dem
+   Papier darunter. */
 .diary-pen {
     position: absolute;
-    top: 68px;
-    right: -14px;
-    width: 190px;
-    transform: rotate(32deg);
-    filter: drop-shadow(0 6px 10px rgba(30, 18, 8, 0.4));
+    top: 74px;
+    right: -6px;
+    width: 210px;
+    transform: rotate(31deg);
     pointer-events: none;
 }
 
 .diary-page {
     position: relative;
+    max-width: 900px;
+    margin: 0 auto;
     background: #FFFDF5;
     border-radius: 14px;
     padding: 32px 34px 26px;
-    box-shadow: 0 14px 30px rgba(40, 24, 10, 0.28);
+    box-shadow: 0 18px 36px rgba(40, 24, 10, 0.32);
     color: var(--ink);
 }
 
@@ -1974,7 +2064,7 @@ header {
 @media (max-width: 760px) {
 
     #diaryEntriesScreen.diary-desk.card {
-        padding: 30px 18px;
+        padding: 30px 14px 40px;
     }
 
     .diary-page {
@@ -1982,12 +2072,13 @@ header {
     }
 
     .diary-pen {
-        width: 130px;
-        top: 20px;
-        right: -30px;
+        width: 140px;
+        top: 24px;
+        right: -22px;
     }
 
-    .diary-doodle-swirl { width: 42px; right: 20px; top: 16px; }
+    .diary-doodle-swirl { width: 44px; right: 24px; top: 18px; }
+    .diary-doodle-scribble { display: none; }
 }
 
 .diary-history-title {
@@ -4623,44 +4714,108 @@ footer {
 
 <div id="diaryEntriesScreen" class="screen card diary-desk hidden">
 
+    <!-- Einmaliger SVG-Filter, der allen Kritzeleien ihre "unsaubere",
+         handgezeichnete Wackeligkeit gibt (feTurbulence verzerrt die
+         sonst perfekt glatten Pfade leicht). -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <filter id="sketchWobble" x="-30%" y="-30%" width="160%" height="160%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.045 0.09" numOctaves="2" seed="4" result="noise"/>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.2"/>
+        </filter>
+    </svg>
+
     <!-- Kleine Kritzeleien auf der Tischplatte - rein dekorativ,
-         sollen wie spontane Skizzen neben dem aufgeschlagenen
-         Tagebuch wirken. -->
+         sollen wie spontane, mit der Hand hingeworfene Skizzen neben
+         dem aufgeschlagenen Tagebuch wirken (nicht wie perfekte
+         Vektorformen: jede besteht aus zwei leicht versetzten
+         Strichen plus Wackel-Filter). -->
     <svg class="diary-doodle diary-doodle-swirl" viewBox="0 0 60 60" aria-hidden="true">
+        <path class="stroke-2" d="M7 31c-1-11 7-19 17-19s17 6 15 14-11 11-18 5 1-15 12-13 15 8 10 17-17 11-25 3"
+              fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         <path d="M6 30c0-10 8-18 18-18s16 7 14 15-12 10-17 4 2-14 11-13 14 9 9 16-16 10-24 4"
-              fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
     </svg>
 
     <svg class="diary-doodle diary-doodle-heart" viewBox="0 0 40 36" aria-hidden="true">
+        <path class="stroke-2" d="M19 33C8 25 2 18 2.5 11 3 6 7 3 11 3c3-0.2 6 1.5 8.5 5 2.3-3.6 5.3-5.3 8.8-5 4 .3 7.5 3.5 7.2 8.5-.4 7-6.8 13.6-16.5 21.5z"
+              fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
         <path d="M20 32C9 24 3 17 3 10.5 3 5 7 2 11.5 2c3 0 6 1.7 8.5 5 2.5-3.3 5.5-5 8.5-5C33 2 37 5 37 10.5 37 17 31 24 20 32z"
-              fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+              fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
     </svg>
 
     <svg class="diary-doodle diary-doodle-star" viewBox="0 0 40 40" aria-hidden="true">
+        <path class="stroke-2" d="M19 5l3.8 10.3 11.4.3-9.2 6.8 3.2 11.1-9-7-9.2 6.4 3.6-10.9-9.4-6.8 11.6-.6z"
+              fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
         <path d="M20 4l3.5 10.8H34l-9 6.6 3.5 10.8L20 25.6l-8.5 6.6L15 21.4l-9-6.6h10.5z"
-              fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
     </svg>
 
     <svg class="diary-doodle diary-doodle-underline" viewBox="0 0 80 14" aria-hidden="true">
-        <path d="M2 9c12-8 24-8 36-2s30 4 40-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path class="stroke-2" d="M3 10c11-9 23-7 35-2s29 5 39-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M2 9c12-8 24-8 36-2s30 4 40-4" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>
+    </svg>
+
+    <svg class="diary-doodle diary-doodle-scribble" viewBox="0 0 50 30" aria-hidden="true">
+        <path d="M3 15c4-9 9-12 14-9s4 10-1 11-8-6-3-11 13-5 17 1 2 12-4 12"
+              fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
     </svg>
 
     <!-- Eleganter Kugelschreiber, liegt diagonal auf der Seite -
-         als würde man gerade etwas eintragen. -->
-    <svg class="diary-pen" viewBox="0 0 220 26" aria-hidden="true">
+         als würde man gerade etwas eintragen. Mehrschichtiger Schaft
+         (Grundfarbe + Glanzstreifen + Kernschatten) für eine runde,
+         metallische Wirkung, facettierte Spitze mit Schreibschlitz,
+         Metallclip und weicher Kontaktschatten auf dem Papier. -->
+    <svg class="diary-pen" viewBox="0 0 240 34" aria-hidden="true">
         <defs>
-            <linearGradient id="penBody" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stop-color="#3A3A42"/>
-                <stop offset="45%" stop-color="#6B6B76"/>
-                <stop offset="55%" stop-color="#6B6B76"/>
-                <stop offset="100%" stop-color="#1F1F24"/>
+            <linearGradient id="penBarrel" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"  stop-color="#55555F"/>
+                <stop offset="20%" stop-color="#1C1C21"/>
+                <stop offset="45%" stop-color="#3A3A43"/>
+                <stop offset="55%" stop-color="#75757F"/>
+                <stop offset="72%" stop-color="#2A2A30"/>
+                <stop offset="100%" stop-color="#121215"/>
             </linearGradient>
+            <linearGradient id="penBarrelLength" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#15151A"/>
+                <stop offset="12%" stop-color="#3C3C45"/>
+                <stop offset="50%" stop-color="#2A2A30"/>
+                <stop offset="88%" stop-color="#3C3C45"/>
+                <stop offset="100%" stop-color="#0E0E11"/>
+            </linearGradient>
+            <linearGradient id="penGold" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#8A7232"/>
+                <stop offset="50%" stop-color="#E9D27C"/>
+                <stop offset="100%" stop-color="#8A7232"/>
+            </linearGradient>
+            <radialGradient id="penShadow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="rgba(20,12,4,0.42)"/>
+                <stop offset="100%" stop-color="rgba(20,12,4,0)"/>
+            </radialGradient>
         </defs>
-        <rect x="18" y="9" width="178" height="8" rx="4" fill="url(#penBody)"/>
-        <rect x="18" y="9" width="178" height="2.4" rx="1.2" fill="rgba(255,255,255,0.35)"/>
-        <path d="M196 9 L214 13 L196 17 Z" fill="#C9A84C"/>
-        <path d="M2 13 L18 9 L18 17 Z" fill="#C9A84C"/>
-        <circle cx="2" cy="13" r="2.4" fill="#8A7232"/>
+
+        <!-- Kontaktschatten auf dem Papier -->
+        <ellipse cx="120" cy="25" rx="112" ry="7" fill="url(#penShadow)"/>
+
+        <!-- Schaft -->
+        <rect x="22" y="11" width="168" height="11" rx="5.5" fill="url(#penBarrelLength)"/>
+        <rect x="22" y="11" width="168" height="11" rx="5.5" fill="url(#penBarrel)" opacity="0.55"/>
+        <rect x="26" y="12.6" width="156" height="2" rx="1" fill="rgba(255,255,255,0.4)"/>
+
+        <!-- Goldene Ringe (Zierringe) -->
+        <rect x="58" y="10.3" width="3.4" height="12.4" fill="url(#penGold)"/>
+        <rect x="150" y="10.3" width="3.4" height="12.4" fill="url(#penGold)"/>
+
+        <!-- Clip -->
+        <path d="M70 11 C66 4 58 4 55 11 L55 19 C58 16.5 66 16.5 70 19 Z" fill="url(#penGold)" opacity="0.92"/>
+
+        <!-- Spitze (facettiertes Konus-Segment zur Mine) -->
+        <path d="M190 10.5 L214 14.5 L224 16.5 L214 18.5 L190 22.5 Z" fill="url(#penGold)"/>
+        <path d="M190 10.5 L214 14.5 L224 16.5 L214 18.5 L190 22.5"
+              fill="none" stroke="#5B4A1E" stroke-width="0.6"/>
+        <line x1="205" y1="14" x2="222" y2="16.3" stroke="#5B4A1E" stroke-width="0.5"/>
+
+        <!-- Hinteres Ende, leicht verjüngt -->
+        <path d="M22 12 C18 12.5 15 14 15 16.5 C15 19 18 20.5 22 21 Z" fill="url(#penBarrel)"/>
     </svg>
 
     <!-- Die eigentliche Tagebuch-Seite: helles Papier, als Kontrast
@@ -5726,6 +5881,7 @@ function showScreen(id) {
     });
 
     document.body.classList.toggle("performance-mode", id === "performanceScreen");
+    document.body.classList.toggle("diary-desk-mode", id === "diaryEntriesScreen");
 
     window.scrollTo(0, 0);
 
@@ -11930,9 +12086,42 @@ async function updateDiaryBookTeaser() {
 
 function openDiaryEntries() {
 
-    showScreen("diaryEntriesScreen");
+    function enterEntries() {
+        showScreen("diaryEntriesScreen");
+        renderDiaryList();
+    }
 
-    renderDiaryList();
+    const prefersReducedMotion = window.matchMedia &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const bookCol = document.querySelector("#diaryScreen .diary-book-col");
+    const diaryScreenEl = document.getElementById("diaryScreen");
+
+    if (prefersReducedMotion || !bookCol || !diaryScreenEl) {
+        enterEntries();
+        return;
+    }
+
+    // Zoom-Ursprung auf die Mitte des Buchs legen, damit die ganze
+    // Seite genau von dort "ins Buch hineinfliegt".
+    const rect = bookCol.getBoundingClientRect();
+    const originX = ((rect.left + rect.width / 2) / window.innerWidth) * 100;
+    const originY = ((rect.top + rect.height / 2) / window.innerHeight) * 100;
+
+    diaryScreenEl.style.transformOrigin = originX + "% " + originY + "%";
+    bookCol.classList.add("diary-book-opening");
+    diaryScreenEl.classList.add("diary-zoom-out");
+
+    diaryScreenEl.addEventListener("animationend", function handleZoomOut() {
+
+        diaryScreenEl.removeEventListener("animationend", handleZoomOut);
+        diaryScreenEl.classList.remove("diary-zoom-out");
+        diaryScreenEl.style.transformOrigin = "";
+        bookCol.classList.remove("diary-book-opening");
+
+        enterEntries();
+
+    }, { once: true });
 
 }
 
