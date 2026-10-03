@@ -330,6 +330,40 @@ body.performance-mode .perf-icon {
     }
 }
 
+/* "Wusstest du schon...?"-Icons: nur im Mythen-Screen sichtbar,
+   ersetzen dort die Standard-Icons 1:1 - bewusst OHNE eigene
+   Farbe/Opazität, damit sie exakt dieselben Töne wie die normalen
+   Hintergrund-Icons tragen (.bg-icon / .is-sand liefern die Farbe
+   bereits). */
+
+.myth-icon {
+    display: none;
+}
+
+body.myth-mode .bg-icon:not(.myth-icon) {
+    display: none;
+}
+
+body.myth-mode .myth-icon {
+    display: block;
+}
+
+.myth-icon-1 { top: 8%;  left: 4%;  width: 70px; animation: bg-drift-a 20s ease-in-out infinite; }
+.myth-icon-2 { top: 62%; left: 88%; width: 56px; animation: bg-drift-b 24s ease-in-out infinite; animation-delay: -6s; }
+.myth-icon-3 { top: 20%; left: 90%; width: 46px; animation: bg-drift-c 18s ease-in-out infinite; animation-delay: -12s; }
+.myth-icon-4 { top: 78%; left: 8%;  width: 52px; animation: bg-drift-a 26s ease-in-out infinite; animation-delay: -14s; }
+.myth-icon-5 { top: 42%; left: 2%;  width: 40px; animation: bg-drift-b 22s ease-in-out infinite; animation-delay: -4s; }
+.myth-icon-6 { top: 4%;  left: 60%; width: 48px; animation: bg-drift-c 21s ease-in-out infinite; animation-delay: -9s; }
+.myth-icon-7 { top: 34%; left: 50%; width: 42px; animation: bg-drift-d 25s ease-in-out infinite; animation-delay: -3s; }
+.myth-icon-8 { top: 88%; left: 42%; width: 46px; animation: bg-drift-e 19s ease-in-out infinite; animation-delay: -11s; }
+.myth-icon-9 { top: 14%; left: 30%; width: 38px; animation: bg-drift-d 23s ease-in-out infinite; animation-delay: -16s; }
+
+@media (prefers-reduced-motion: reduce) {
+    .myth-icon {
+        animation: none !important;
+    }
+}
+
 @media (max-width: 700px) {
     .bg-scene { opacity: 0.7; }
 }
@@ -1002,12 +1036,17 @@ header {
     color: var(--green-900);
 }
 
-/* 6b. Verlauf / Liniendiagramm */
+/* 6b. Verlauf / Liniendiagramm (jetzt als Kachel INNERHALB des
+   Tagebuch-Screens, nicht mehr als eigene Startseiten-Kachel) */
 
-.tile-chart,
-.tile-chart-locked {
+.tile-chart {
     background: var(--green-200);
     color: var(--green-900);
+}
+
+.diary-chart-tile {
+    width: 100%;
+    margin-top: 20px;
 }
 
 /* 7. Wusstest du schon...? */
@@ -2352,6 +2391,21 @@ body.diary-desk-mode {
     border-color: var(--green-200);
 }
 
+.product-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 56px;
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 10px;
+}
+
+.product-image-svg {
+    width: 100%;
+    height: 100%;
+    max-width: 120px;
+}
+
 .product-swatch {
     display: flex;
     align-items: center;
@@ -2402,6 +2456,17 @@ body.diary-desk-mode {
     background: var(--sand-100);
     border: 1px solid var(--sand-200);
     border-radius: 14px;
+}
+
+.dumbbell-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+}
+
+.dumbbell-image .product-image-svg {
+    max-width: 70px;
 }
 
 .dumbbell-kg {
@@ -3289,6 +3354,77 @@ footer {
         <path d="M13.6 8l2.4 2.6-1 3 3 2"/>
     </svg>
 
+    <!-- ===== "Wusstest du schon...?": dieselben Farben/Opazitäten
+         wie die Standard-Icons (keine neue Farbe), nur andere Motive
+         (Glühbirne, Fragezeichen, grübelndes Gesicht), nur im
+         Mythen-Screen sichtbar ===== -->
+
+    <!-- Glühbirne 1 -->
+    <svg class="bg-icon myth-icon myth-icon-1" viewBox="0 0 24 24">
+        <path d="M9 16h6M10 19h4"/>
+        <path d="M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.9v.2h5v-.2c0-.8.4-1.5 1-1.9A6 6 0 0 0 12 3z"/>
+        <path d="M12 6.5v4M10.3 9l1.7 1.7 1.7-1.7"/>
+    </svg>
+
+    <!-- Fragezeichen 1 -->
+    <svg class="bg-icon is-sand myth-icon myth-icon-2" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M9.3 9.6a2.7 2.7 0 1 1 4.3 2.2c-.9.6-1.6 1.1-1.6 2.2v.3"/>
+        <path d="M12 17.3h.01"/>
+    </svg>
+
+    <!-- Grübelndes Gesicht 1 -->
+    <svg class="bg-icon myth-icon myth-icon-3" viewBox="0 0 24 24">
+        <circle cx="12" cy="11" r="8"/>
+        <path d="M8.5 10.5h.01M14.5 9.5c.8-.5 1.8-.5 2.5 0"/>
+        <path d="M9 15c1 .8 2 .8 3 .3"/>
+        <path d="M16 17c.8.6 1.2 1.6.9 2.6"/>
+    </svg>
+
+    <!-- Glühbirne 2 -->
+    <svg class="bg-icon is-sand myth-icon myth-icon-4" viewBox="0 0 24 24">
+        <path d="M9 16h6M10 19h4"/>
+        <path d="M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.9v.2h5v-.2c0-.8.4-1.5 1-1.9A6 6 0 0 0 12 3z"/>
+        <path d="M12 6.5v4M10.3 9l1.7 1.7 1.7-1.7"/>
+    </svg>
+
+    <!-- Fragezeichen 2 -->
+    <svg class="bg-icon myth-icon myth-icon-5" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M9.3 9.6a2.7 2.7 0 1 1 4.3 2.2c-.9.6-1.6 1.1-1.6 2.2v.3"/>
+        <path d="M12 17.3h.01"/>
+    </svg>
+
+    <!-- Grübelndes Gesicht 2 -->
+    <svg class="bg-icon is-sand myth-icon myth-icon-6" viewBox="0 0 24 24">
+        <circle cx="12" cy="11" r="8"/>
+        <path d="M8.5 10.5h.01M14.5 9.5c.8-.5 1.8-.5 2.5 0"/>
+        <path d="M9 15c1 .8 2 .8 3 .3"/>
+        <path d="M16 17c.8.6 1.2 1.6.9 2.6"/>
+    </svg>
+
+    <!-- Glühbirne 3 -->
+    <svg class="bg-icon myth-icon myth-icon-7" viewBox="0 0 24 24">
+        <path d="M9 16h6M10 19h4"/>
+        <path d="M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.9v.2h5v-.2c0-.8.4-1.5 1-1.9A6 6 0 0 0 12 3z"/>
+        <path d="M12 6.5v4M10.3 9l1.7 1.7 1.7-1.7"/>
+    </svg>
+
+    <!-- Fragezeichen 3 -->
+    <svg class="bg-icon is-sand myth-icon myth-icon-8" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M9.3 9.6a2.7 2.7 0 1 1 4.3 2.2c-.9.6-1.6 1.1-1.6 2.2v.3"/>
+        <path d="M12 17.3h.01"/>
+    </svg>
+
+    <!-- Grübelndes Gesicht 3 -->
+    <svg class="bg-icon myth-icon myth-icon-9" viewBox="0 0 24 24">
+        <circle cx="12" cy="11" r="8"/>
+        <path d="M8.5 10.5h.01M14.5 9.5c.8-.5 1.8-.5 2.5 0"/>
+        <path d="M9 15c1 .8 2 .8 3 .3"/>
+        <path d="M16 17c.8.6 1.2 1.6.9 2.6"/>
+    </svg>
+
 </div>
 
 
@@ -3622,40 +3758,6 @@ footer {
                 <span>
                     <span class="tile-title">Tagebuch</span>
                     <span class="tile-text">Trag ein, wie es dir heute geht, und verfolge deine Schmerzstärke über die Zeit.</span>
-                </span>
-            </button>
-
-            <!-- 6b. Verlauf (Liniendiagramm aus den Tagebuch-Einträgen):
-                 eingeloggt -->
-
-            <button class="tile tile-chart tile-light auth-in hidden"
-                    onclick="openDiaryChart()">
-                <span class="tile-icon">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M4 19h16"/>
-                        <path d="M4 19V5"/>
-                        <path d="M4 15l4.5-5 3.5 3 4-6 4 4.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </span>
-                <span>
-                    <span class="tile-title">Dein Verlauf</span>
-                    <span class="tile-text">Deine Schmerzstärke über die Zeit, als Liniendiagramm aus deinen Tagebucheinträgen.</span>
-                </span>
-            </button>
-
-            <!-- 6b. Verlauf: nicht eingeloggt -->
-
-            <button class="tile tile-chart-locked tile-light auth-out"
-                    onclick="showRegister()">
-                <span class="tile-icon">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <rect x="5" y="10" width="14" height="10" rx="2"/>
-                        <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
-                    </svg>
-                </span>
-                <span>
-                    <span class="tile-title">Dein Verlauf</span>
-                    <span class="tile-text">Deine Schmerzstärke über die Zeit, als Liniendiagramm aus deinen Tagebucheinträgen.</span>
                 </span>
             </button>
 
@@ -4818,6 +4920,25 @@ footer {
         </button>
 
     </div>
+
+    <!-- Verlauf-Diagramm als Kachel INNERHALB des Tagebuchs (nicht
+         mehr als eigene Startseiten-Kachel) - gleicher Kachel-Stil
+         wie auf der Startseite, volle Breite unter den 2 Spalten. -->
+
+    <button class="tile tile-chart tile-light diary-chart-tile"
+            onclick="openDiaryChart()">
+        <span class="tile-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 19h16"/>
+                <path d="M4 19V5"/>
+                <path d="M4 15l4.5-5 3.5 3 4-6 4 4.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </span>
+        <span>
+            <span class="tile-title">Dein Verlauf</span>
+            <span class="tile-text">Deine Schmerzstärke über die Zeit, als Liniendiagramm aus deinen Tagebucheinträgen.</span>
+        </span>
+    </button>
 
 </div>
 
@@ -6012,6 +6133,7 @@ function showScreen(id) {
 
     document.body.classList.toggle("performance-mode", id === "performanceScreen");
     document.body.classList.toggle("diary-desk-mode", id === "diaryEntriesScreen");
+    document.body.classList.toggle("myth-mode", id === "mythScreen");
 
     window.scrollTo(0, 0);
 
@@ -12496,6 +12618,68 @@ function formatEuro(value) {
 
 }
 
+// Kleine Vorschaubilder für den Shop (als Inline-SVG statt echter
+// Fotos, passend zum Rest des Prototyps) - eines pro Band/Loop-Farbe
+// und eines pro Hantel-Gewicht, ohne die Kachel-Felder spürbar zu
+// vergrößern (feste, kompakte Bildfläche).
+
+function bandImageSvg(color) {
+
+    return '<svg viewBox="0 0 72 40" class="product-image-svg" aria-hidden="true">' +
+        '<path d="M6 20c4-14 10-14 14 0s10 14 14 0 10-14 14 0 8 10 12 6" ' +
+        'fill="none" stroke="' + color + '" stroke-width="8" ' +
+        'stroke-linecap="round" stroke-linejoin="round"/>' +
+        '</svg>';
+
+}
+
+function loopImageSvg(color) {
+
+    return '<svg viewBox="0 0 72 40" class="product-image-svg" aria-hidden="true">' +
+        '<ellipse cx="36" cy="20" rx="24" ry="14" fill="none" ' +
+        'stroke="' + color + '" stroke-width="8"/>' +
+        '</svg>';
+
+}
+
+// Vorschau fürs 5er-Set: alle 5 Stärke-Farben nebeneinander, in
+// derselben kompakten Bildfläche wie die Einzelprodukte.
+function productSetImageSvg(shape) {
+
+    const items = RESISTANCE_LEVELS.map(function(level, i) {
+
+        const cx = 9 + i * 13.5;
+
+        if (shape === "loop") {
+            return '<ellipse cx="' + cx + '" cy="20" rx="5.5" ry="11" ' +
+                'fill="none" stroke="' + level.color + '" stroke-width="3"/>';
+        }
+
+        return '<rect x="' + (cx - 4) + '" y="7" width="8" height="26" rx="4" ' +
+            'fill="' + level.color + '"/>';
+
+    }).join("");
+
+    return '<svg viewBox="0 0 72 40" class="product-image-svg" aria-hidden="true">' +
+        items + '</svg>';
+
+}
+
+// Hantel-Vorschau: Scheibengröße wächst leicht mit dem Gewicht, bleibt
+// aber innerhalb derselben festen Bildfläche wie bei Bändern/Loops.
+function dumbbellImageSvg(kg) {
+
+    const plateH = Math.min(30, 13 + kg * 0.85);
+    const y = 20 - plateH / 2;
+
+    return '<svg viewBox="0 0 72 40" class="product-image-svg" aria-hidden="true">' +
+        '<rect x="30" y="17" width="12" height="6" rx="2" fill="#8A8A93"/>' +
+        '<rect x="17" y="' + y + '" width="10" height="' + plateH + '" rx="3" fill="#2B2B2B"/>' +
+        '<rect x="45" y="' + y + '" width="10" height="' + plateH + '" rx="3" fill="#2B2B2B"/>' +
+        '</svg>';
+
+}
+
 function showCartNote(productName) {
 
     const note = document.getElementById("cartNote");
@@ -12529,7 +12713,12 @@ function buildProductCard(container, opts) {
         swatchHtml = '<div class="product-level">' + opts.level + '</div>';
     }
 
+    const imageHtml = opts.imageSvg
+        ? '<div class="product-image">' + opts.imageSvg + '</div>'
+        : "";
+
     card.innerHTML =
+        imageHtml +
         swatchHtml +
         '<div class="product-name">' + opts.name + '</div>' +
         '<div class="product-price">' + formatEuro(opts.price) + '</div>' +
@@ -12555,7 +12744,8 @@ function renderBandShop() {
             name: "Widerstandsband " + level.name,
             level: level.level,
             color: level.color,
-            price: BAND_UNIT_PRICE
+            price: BAND_UNIT_PRICE,
+            imageSvg: bandImageSvg(level.color)
         });
 
     });
@@ -12564,7 +12754,8 @@ function renderBandShop() {
         name: "5er-Set Widerstandsbänder",
         level: "Extra leicht bis extra stark",
         price: BAND_SET_PRICE,
-        isSet: true
+        isSet: true,
+        imageSvg: productSetImageSvg("band")
     });
 
 }
@@ -12581,7 +12772,8 @@ function renderLoopShop() {
             name: "Fitness Loop " + level.name,
             level: level.level,
             color: level.color,
-            price: LOOP_UNIT_PRICE
+            price: LOOP_UNIT_PRICE,
+            imageSvg: loopImageSvg(level.color)
         });
 
     });
@@ -12590,7 +12782,8 @@ function renderLoopShop() {
         name: "5er-Set Fitness Loops",
         level: "Extra leicht bis extra stark",
         price: LOOP_SET_PRICE,
-        isSet: true
+        isSet: true,
+        imageSvg: productSetImageSvg("loop")
     });
 
 }
@@ -12610,6 +12803,7 @@ function renderDumbbellShop() {
         card.className = "dumbbell-card";
 
         card.innerHTML =
+            '<div class="dumbbell-image">' + dumbbellImageSvg(Number(kg)) + '</div>' +
             '<div class="dumbbell-kg">' + kg + ' kg</div>' +
             '<div class="dumbbell-price">' + formatEuro(price) + '</div>' +
             '<button type="button" class="btn btn-soft">Hinzufügen</button>';
