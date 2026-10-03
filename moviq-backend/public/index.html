@@ -70,17 +70,17 @@ body {
 ===================================================== */
 
 body.performance-mode {
-    --sand-50:  #232329;
-    --sand-100: #1B1B20;
-    --sand-200: #3B3B44;
-    --sand-300: #4E4E58;
+    --sand-50:  #2A2A32;
+    --sand-100: #222228;
+    --sand-200: #45454F;
+    --sand-300: #585863;
 
     --green-100: #2A1416;
     --green-200: #47181C;
-    --green-500: #E63946;
-    --green-600: #D42C39;
-    --green-700: #C81E2E;
-    --green-800: #9E1522;
+    --green-500: #FF4455;
+    --green-600: #EB2E40;
+    --green-700: #DE1F31;
+    --green-800: #B01726;
     --green-900: #F5F5F7;
 
     --ink:   #F5F5F7;
@@ -849,7 +849,7 @@ header {
    das dunkle Performance-Theme wechselt. */
 
 .tile-fly-out {
-    animation: tile-fly-out 0.22s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+    animation: tile-fly-out 0.16s cubic-bezier(0.3, 0, 0.7, 0.3) forwards;
     pointer-events: none;
     position: relative;
     z-index: 5;
@@ -857,12 +857,37 @@ header {
 
 @keyframes tile-fly-out {
     0%   { transform: translateX(0) scale(1);       opacity: 1; }
-    100% { transform: translateX(180%) scale(0.9); opacity: 0; }
+    45%  { transform: translateX(25%) scale(0.88);  opacity: 1; }
+    100% { transform: translateX(220%) scale(0.68); opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .tile-fly-out {
         animation: none !important;
+    }
+}
+
+/* Kurzer schwarzer Zwischenbildschirm zwischen Kachel-Abflug und dem
+   Umschalten ins (dunkle) Performance-Theme - sorgt für einen
+   weicheren Schnitt statt eines harten Theme-Wechsels. */
+.perf-transition-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9999;
+    transition: opacity 0.1s ease;
+}
+
+.perf-transition-overlay.active {
+    opacity: 1;
+    transition: opacity 0.08s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .perf-transition-overlay {
+        transition: none !important;
     }
 }
 
@@ -1526,9 +1551,15 @@ header {
     min-width: 0;
 }
 
+/* Profilkarte sitzt oben links in der Ecke, direkt über der
+   Kachelübersicht (MOVIQ-Hero bleibt trotzdem die oberste
+   Überschrift der Seite, die Karte kommt erst danach). Sie ist
+   bewusst NICHT zentriert, sondern linksbündig und schmal, damit
+   die Kachelübersicht darunter weiterhin ganz normal mittig ist. */
 .profile-card {
-    width: 300px;
-    margin: 0;
+    width: 320px;
+    max-width: 100%;
+    margin: 0 0 28px;
     padding: 24px 26px;
     background: #FFFDF8;
     border: 1px solid var(--sand-200);
@@ -1540,65 +1571,6 @@ header {
    Kachelübersicht ist dann ganz normal die Mitte der Seite. */
 .home-body > .profile-card.hidden {
     display: none;
-}
-
-/* Auf breiten Bildschirmen schwebt die Profilkarte frei links neben
-   dem eigentlichen Seiteninhalt, im Rand neben dem Container, statt
-   in der normalen Spaltenbreite Platz wegzunehmen. Dadurch bleibt die
-   Kachelübersicht exakt so mittig wie im abgemeldeten Zustand (der
-   Container ist ja selbst über margin:auto zentriert - "50% - 540px"
-   ist also die linke Containerkante; die Karte (280px breit) sitzt
-   mit 28px Abstand noch weiter links davon). */
-@media (min-width: 1700px) {
-
-    .profile-card {
-        position: fixed;
-        top: 120px;
-        left: calc(50% - 540px - 28px - 300px);
-        width: 280px;
-    }
-
-}
-
-/* Auf schmaleren Bildschirmen ist links nicht genug Platz für die
-   freischwebende Karte - dort bleibt sie wie bisher direkt neben dem
-   Inhalt (nicht ganz exakt mittig, aber weiterhin gut sichtbar und
-   beim Scrollen "sticky"). */
-@media (max-width: 1699px) and (min-width: 861px) {
-
-    .home-body {
-        display: flex;
-        align-items: flex-start;
-        gap: 36px;
-    }
-
-    .profile-card {
-        flex: 0 0 300px;
-        position: sticky;
-        top: 24px;
-    }
-
-    .home-main {
-        flex: 1;
-        min-width: 0;
-    }
-
-}
-
-@media (max-width: 860px) {
-
-    .home-body {
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
-    }
-
-    .profile-card {
-        width: 100%;
-        max-width: none;
-        position: static;
-    }
-
 }
 
 .profile-card-name {
@@ -1767,6 +1739,98 @@ header {
     color: var(--muted);
     margin-top: -6px;
     margin-bottom: 14px;
+}
+
+/* =====================================================
+   TAGEBUCH - ZWEISPALTIGES LAYOUT
+   Links: neue Notizen erstellen. Rechts: ein "Buch", auf
+   das man klickt, um zu den bereits eingetragenen Notizen
+   zu gelangen. So findet man alte Einträge leichter wieder,
+   ohne dass sie das Formular zum Eintragen überladen.
+===================================================== */
+
+.diary-layout {
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
+}
+
+.diary-form-col {
+    flex: 1 1 360px;
+    min-width: 0;
+}
+
+.diary-book-col {
+    flex: 0 0 240px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+    background: linear-gradient(165deg, #FFFDF8 0%, var(--sand-50) 100%);
+    border: 1px solid var(--sand-200);
+    border-radius: 22px;
+    padding: 30px 22px;
+    cursor: pointer;
+    font-family: inherit;
+    color: inherit;
+    box-shadow: 0 1px 2px rgba(70, 55, 25, 0.05), 0 6px 16px rgba(70, 55, 25, 0.06);
+    transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+}
+
+.diary-book-col:hover,
+.diary-book-col:focus-visible {
+    box-shadow: 0 14px 28px rgba(70, 55, 25, 0.14);
+    transform: translateY(-3px);
+    border-color: var(--green-500);
+}
+
+.diary-book-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: var(--green-100);
+    color: var(--green-600);
+}
+
+.diary-book-icon svg {
+    width: 28px;
+    height: 28px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linejoin: round;
+}
+
+.diary-book-title {
+    font-weight: 700;
+    font-size: 17px;
+}
+
+.diary-book-teaser {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.diary-book-cta {
+    margin-top: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--green-600);
+}
+
+@media (max-width: 760px) {
+    .diary-layout {
+        flex-direction: column;
+    }
+
+    .diary-book-col {
+        flex: 1 1 auto;
+        width: 100%;
+    }
 }
 
 .diary-history-title {
@@ -2899,6 +2963,11 @@ footer {
 </div>
 
 
+<!-- Kurzer schwarzer Zwischenbildschirm beim Wechsel ins Performance
+     Center (siehe openPerformance()). -->
+<div id="perfTransitionOverlay" class="perf-transition-overlay" aria-hidden="true"></div>
+
+
 <!-- =====================================================
      HEADER
 ===================================================== -->
@@ -3024,8 +3093,8 @@ footer {
     </section>
 
 
-    <!-- Benutzerprofil-Karte (nur sichtbar, wenn eingeloggt) links als
-         Seitenspalte, daneben die Kachelübersicht. -->
+    <!-- Benutzerprofil-Karte (nur sichtbar, wenn eingeloggt) oben
+         links in der Ecke, direkt über der Kachelübersicht. -->
 
     <div class="home-body">
 
@@ -3145,7 +3214,7 @@ footer {
                     </svg>
                 </span>
                 <span>
-                    <span class="tile-title">Performance</span>
+                    <span class="tile-title">Performance Center</span>
                     <span class="tile-text">Belastbarer und leistungsfähiger werden.</span>
                 </span>
             </button>
@@ -3161,7 +3230,7 @@ footer {
                     </svg>
                 </span>
                 <span>
-                    <span class="tile-title">Performance</span>
+                    <span class="tile-title">Performance Center</span>
                     <span class="tile-text">Belastbarer und leistungsfähiger werden.</span>
                 </span>
             </button>
@@ -4321,49 +4390,89 @@ footer {
         und bewerte deine Schmerzstärke.
     </p>
 
-    <form id="diaryForm" onsubmit="saveDiaryEntry(event)">
+    <div class="diary-layout">
 
-        <div class="field">
-            <label for="diaryDate">Datum</label>
-            <input id="diaryDate" type="date" required>
-        </div>
+        <form id="diaryForm" class="diary-form-col" onsubmit="saveDiaryEntry(event)">
 
-        <div class="field vas-field">
-
-            <label for="diaryVas">Schmerzstärke (VAS)</label>
-
-            <div class="vas-scale">
-                <input id="diaryVas" type="range"
-                       min="0" max="10" step="1" value="0"
-                       oninput="updateVasReadout()">
-                <span id="vasValue" class="vas-value">0</span>
+            <div class="field">
+                <label for="diaryDate">Datum</label>
+                <input id="diaryDate" type="date" required>
             </div>
 
-            <div class="vas-endpoints">
-                <span>Kein Schmerz</span>
-                <span>Stärkster vorstellbarer Schmerz</span>
+            <div class="field vas-field">
+
+                <label for="diaryVas">Schmerzstärke (VAS)</label>
+
+                <div class="vas-scale">
+                    <input id="diaryVas" type="range"
+                           min="0" max="10" step="1" value="0"
+                           oninput="updateVasReadout()">
+                    <span id="vasValue" class="vas-value">0</span>
+                </div>
+
+                <div class="vas-endpoints">
+                    <span>Kein Schmerz</span>
+                    <span>Stärkster vorstellbarer Schmerz</span>
+                </div>
+
             </div>
 
-        </div>
+            <div class="field">
+                <label for="diaryDevelopment">Wie haben sich deine Beschwerden heute entwickelt?</label>
+                <textarea id="diaryDevelopment" rows="3" required></textarea>
+            </div>
 
-        <div class="field">
-            <label for="diaryDevelopment">Wie haben sich deine Beschwerden heute entwickelt?</label>
-            <textarea id="diaryDevelopment" rows="3" required></textarea>
-        </div>
+            <div class="field">
+                <label for="diaryActions">Was hast du heute dafür getan?</label>
+                <textarea id="diaryActions" rows="3"
+                          placeholder="z. B. Übungen, Wärme, Pausen, Medikamente"></textarea>
+            </div>
 
-        <div class="field">
-            <label for="diaryActions">Was hast du heute dafür getan?</label>
-            <textarea id="diaryActions" rows="3"
-                      placeholder="z. B. Übungen, Wärme, Pausen, Medikamente"></textarea>
-        </div>
+            <p id="diaryError" class="form-error hidden" role="alert"></p>
 
-        <p id="diaryError" class="form-error hidden" role="alert"></p>
+            <button type="submit" class="btn btn-primary">Eintrag speichern</button>
 
-        <button type="submit" class="btn btn-primary">Eintrag speichern</button>
+        </form>
 
-    </form>
+        <!-- Rechte Spalte: "Buch" als Einstieg in die bereits
+             eingetragenen Notizen - Klick führt zur Übersicht
+             (eigener Screen "diaryEntriesScreen"). -->
 
-    <h2 class="diary-history-title">Deine Einträge</h2>
+        <button type="button" class="diary-book-col" onclick="openDiaryEntries()">
+
+            <span class="diary-book-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15.5A1.5 1.5 0 0 1 18.5 20H6.5A2.5 2.5 0 0 0 4 22.5v-17z"/>
+                    <path d="M4 19a2.5 2.5 0 0 1 2.5-2.5H20"/>
+                    <path d="M8 7.5h8M8 10.5h8M8 13.5h5" stroke-linecap="round"/>
+                </svg>
+            </span>
+
+            <span class="diary-book-title">Dein Tagebuch</span>
+
+            <span id="diaryBookTeaser" class="diary-book-teaser">Lädt …</span>
+
+            <span class="diary-book-cta">Einträge ansehen →</span>
+
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     TAGEBUCH: BEREITS EINGETRAGENE NOTIZEN
+===================================================== -->
+
+<div id="diaryEntriesScreen" class="screen card hidden">
+
+    <button class="link-btn" onclick="showScreen('diaryScreen')">← Zurück zum Tagebuch</button>
+
+    <h1>Deine Einträge</h1>
+
+    <p class="subtitle">Alles, was du bisher eingetragen hast, auf einen Blick.</p>
 
     <div id="diaryList" class="diary-timeline"></div>
 
@@ -4650,6 +4759,7 @@ const screens = [
     "resetPasswordScreen",
     "changePasswordScreen",
     "diaryScreen",
+    "diaryEntriesScreen",
     "shopScreen",
     "wheelScreen",
     "mythScreen",
@@ -5513,12 +5623,32 @@ function openPerformance(event) {
         return;
     }
 
+    const overlay = document.getElementById("perfTransitionOverlay");
+
     tile.classList.add("tile-fly-out");
 
     tile.addEventListener("animationend", function handleFlyOut() {
+
         tile.removeEventListener("animationend", handleFlyOut);
         tile.classList.remove("tile-fly-out");
-        enterPerformanceScreen();
+
+        // Bildschirm kurz schwarz werden lassen, dann erst ins
+        // (dunkle) Performance-Theme wechseln - weicherer Schnitt als
+        // ein direkter Theme-Wechsel mitten in der Kachel-Animation.
+        overlay.classList.add("active");
+
+        setTimeout(function() {
+
+            enterPerformanceScreen();
+
+            // Eine Animationsframe warten, damit der neue (dunkle)
+            // Hintergrund schon steht, bevor das Schwarz wegblendet.
+            requestAnimationFrame(function() {
+                overlay.classList.remove("active");
+            });
+
+        }, 200);
+
     }, { once: true });
 
 }
@@ -11528,7 +11658,7 @@ async function saveDiaryEntry(event) {
             })
         });
 
-        await renderDiaryList();
+        await updateDiaryBookTeaser();
 
         document.getElementById("diaryForm").reset();
 
@@ -11580,6 +11710,43 @@ function openDiary() {
     document.getElementById("diaryError").classList.add("hidden");
 
     showScreen("diaryScreen");
+
+    updateDiaryBookTeaser();
+
+}
+
+// Kurzer Teaser-Text auf dem "Buch" rechts neben dem Formular - zeigt,
+// wie viele Einträge schon drin sind (bzw. lädt/ist leer), ohne die
+// komplette Liste schon auf diesem Screen auszurollen.
+async function updateDiaryBookTeaser() {
+
+    const teaser = document.getElementById("diaryBookTeaser");
+
+    teaser.innerText = "Lädt …";
+
+    try {
+
+        const entries = await fetchDiaryEntries();
+
+        if (entries.length === 0) {
+            teaser.innerText = "Noch keine Einträge – leg los!";
+        } else if (entries.length === 1) {
+            teaser.innerText = "1 Eintrag bisher";
+        } else {
+            teaser.innerText = entries.length + " Einträge bisher";
+        }
+
+    } catch (e) {
+
+        teaser.innerText = "Einträge konnten nicht geladen werden.";
+
+    }
+
+}
+
+function openDiaryEntries() {
+
+    showScreen("diaryEntriesScreen");
 
     renderDiaryList();
 
