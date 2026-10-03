@@ -1801,22 +1801,53 @@ header {
 
 /* Übergang beim Aufschlagen des Buchs: die GANZE Tagebuch-Seite
    zoomt - ausgehend von der Buch-Mitte (transformOrigin wird in
-   openDiaryEntries() per JS gesetzt) - groß heran und blendet aus,
-   als würde man ins Buch hineinfliegen. Der nächste Screen
-   (diaryEntriesScreen) zoomt anschließend von groß auf normal
-   herunter (siehe weiter unten), wodurch der Schwung nahtlos
-   weitergeht. */
-.diary-zoom-out {
-    animation: diary-zoom-out 0.34s cubic-bezier(0.45, 0, 0.8, 0.2) forwards;
+   openDiaryEntries() per JS gesetzt, auf BEIDEN Screens identisch,
+   damit der "Kamera"-Punkt durchgehend derselbe bleibt) - groß
+   heran, OHNE dabei auszublenden (keine Opacity-Animation mehr) -
+   nur eine leichte Bewegungsunschärfe verstärkt den Flug-Eindruck.
+   Der nächste Screen (diaryEntriesScreen) startet direkt bei der
+   gleichen großen Skalierung/Unschärfe und zoomt von dort auf
+   normal herunter - der Schwung reißt dadurch nie ab, es ist EIN
+   durchgehender Zoom statt zwei Animationen mit einer Lücke
+   dazwischen. Während des gesamten Übergangs wird am body
+   overflow:hidden gesetzt (.diary-zoom-active), damit die stark
+   vergrößerte Seite sauber im Viewport beschnitten wird. */
+body.diary-zoom-active {
+    overflow: hidden;
+}
+
+/* Spezifität per ID+Klasse (statt nur Klasse), damit diese Regel
+   zuverlässig die generische `.screen.enter`-Fade-Regel (zwei
+   Klassen) aussticht, selbst wenn diaryScreen zufällig noch seine
+   "enter"-Klasse von einem früheren Aufruf trägt - sonst gewinnt
+   sonst die FALSCHE Animation den "animation"-Shorthand und die
+   Zoom-Animation startet nie (genau das hat den Flug vorher schon
+   VOR dem ersten sichtbaren Frame abgewürgt). */
+#diaryScreen.diary-zoom-out {
+    animation: diary-zoom-out 0.4s cubic-bezier(0.5, 0, 0.85, 0.25) forwards;
+    will-change: transform, filter;
 }
 
 @keyframes diary-zoom-out {
-    0%   { transform: scale(1);    opacity: 1; }
-    100% { transform: scale(2.8);  opacity: 0; }
+    0%   { transform: scale(1);   filter: blur(0px); }
+    55%  { filter: blur(3px); }
+    100% { transform: scale(7.5); filter: blur(11px); }
+}
+
+#diaryEntriesScreen.diary-zoom-in {
+    animation: diary-zoom-in 0.42s cubic-bezier(0.15, 0.75, 0.3, 1) both;
+    will-change: transform, filter;
+}
+
+@keyframes diary-zoom-in {
+    0%   { transform: scale(7.5); filter: blur(11px); }
+    45%  { filter: blur(3px); }
+    100% { transform: scale(1);   filter: blur(0px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .diary-zoom-out,
+    .diary-zoom-in,
     .diary-book-opening .diary-book-cover {
         animation: none !important;
     }
@@ -1951,20 +1982,16 @@ body.diary-desk-mode {
         linear-gradient(160deg, #8A5A34 0%, #714624 45%, #5B3A22 100%);
 }
 
-/* Setzt den Schwung aus dem Buch-Aufschlagen (.diary-zoom-out)
-   fort: die Einträge-Seite zoomt von groß auf normal herunter und
-   blendet ein, statt nur zu faden - überschreibt die generische
-   `.screen.enter`-Animation gezielt für diesen einen Screen (ID-
-   Selektor sticht die beiden Klassen der generischen Regel aus). */
-@media (prefers-reduced-motion: no-preference) {
-    #diaryEntriesScreen.screen.enter {
-        animation: diary-zoom-in 0.4s cubic-bezier(0.2, 0.7, 0.3, 1);
-    }
-}
-
-@keyframes diary-zoom-in {
-    0%   { transform: scale(1.35); opacity: 0; }
-    100% { transform: scale(1);    opacity: 1; }
+/* Die generische `.screen.enter`-Fade-Animation (reine Opacity)
+   würde den nahtlosen Zoom-Schwung aus dem Buch-Aufschlagen wieder
+   kaputt machen (Opacity-Sprung mitten im Zoom) - für diesen einen
+   Screen wird sie deshalb per ID-Selektor deaktiviert. Die
+   eigentliche Eintritts-Animation ist die JS-gesteuerte Klasse
+   `.diary-zoom-in` (siehe oben), die openDiaryEntries() exakt mit
+   demselben Zoom-Ursprung wie beim Austritt aus #diaryScreen
+   startet. */
+#diaryEntriesScreen.screen.enter {
+    animation: none;
 }
 
 #diaryEntriesScreen.diary-desk.card {
@@ -1989,14 +2016,12 @@ body.diary-desk-mode {
     pointer-events: none;
 }
 
-/* Jede Kritzelei besteht aus zwei leicht versetzten, naechsten
-   Pfaden (wie zwei Stiftstriche uebereinander) plus einem
-   SVG-Verzerrungsfilter (#sketchWobble) - das macht sie bewusst
-   "unsauber" statt wie eine perfekte Vektorform. */
-.diary-doodle path {
-    filter: url(#sketchWobble);
-}
-
+/* Jede Kritzelei besteht aus zwei leicht versetzten, bewusst
+   asymmetrischen Pfaden übereinander (wie zwei Stiftstriche) - das
+   macht sie "unsauber" statt wie eine perfekte Vektorform. (Ein
+   SVG-Verzerrungsfilter wurde hier bewusst NICHT verwendet - der
+   hat beim ersten Rendern eine spürbare Verzögerung verursacht und
+   den Zoom-Übergang kurz stocken lassen.) */
 .diary-doodle path.stroke-2 {
     opacity: 0.55;
 }
@@ -4713,16 +4738,6 @@ footer {
 ===================================================== -->
 
 <div id="diaryEntriesScreen" class="screen card diary-desk hidden">
-
-    <!-- Einmaliger SVG-Filter, der allen Kritzeleien ihre "unsaubere",
-         handgezeichnete Wackeligkeit gibt (feTurbulence verzerrt die
-         sonst perfekt glatten Pfade leicht). -->
-    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-        <filter id="sketchWobble" x="-30%" y="-30%" width="160%" height="160%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.045 0.09" numOctaves="2" seed="4" result="noise"/>
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.2"/>
-        </filter>
-    </svg>
 
     <!-- Kleine Kritzeleien auf der Tischplatte - rein dekorativ,
          sollen wie spontane, mit der Hand hingeworfene Skizzen neben
@@ -12096,32 +12111,85 @@ function openDiaryEntries() {
 
     const bookCol = document.querySelector("#diaryScreen .diary-book-col");
     const diaryScreenEl = document.getElementById("diaryScreen");
+    const entriesScreenEl = document.getElementById("diaryEntriesScreen");
 
-    if (prefersReducedMotion || !bookCol || !diaryScreenEl) {
+    if (prefersReducedMotion || !bookCol || !diaryScreenEl || !entriesScreenEl) {
         enterEntries();
         return;
     }
 
-    // Zoom-Ursprung auf die Mitte des Buchs legen, damit die ganze
-    // Seite genau von dort "ins Buch hineinfliegt".
+    // Zoom-Ursprung auf die Mitte des Buchs legen - wird auf BEIDEN
+    // Screens (Austritt UND Eintritt) identisch gesetzt, damit die
+    // "Kamera" durchgehend auf denselben Punkt zoomt, statt dass der
+    // Eintritts-Zoom woanders neu ansetzt. Zusammen mit dem Verzicht
+    // auf jede Opacity-Änderung (siehe CSS .diary-zoom-out/-in) sorgt
+    // das dafür, dass der Flug ins Buch nie "abbricht", sondern EIN
+    // durchgehender Zoom von Anfang bis Ende ist.
     const rect = bookCol.getBoundingClientRect();
     const originX = ((rect.left + rect.width / 2) / window.innerWidth) * 100;
     const originY = ((rect.top + rect.height / 2) / window.innerHeight) * 100;
+    const origin = originX + "% " + originY + "%";
 
-    diaryScreenEl.style.transformOrigin = originX + "% " + originY + "%";
+    document.body.classList.add("diary-zoom-active");
+    diaryScreenEl.style.transformOrigin = origin;
     bookCol.classList.add("diary-book-opening");
     diaryScreenEl.classList.add("diary-zoom-out");
+    // Zusätzlich per Inline-Style gesetzt: #diaryScreen trägt oft noch
+    // die Klasse "enter" von seinem letzten Aufruf, und deren
+    // `.screen.enter`-Regel ist spezifischer als eine einfache
+    // Klassen-Regel - würde also sonst gewinnen und die Zoom-Animation
+    // verhindern, bevor sie überhaupt startet. Inline-Styles schlagen
+    // jede normale Stylesheet-Regel, daher hier doppelt gesichert.
+    diaryScreenEl.style.animation =
+        "diary-zoom-out 0.4s cubic-bezier(0.5, 0, 0.85, 0.25) forwards";
 
-    diaryScreenEl.addEventListener("animationend", function handleZoomOut() {
+    // WICHTIG: animationend-Events BUBBLEN im DOM nach oben. Der
+    // Buchdeckel (.diary-book-cover, ein Kind-Element von
+    // diaryScreenEl) hat seine eigene, kürzere "Aufklapp"-Animation -
+    // ohne den Filter auf den Animationsnamen würde deren Ende
+    // fälschlicherweise HIER ankommen und den Screen-Wechsel viel zu
+    // früh auslösen (genau das hat den Zoom vorher "abgewürgt",
+    // bevor er richtig losging). Deshalb explizit auf den eigenen
+    // Animationsnamen prüfen und alles andere ignorieren.
+    diaryScreenEl.addEventListener("animationend", function handleZoomOut(e) {
+
+        if (e.target !== diaryScreenEl || e.animationName !== "diary-zoom-out") {
+            return;
+        }
 
         diaryScreenEl.removeEventListener("animationend", handleZoomOut);
         diaryScreenEl.classList.remove("diary-zoom-out");
         diaryScreenEl.style.transformOrigin = "";
+        diaryScreenEl.style.animation = "";
         bookCol.classList.remove("diary-book-opening");
+
+        // Den neuen Screen schon VOR dem Sichtbarwerden auf denselben
+        // Ursprung + die Eintritts-Zoom-Animation vorbereiten (auch
+        // hier per Inline-Style, aus demselben Spezifitätsgrund wie
+        // oben), damit es nahtlos an exakt der Stelle/Skalierung
+        // weiterläuft, bei der der Austritt aufgehört hat.
+        entriesScreenEl.style.transformOrigin = origin;
+        entriesScreenEl.classList.add("diary-zoom-in");
+        entriesScreenEl.style.animation =
+            "diary-zoom-in 0.42s cubic-bezier(0.15, 0.75, 0.3, 1) both";
 
         enterEntries();
 
-    }, { once: true });
+        entriesScreenEl.addEventListener("animationend", function handleZoomIn(e2) {
+
+            if (e2.target !== entriesScreenEl || e2.animationName !== "diary-zoom-in") {
+                return;
+            }
+
+            entriesScreenEl.removeEventListener("animationend", handleZoomIn);
+            entriesScreenEl.classList.remove("diary-zoom-in");
+            entriesScreenEl.style.transformOrigin = "";
+            entriesScreenEl.style.animation = "";
+            document.body.classList.remove("diary-zoom-active");
+
+        });
+
+    });
 
 }
 
