@@ -2987,6 +2987,12 @@ body.diary-desk-mode {
     gap: 14px;
 }
 
+.prevention-goal-description {
+    margin: -6px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+}
+
 .prevention-exercise-card {
     background: var(--green-100);
     border-radius: 14px;
@@ -4038,9 +4044,8 @@ footer {
     <h1>Prävention</h1>
 
     <p class="subtitle">
-        Die häufigsten orthopädischen Beschwerden lassen sich in vielen
-        Fällen vorbeugen. Wähle einen Körperbereich, klappe dort eine
-        gängige Beschwerde oder ein Krankheitsbild auf und du bekommst
+        Vielen Beschwerden lässt sich vorbeugen. Wähle einen Körperbereich,
+        klappe dort auf, woran du arbeiten möchtest, und du bekommst
         direkt passende Übungen mit genauer Ausführung.
     </p>
 
@@ -10447,29 +10452,50 @@ function questionGoBack() {
 
 }
 
+/* Verlinkt ein Ergebnis der Beschwerdeanalyse DIREKT mit einem
+   passenden Übungsziel im Prävention-Bereich (goalName = der
+   Name des Übungsziels dort, siehe PREVENTION_AREAS unten - keine
+   Diagnose, sondern eine Alltagssprache-Formulierung). Bewusst NICHT
+   bei Notfällen, roten Flaggen, Verdacht auf strukturelle/schwere
+   Verletzung (Fraktur, Band-/Rotatorenmanschettenriss, Instabilität),
+   neurologischen Ausfällen, Entzündungsverdacht oder unklaren/
+   organischen Ursachen verlinkt - dort soll die Empfehlung "ärztlich/
+   physiotherapeutisch abklären" nicht durch eine Selbstübung
+   überdeckt werden. ellenbogen/hand/unterschenkel bleiben leer, weil
+   die Übungsbibliothek (EXERCISE_LIBRARY) dafür noch keine passenden
+   Übungen enthält. */
 const REGION_EXERCISE_MAP = {
 
     lws: {
-        "radikulaer-ohne-ausfall": { exerciseId: "katze-kuh", areaName: "Rücken", conditionName: "Bandscheibenreizung" },
-        "funktionsgruppe-flexion": { exerciseId: "katze-kuh", areaName: "Rücken", conditionName: "Unspezifischer Rückenschmerz" },
-        "funktionsgruppe-extension": { exerciseId: "bird-dog", areaName: "Rücken", conditionName: "Unspezifischer Rückenschmerz" },
-        "funktionsgruppe-sitzen": { exerciseId: "glute-bridge", areaName: "Rücken", conditionName: "Muskuläre Verspannungen im unteren Rücken" },
-        "funktionsgruppe-unspezifisch": { exerciseId: "katze-kuh", areaName: "Rücken", conditionName: "Unspezifischer Rückenschmerz" },
-        "chronisch-ohne-gelbe-flaggen": { exerciseId: "bird-dog", areaName: "Rücken", conditionName: "Unspezifischer Rückenschmerz" }
+        "radikulaer-ohne-ausfall": { exerciseId: "katze-kuh", areaName: "Rücken", goalName: "Beweglichkeit im Rücken zurückgewinnen" },
+        "funktionsgruppe-flexion": { exerciseId: "katze-kuh", areaName: "Rücken", goalName: "Beweglichkeit im Rücken zurückgewinnen" },
+        "funktionsgruppe-extension": { exerciseId: "bird-dog", areaName: "Rücken", goalName: "Rumpf und unteren Rücken kräftigen" },
+        "funktionsgruppe-sitzen": { exerciseId: "glute-bridge", areaName: "Rücken", goalName: "Nach langem Sitzen lockern" },
+        "funktionsgruppe-unspezifisch": { exerciseId: "katze-kuh", areaName: "Rücken", goalName: "Beweglichkeit im Rücken zurückgewinnen" },
+        "chronisch-ohne-gelbe-flaggen": { exerciseId: "bird-dog", areaName: "Rücken", goalName: "Rumpf und unteren Rücken kräftigen" }
     },
 
-    bws: {},
+    // Mittlerer Rücken nutzt dieselben Rücken-Übungen wie LWS (eigene
+    // Übungen für die BWS gibt es noch nicht, die Bewegungsrichtung
+    // ist aber dieselbe).
+    bws: {
+        "rippenblockade-interkostal": { exerciseId: "katze-kuh", areaName: "Rücken", goalName: "Beweglichkeit im Rücken zurückgewinnen" },
+        "segmentale-blockade": { exerciseId: "katze-kuh", areaName: "Rücken", goalName: "Beweglichkeit im Rücken zurückgewinnen" },
+        "chronisch-haltung": { exerciseId: "katze-kuh", areaName: "Rücken", goalName: "Nach langem Sitzen lockern" }
+    },
 
     hws: {
-        "zervikogener-kopfschmerz": { exerciseId: "nackendehnung", areaName: "Nacken & Halswirbelsäule", conditionName: "Spannungskopfschmerz aus dem Nacken" },
-        "segmentale-blockade-hws": { exerciseId: "kinngleiten", areaName: "Nacken & Halswirbelsäule", conditionName: "Facettengelenk-Reizung der HWS" },
-        "chronisch-haltung-hws": { exerciseId: "kinngleiten", areaName: "Nacken & Halswirbelsäule", conditionName: "Verspannungsbedingte Nackenschmerzen" }
+        "radikulaer-ohne-ausfall": { exerciseId: "nackendehnung", areaName: "Nacken & Halswirbelsäule", goalName: "Verspannungen im Nacken lösen" },
+        "zervikogener-schwindel": { exerciseId: "kinngleiten", areaName: "Nacken & Halswirbelsäule", goalName: "Verspannungen im Nacken lösen" },
+        "zervikogener-kopfschmerz": { exerciseId: "nackendehnung", areaName: "Nacken & Halswirbelsäule", goalName: "Kopfschmerzen aus dem Nacken lindern" },
+        "segmentale-blockade-hws": { exerciseId: "kinngleiten", areaName: "Nacken & Halswirbelsäule", goalName: "Haltung am Schreibtisch verbessern" },
+        "chronisch-haltung-hws": { exerciseId: "kinngleiten", areaName: "Nacken & Halswirbelsäule", goalName: "Haltung am Schreibtisch verbessern" }
     },
 
     schulter: {
-        "impingement-akut": { exerciseId: "pendeluebung", areaName: "Schulter", conditionName: "Impingement-Syndrom" },
-        "impingement-chronisch": { exerciseId: "aussenrotation-band", areaName: "Schulter", conditionName: "Impingement-Syndrom" },
-        "frozen-shoulder-verdacht": { exerciseId: "pendeluebung", areaName: "Schulter", conditionName: "Schultersteife (beginnend)" }
+        "impingement-akut": { exerciseId: "pendeluebung", areaName: "Schulter", goalName: "Akute Schulter entlasten & beruhigen" },
+        "impingement-chronisch": { exerciseId: "aussenrotation-band", areaName: "Schulter", goalName: "Schulter kräftigen & stabilisieren" },
+        "frozen-shoulder-verdacht": { exerciseId: "pendeluebung", areaName: "Schulter", goalName: "Beweglichkeit der Schulter zurückgewinnen" }
     },
 
     ellenbogen: {},
@@ -10477,29 +10503,41 @@ const REGION_EXERCISE_MAP = {
     hand: {},
 
     becken: {
-        "trochanter-syndrom-verdacht": { exerciseId: "glute-bridge", areaName: "Hüfte", conditionName: "Trochantere Bursitis (Schleimbeutelreizung)" },
-        "ueberlastung-chronisch-becken": { exerciseId: "huftbeuger-dehnung", areaName: "Hüfte", conditionName: "Hüftbeugerverkürzung" }
+        "isg-blockierung-verdacht": { exerciseId: "huftbeuger-dehnung", areaName: "Hüfte", goalName: "Hüftbeweglichkeit verbessern" },
+        "trochanter-syndrom-verdacht": { exerciseId: "glute-bridge", areaName: "Hüfte", goalName: "Hüfte & Gesäß kräftigen" },
+        "reizung-akut-becken": { exerciseId: "huftbeuger-dehnung", areaName: "Hüfte", goalName: "Nach langem Sitzen die Hüfte lockern" },
+        "ueberlastung-chronisch-becken": { exerciseId: "huftbeuger-dehnung", areaName: "Hüfte", goalName: "Hüftbeweglichkeit verbessern" }
     },
 
     knie: {
-        "patellofemoral-verdacht": { exerciseId: "wandkniebeuge", areaName: "Knie", conditionName: "Patellaspitzensyndrom (Jumper's Knee)" },
-        "meniskus-verdacht": { exerciseId: "wandkniebeuge", areaName: "Knie", conditionName: "Reizung des Meniskus" },
-        "traktus-iliotibialis-verdacht": { exerciseId: "ausfallschritte", areaName: "Knie", conditionName: "IT-Band-Syndrom (Läuferknie)" }
+        "traktus-iliotibialis-verdacht": { exerciseId: "ausfallschritte", areaName: "Knie", goalName: "Knie für Sport & Laufen stabilisieren" },
+        "patellofemoral-verdacht": { exerciseId: "wandkniebeuge", areaName: "Knie", goalName: "Knie bei Alltagsbewegungen kräftigen" },
+        "meniskus-verdacht": { exerciseId: "wandkniebeuge", areaName: "Knie", goalName: "Knie nach Belastung entlasten" },
+        "reizung-akut-knie": { exerciseId: "wandkniebeuge", areaName: "Knie", goalName: "Knie nach Belastung entlasten" },
+        "ueberlastung-chronisch-knie": { exerciseId: "wandkniebeuge", areaName: "Knie", goalName: "Knie bei Alltagsbewegungen kräftigen" }
     },
 
     unterschenkel: {},
 
     fuss: {
-        "sprunggelenksdistorsion-leicht": { exerciseId: "einbeinstand", areaName: "Sprunggelenk & Fuß", conditionName: "Umknicktrauma (Supinationstrauma)" },
-        "achillessehnen-verdacht": { exerciseId: "wadenheber", areaName: "Sprunggelenk & Fuß", conditionName: "Achillessehnenreizung" },
-        "plantarfasziitis-verdacht": { exerciseId: "wadenheber", areaName: "Sprunggelenk & Fuß", conditionName: "Plantarfasziitis (Fersenschmerz)" }
+        "sprunggelenksdistorsion-leicht": { exerciseId: "einbeinstand", areaName: "Sprunggelenk & Fuß", goalName: "Stabilität nach dem Umknicken trainieren" },
+        "achillessehnen-verdacht": { exerciseId: "wadenheber", areaName: "Sprunggelenk & Fuß", goalName: "Achillessehne & Wade kräftigen" },
+        "plantarfasziitis-verdacht": { exerciseId: "wadenheber", areaName: "Sprunggelenk & Fuß", goalName: "Fuß & Ferse entlasten" }
     },
 
     kopf: {
-        "zervikogener-kopfschmerz-primaer": { exerciseId: "nackendehnung", areaName: "Nacken & Halswirbelsäule", conditionName: "Spannungskopfschmerz aus dem Nacken" }
+        "spannungskopfschmerz": { exerciseId: "nackendehnung", areaName: "Nacken & Halswirbelsäule", goalName: "Verspannungen im Nacken lösen" },
+        "zervikogener-kopfschmerz-primaer": { exerciseId: "nackendehnung", areaName: "Nacken & Halswirbelsäule", goalName: "Kopfschmerzen aus dem Nacken lindern" }
     },
 
-    brust: {}
+    // Vordere Brust nutzt ebenfalls die Rücken-/Brustkorb-Mobilisation
+    // (katze-kuh) - eigene Übungen für die Brust gibt es noch nicht.
+    brust: {
+        "costochondritis-verdacht": { exerciseId: "katze-kuh", areaName: "Rücken", goalName: "Beweglichkeit im Rücken zurückgewinnen" },
+        "rippenblockade-pseudokardial": { exerciseId: "katze-kuh", areaName: "Rücken", goalName: "Beweglichkeit im Rücken zurückgewinnen" },
+        "segmentale-blockade-brust": { exerciseId: "katze-kuh", areaName: "Rücken", goalName: "Beweglichkeit im Rücken zurückgewinnen" },
+        "chronisch-haltung-brust": { exerciseId: "katze-kuh", areaName: "Rücken", goalName: "Nach langem Sitzen lockern" }
+    }
 
 };
 
@@ -10528,14 +10566,14 @@ function renderResultExercises() {
     btn.type = "button";
     btn.className = "result-exercise-link";
     btn.innerHTML = `
-        <span>${ex.name}${mapping.conditionName ? " – passend bei " + mapping.conditionName : ""}</span>
+        <span>${ex.name}${mapping.goalName ? " – " + mapping.goalName : ""}</span>
         <svg class="exercise-link-arrow" width="18" height="18" viewBox="0 0 24 24"
              fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M9 6l6 6-6 6"/>
         </svg>
     `;
     btn.addEventListener("click", function() {
-        jumpToExercise(mapping.exerciseId, mapping.areaName, mapping.conditionName);
+        jumpToExercise(mapping.exerciseId, mapping.areaName, mapping.goalName);
     });
 
     list.appendChild(btn);
@@ -13582,6 +13620,14 @@ const EXERCISE_LIBRARY = {
 
 };
 
+/* Die Übungsziele je Körperbereich sind bewusst NACH DEM ZIEL DES
+   NUTZERS benannt ("Warum möchtest du heute daran arbeiten?"), nicht
+   nach Diagnosen/Krankheitsbildern - die allermeisten Besucher haben
+   keine medizinische Vorbildung und suchen kein Fachwort, sondern
+   eine Antwort auf "was will ich erreichen". Diagnosenamen (falls
+   fachlich relevant) stehen höchstens noch als kurze Erklärung in
+   der jeweiligen Übung selbst (EXERCISE_LIBRARY), nicht mehr als
+   Überschrift hier. */
 const PREVENTION_AREAS = [
 
     {
@@ -13591,10 +13637,10 @@ const PREVENTION_AREAS = [
             "Beim Heben aus den Beinen statt aus dem Rücken arbeiten.",
             "Sitzhaltung und Position beim Sitzen häufig wechseln, lange Sitzphasen unterbrechen."
         ],
-        conditions: [
-            { name: "Unspezifischer Rückenschmerz", exercises: ["katze-kuh", "bird-dog"] },
-            { name: "Bandscheibenreizung", exercises: ["katze-kuh", "glute-bridge"] },
-            { name: "Muskuläre Verspannungen im unteren Rücken", exercises: ["glute-bridge", "bird-dog"] }
+        goals: [
+            { name: "Beweglichkeit im Rücken zurückgewinnen", description: "Für alle, die sich im Rücken steif, verspannt oder leicht blockiert fühlen.", exercises: ["katze-kuh", "bird-dog"] },
+            { name: "Rumpf und unteren Rücken kräftigen", description: "Für alle, die ihren Rücken langfristig stabiler und belastbarer machen wollen.", exercises: ["bird-dog", "glute-bridge"] },
+            { name: "Nach langem Sitzen lockern", description: "Für alle mit viel sitzender Tätigkeit im Alltag oder Beruf.", exercises: ["glute-bridge", "katze-kuh"] }
         ]
     },
 
@@ -13605,10 +13651,10 @@ const PREVENTION_AREAS = [
             "Regelmäßige Bewegungspausen bei langer Bildschirm- oder Schreibtischarbeit einplanen.",
             "Nacken- und Schultermuskulatur gezielt kräftigen, nicht nur dehnen."
         ],
-        conditions: [
-            { name: "Verspannungsbedingte Nackenschmerzen", exercises: ["kinngleiten", "nackendehnung"] },
-            { name: "Spannungskopfschmerz aus dem Nacken", exercises: ["nackendehnung", "kinngleiten"] },
-            { name: "Facettengelenk-Reizung der HWS", exercises: ["kinngleiten", "nackendehnung"] }
+        goals: [
+            { name: "Haltung am Schreibtisch verbessern", description: "Für alle mit viel Bildschirm- oder Schreibtischarbeit.", exercises: ["kinngleiten", "nackendehnung"] },
+            { name: "Verspannungen im Nacken lösen", description: "Für alle mit einem verspannten, steifen Nacken.", exercises: ["nackendehnung", "kinngleiten"] },
+            { name: "Kopfschmerzen aus dem Nacken lindern", description: "Für alle, deren Kopfschmerzen spürbar aus dem Nacken kommen.", exercises: ["nackendehnung", "kinngleiten"] }
         ]
     },
 
@@ -13619,10 +13665,10 @@ const PREVENTION_AREAS = [
             "Überkopfbelastungen dosieren und Technik beachten, besonders bei repetitiven Bewegungen.",
             "Beweglichkeit der Schulter regelmäßig erhalten, nicht nur bei Beschwerden."
         ],
-        conditions: [
-            { name: "Impingement-Syndrom", exercises: ["pendeluebung", "aussenrotation-band"] },
-            { name: "Reizung der Rotatorenmanschette", exercises: ["aussenrotation-band", "pendeluebung"] },
-            { name: "Schultersteife (beginnend)", exercises: ["pendeluebung", "aussenrotation-band"] }
+        goals: [
+            { name: "Akute Schulter entlasten & beruhigen", description: "Für eine frisch gereizte, schmerzempfindliche Schulter.", exercises: ["pendeluebung"] },
+            { name: "Schulter kräftigen & stabilisieren", description: "Für alle, die ihre Schulter langfristig belastbarer machen wollen.", exercises: ["aussenrotation-band", "pendeluebung"] },
+            { name: "Beweglichkeit der Schulter zurückgewinnen", description: "Für alle mit einer spürbar steifen oder eingeschränkten Schulter.", exercises: ["pendeluebung", "aussenrotation-band"] }
         ]
     },
 
@@ -13633,10 +13679,10 @@ const PREVENTION_AREAS = [
             "Belastung bei Lauf- oder Sprungsport langsam steigern, ausreichend aufwärmen.",
             "Auf eine gute Ausrichtung von Knie und Fuß bei Kniebeuge, Treppe und Sport achten."
         ],
-        conditions: [
-            { name: "Patellaspitzensyndrom (Jumper's Knee)", exercises: ["wandkniebeuge", "ausfallschritte"] },
-            { name: "Reizung des Meniskus", exercises: ["wandkniebeuge"] },
-            { name: "IT-Band-Syndrom (Läuferknie)", exercises: ["ausfallschritte", "wandkniebeuge"] }
+        goals: [
+            { name: "Knie bei Alltagsbewegungen kräftigen", description: "Für Beschwerden bei Treppe, Aufstehen oder in der Hocke.", exercises: ["wandkniebeuge"] },
+            { name: "Knie für Sport & Laufen stabilisieren", description: "Für alle, die beim Laufen oder in der Sportart Knieprobleme merken.", exercises: ["ausfallschritte", "wandkniebeuge"] },
+            { name: "Knie nach Belastung entlasten", description: "Für ein gereiztes Knie, das erst einmal zur Ruhe kommen soll.", exercises: ["wandkniebeuge"] }
         ]
     },
 
@@ -13647,10 +13693,10 @@ const PREVENTION_AREAS = [
             "Gesäßmuskulatur aktiv kräftigen, um die Hüfte zu stabilisieren.",
             "Einseitige Belastungen im Alltag und Sport bewusst ausgleichen."
         ],
-        conditions: [
-            { name: "Hüftbeugerverkürzung", exercises: ["huftbeuger-dehnung"] },
-            { name: "Trochantere Bursitis (Schleimbeutelreizung)", exercises: ["glute-bridge", "huftbeuger-dehnung"] },
-            { name: "Beginnende Hüftarthrose-Beschwerden", exercises: ["huftbeuger-dehnung", "glute-bridge"] }
+        goals: [
+            { name: "Hüftbeweglichkeit verbessern", description: "Für eine spürbar steife oder eingeschränkte Hüfte.", exercises: ["huftbeuger-dehnung"] },
+            { name: "Hüfte & Gesäß kräftigen", description: "Für alle, die ihre Hüfte langfristig stabiler machen wollen.", exercises: ["glute-bridge", "huftbeuger-dehnung"] },
+            { name: "Nach langem Sitzen die Hüfte lockern", description: "Für alle mit viel sitzender Tätigkeit im Alltag oder Beruf.", exercises: ["huftbeuger-dehnung"] }
         ]
     },
 
@@ -13661,10 +13707,10 @@ const PREVENTION_AREAS = [
             "Wadenmuskulatur und Achillessehne gezielt und dosiert belasten.",
             "Passendes Schuhwerk für die jeweilige Sportart wählen und Untergründe beachten."
         ],
-        conditions: [
-            { name: "Umknicktrauma (Supinationstrauma)", exercises: ["einbeinstand"] },
-            { name: "Achillessehnenreizung", exercises: ["wadenheber"] },
-            { name: "Plantarfasziitis (Fersenschmerz)", exercises: ["wadenheber", "einbeinstand"] }
+        goals: [
+            { name: "Stabilität nach dem Umknicken trainieren", description: "Für alle, die schon einmal umgeknickt sind oder sich unsicher fühlen.", exercises: ["einbeinstand"] },
+            { name: "Achillessehne & Wade kräftigen", description: "Für Schmerzen oder Reizung im Bereich der Achillessehne.", exercises: ["wadenheber"] },
+            { name: "Fuß & Ferse entlasten", description: "Für Fersen- oder Sohlenschmerz, besonders morgens beim Loslaufen.", exercises: ["wadenheber", "einbeinstand"] }
         ]
     }
 
@@ -13718,11 +13764,11 @@ function renderPreventionAreas() {
         details.className = "prevention-area";
         details.id = `prevention-area-${areaIdx}`;
 
-        const conditionsHtml = area.conditions
-            .map((cond, condIdx) => `
-                <details class="condition-item" id="prevention-condition-${areaIdx}-${condIdx}">
+        const goalsHtml = area.goals
+            .map((goal, goalIdx) => `
+                <details class="condition-item" id="prevention-goal-${areaIdx}-${goalIdx}">
                     <summary>
-                        <span>${cond.name}</span>
+                        <span>${goal.name}</span>
                         <svg class="condition-chevron" viewBox="0 0 24 24"
                              fill="none" stroke="currentColor" stroke-width="2"
                              aria-hidden="true">
@@ -13730,7 +13776,8 @@ function renderPreventionAreas() {
                         </svg>
                     </summary>
                     <div class="condition-exercises">
-                        ${cond.exercises.map((exId, exIdx) => renderExerciseCard(exId, `prevention-exercise-${areaIdx}-${condIdx}-${exIdx}`)).join("")}
+                        ${goal.description ? `<p class="prevention-goal-description">${goal.description}</p>` : ""}
+                        ${goal.exercises.map((exId, exIdx) => renderExerciseCard(exId, `prevention-exercise-${areaIdx}-${goalIdx}-${exIdx}`)).join("")}
                     </div>
                 </details>
             `)
@@ -13753,8 +13800,8 @@ function renderPreventionAreas() {
                     </ul>
                 </div>
                 <div>
-                    <p class="prevention-area-sub">Gängige Beschwerden & Krankheitsbilder</p>
-                    <div class="condition-list">${conditionsHtml}</div>
+                    <p class="prevention-area-sub">Woran möchtest du arbeiten?</p>
+                    <div class="condition-list">${goalsHtml}</div>
                 </div>
             </div>
         `;
@@ -13765,7 +13812,7 @@ function renderPreventionAreas() {
 
 }
 
-function findExerciseLocation(exerciseId, preferredAreaName, preferredConditionName) {
+function findExerciseLocation(exerciseId, preferredAreaName, preferredGoalName) {
 
     let fallback = null;
     let areaMatch = null;
@@ -13774,17 +13821,17 @@ function findExerciseLocation(exerciseId, preferredAreaName, preferredConditionN
 
         const area = PREVENTION_AREAS[areaIdx];
 
-        for (let condIdx = 0; condIdx < area.conditions.length; condIdx++) {
+        for (let goalIdx = 0; goalIdx < area.goals.length; goalIdx++) {
 
-            const cond = area.conditions[condIdx];
-            const exIdx = cond.exercises.indexOf(exerciseId);
+            const goal = area.goals[goalIdx];
+            const exIdx = goal.exercises.indexOf(exerciseId);
 
             if (exIdx === -1) continue;
 
-            const loc = { areaIdx, condIdx, exIdx, areaName: area.name, conditionName: cond.name };
+            const loc = { areaIdx, goalIdx, exIdx, areaName: area.name, goalName: goal.name };
 
             if (preferredAreaName && area.name === preferredAreaName) {
-                if (preferredConditionName && cond.name === preferredConditionName) return loc;
+                if (preferredGoalName && goal.name === preferredGoalName) return loc;
                 if (!areaMatch) areaMatch = loc;
             }
 
@@ -13798,14 +13845,14 @@ function findExerciseLocation(exerciseId, preferredAreaName, preferredConditionN
 
 }
 
-function jumpToExercise(exerciseId, preferredAreaName, preferredConditionName) {
+function jumpToExercise(exerciseId, preferredAreaName, preferredGoalName) {
 
     if (!isLoggedIn) {
         showRegister();
         return;
     }
 
-    const loc = findExerciseLocation(exerciseId, preferredAreaName, preferredConditionName);
+    const loc = findExerciseLocation(exerciseId, preferredAreaName, preferredGoalName);
 
     if (!loc) return;
 
@@ -13814,14 +13861,14 @@ function jumpToExercise(exerciseId, preferredAreaName, preferredConditionName) {
     showScreen("preventionScreen");
 
     const areaDetails = document.getElementById(`prevention-area-${loc.areaIdx}`);
-    const condDetails = document.getElementById(`prevention-condition-${loc.areaIdx}-${loc.condIdx}`);
+    const goalDetails = document.getElementById(`prevention-goal-${loc.areaIdx}-${loc.goalIdx}`);
 
     if (areaDetails) areaDetails.open = true;
-    if (condDetails) condDetails.open = true;
+    if (goalDetails) goalDetails.open = true;
 
     requestAnimationFrame(function() {
 
-        const card = document.getElementById(`prevention-exercise-${loc.areaIdx}-${loc.condIdx}-${loc.exIdx}`);
+        const card = document.getElementById(`prevention-exercise-${loc.areaIdx}-${loc.goalIdx}-${loc.exIdx}`);
 
         if (!card) return;
 
