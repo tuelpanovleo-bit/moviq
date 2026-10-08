@@ -751,15 +751,6 @@ header {
     stroke-linecap: round;
 }
 
-.zoom-group {
-    transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1);
-}
-
-.zoom-back-btn {
-    align-self: flex-start;
-    margin-bottom: 10px;
-}
-
 .click-zone {
     fill: transparent;
     stroke: transparent;
@@ -772,46 +763,6 @@ header {
 .click-zone:focus-visible {
     fill: rgba(46, 106, 83, 0.34);
     stroke: var(--green-700);
-}
-
-.figure-wrap.zoomed .zone-group {
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.2s;
-}
-
-.hotspot-layer {
-    pointer-events: none;
-}
-
-.figure-wrap.zoomed .hotspot-layer {
-    pointer-events: auto;
-}
-
-.hotspot {
-    cursor: pointer;
-    outline: none;
-}
-
-.hotspot-dot {
-    fill: var(--green-700);
-    stroke: white;
-    stroke-width: 0.8;
-}
-
-.hotspot:hover .hotspot-dot,
-.hotspot:focus-visible .hotspot-dot {
-    fill: var(--green-900);
-}
-
-.hotspot-label {
-    font-size: 6px;
-    font-weight: 700;
-    fill: var(--ink);
-    paint-order: stroke;
-    stroke: white;
-    stroke-width: 2px;
-    stroke-linejoin: round;
 }
 
 .face-eye {
@@ -1230,6 +1181,12 @@ header {
 
 .result-exercises .analysis-advice-title {
     margin-top: 0;
+}
+
+.result-exercises-doctor-note {
+    font-size: 0.9rem;
+    color: var(--ink-muted, #5B6B61);
+    margin: -4px 0 12px;
 }
 
 .result-exercises-list {
@@ -1835,12 +1792,10 @@ header {
 }
 
 /* Beim Klick auf das Buch (siehe openDiaryEntries()): der Einband
-   klappt WIRKLICH weit auf (fast senkrecht zur Seite), während man
-   gleichzeitig durch die offene Seite "hineinfliegt" (siehe
-   .diary-fly-overlay unten). */
+   klappt WIRKLICH weit auf (fast senkrecht zur Seite). */
 .diary-book-opening .diary-book-cover {
     transform-origin: left center;
-    animation: diary-cover-open 0.46s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: diary-cover-open 0.62s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @keyframes diary-cover-open {
@@ -1848,37 +1803,27 @@ header {
     100% { transform: rotateY(-146deg); }
 }
 
-/* Übergang beim Aufschlagen des Buchs: KEIN Verschwimmen/Auflösen
-   des eigentlichen Bildschirminhalts mehr. Stattdessen "fliegt" ein
-   eigenes, blickdichtes Papier-Overlay (.diary-fly-overlay, ein
-   fixes Element ganz oben im DOM, siehe HTML) von genau der
-   Position/Größe des Buchs auf volle Bildschirmgröße heran - eine
-   reine Formänderung, kein Zoom auf echten (dadurch unscharf
-   werdenden) Text. Sobald es den ganzen Bildschirm bedeckt, wird
-   dahinter unsichtbar der Screen gewechselt, und das Overlay blendet
-   erst danach wieder aus. openDiaryEntries() steuert das komplett
-   per JS (dynamische Start-Position/-Größe), die CSS-Regeln hier
-   liefern nur den Ausgangszustand. */
+/* Übergang beim Aufschlagen des Buchs: ein ECHTER, durchgehender
+   Zoom OHNE Schnitt. openDiaryEntries() klont das tatsächliche
+   Buch-Element (.diary-book-visual) und lässt genau diesen Klon -
+   nicht ein leeres Platzhalter-Rechteck - sichtbar größer werden,
+   während sich sein Deckel gleichzeitig öffnet. Der Klon wächst nur
+   bis zur ungefähren Position/Größe, an der gleich die echte
+   Tagebuchseite auf dem Schreibtisch erscheinen wird (nicht auf
+   volle Bildschirmgröße) - dadurch sitzt man am Ende bereits
+   "richtig" vor dem Schreibtisch. Sobald der Klon dort angekommen
+   ist, blendet der neue Bildschirm über die normale
+   ".screen.enter"-Animation sanft ein, während der Klon gleichzeitig
+   ausblendet - eine weiche Überblendung statt eines harten Schnitts.
+   Die CSS-Regeln hier liefern nur den Ausgangszustand, den Rest
+   steuert openDiaryEntries() per JS (dynamische Start-/Zielwerte). */
 body.diary-zoom-active {
     overflow: hidden;
 }
 
-.diary-fly-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    background: #FFFDF5;
-    box-shadow: 0 18px 36px rgba(40, 24, 10, 0.32);
+.diary-zoom-clone {
     pointer-events: none;
-    opacity: 0;
-    visibility: hidden;
-    transform-origin: top left;
-    will-change: transform;
-}
-
-.diary-fly-overlay.diary-fly-visible {
-    visibility: visible;
-    opacity: 1;
+    will-change: transform, opacity;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1994,19 +1939,25 @@ body.diary-zoom-active {
 }
 
 /* =====================================================
-   TAGEBUCH-EINTRÄGE: "ECHTES TAGEBUCH"-DESIGN
+   TAGEBUCH-EINTRÄGE: SCHREIBTISCH VON OBEN
    Sobald man das Buch aufschlägt, wechselt die GANZE SEITE (nicht
-   nur eine Karte) auf einen Holztisch-Hintergrund mit Kritzeleien
-   und einem Kugelschreiber - die eigentlichen Einträge liegen auf
-   einer hellen "Papierseite" obendrauf, wie ein wirklich
-   handschriftlich geführtes Tagebuch. Der Holztisch wird über eine
-   body-Klasse gesetzt, damit er seitenfüllend ist (auch Header-
-   Rand/Footer-Bereich), nicht nur innerhalb der Karte.
+   nur eine Karte) auf einen Schreibtisch, von oben gesehen - mit
+   Kaffeetasse, kleiner Pflanze, Brille, Handy, Klebezettel-Block und
+   einem Kugelschreiber, alle als realistisch schattierte Objekte
+   (bewusst KEINE Icons/Emojis). Die aufgeschlagene Buchseite liegt
+   mittig darauf, wie ein Doppelseiten-Spread mit Mittelfalz - man
+   "sitzt" quasi vor diesem Tisch und blickt auf das offene Buch.
+   Der Tisch wird über eine body-Klasse gesetzt, damit er
+   seitenfüllend ist (auch Header-/Footer-Bereich), nicht nur
+   innerhalb der Karte.
 ===================================================== */
 
 body.diary-desk-mode {
     background:
-        radial-gradient(ellipse at 18% 10%, rgba(255, 255, 255, 0.06), transparent 50%),
+        radial-gradient(ellipse 70% 55% at 50% 42%, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.22) 100%),
+        radial-gradient(ellipse at 14% 8%, rgba(255, 255, 255, 0.07), transparent 48%),
+        radial-gradient(ellipse 160px 90px at 85% 78%, rgba(0, 0, 0, 0.12), transparent 70%),
+        radial-gradient(ellipse 140px 80px at 10% 85%, rgba(0, 0, 0, 0.1), transparent 70%),
         repeating-linear-gradient(90deg,
             rgba(0, 0, 0, 0.055) 0px, rgba(0, 0, 0, 0.055) 2px,
             transparent 2px, transparent 25px),
@@ -2014,6 +1965,15 @@ body.diary-desk-mode {
             rgba(255, 255, 255, 0.025) 0px, rgba(255, 255, 255, 0.025) 1px,
             transparent 1px, transparent 9px),
         linear-gradient(160deg, #8A5A34 0%, #714624 45%, #5B3A22 100%);
+}
+
+/* Die normalen treibenden Hintergrund-Icons (siehe .bg-icon weiter
+   oben) passen nicht zum Schreibtisch-Hintergrund und würden sich
+   mit den realistischen Gegenständen (.desk-item) überlagern - auf
+   diesem Screen daher ausgeblendet, analog zu performance-mode und
+   myth-mode oben. */
+body.diary-desk-mode .bg-icon {
+    display: none;
 }
 
 #diaryEntriesScreen.diary-desk.card {
@@ -2030,75 +1990,110 @@ body.diary-desk-mode {
     box-shadow: none;
 }
 
-.diary-doodle {
+/* Schreibtisch-Szene (siehe HTML: .bg-scene.diary-desk-scene, Sibling
+   von .bg-scene) - nur sichtbar, während der Tagebuch-Einträge-Screen
+   aktiv ist. Sitzt wie .bg-scene fest über den gesamten Viewport
+   (außerhalb von .container), damit die Gegenstände bis an den
+   echten Bildschirmrand reichen können statt nur innerhalb der
+   schmaleren Karte - sonst würden sie größtenteils unter der
+   zentrierten Buchseite verschwinden. */
+.diary-desk-scene {
+    display: none;
+}
+
+body.diary-desk-mode .diary-desk-scene {
+    display: block;
+}
+
+/* Gemeinsame Basis für alle realen Gegenstände auf der Tischplatte -
+   rein dekorativ, liegen UNTER der Buchseite (z-index), damit sie
+   wie am Rand des Schreibtischs liegend wirken. Prozent-Positionen
+   (wie bei .bg-icon) statt fester Pixelwerte, damit sie auf
+   unterschiedlich breiten Bildschirmen zuverlässig außerhalb der
+   zentrierten, max. 900px breiten Buchseite bleiben. */
+.desk-item {
     position: absolute;
-    width: 54px;
-    height: auto;
-    color: rgba(255, 253, 248, 0.3);
     pointer-events: none;
+    filter: drop-shadow(0 6px 10px rgba(30, 18, 6, 0.35));
+    z-index: 0;
 }
 
-/* Jede Kritzelei besteht aus zwei leicht versetzten, bewusst
-   asymmetrischen Pfaden übereinander (wie zwei Stiftstriche) - das
-   macht sie "unsauber" statt wie eine perfekte Vektorform. (Ein
-   SVG-Verzerrungsfilter wurde hier bewusst NICHT verwendet - der
-   hat beim ersten Rendern eine spürbare Verzögerung verursacht und
-   den Zoom-Übergang kurz stocken lassen.) */
-.diary-doodle path.stroke-2 {
-    opacity: 0.55;
-}
+.desk-mug      { top: 9%;     left: 2.5%;  width: 92px;  transform: rotate(-6deg); }
+.desk-plant    { top: 7%;     right: 3%;   width: 104px; transform: rotate(4deg); }
+.desk-glasses  { bottom: 12%; left: 3.5%;  width: 118px; transform: rotate(-11deg); }
+.desk-phone    { bottom: 9%;  right: 4%;   width: 92px;  transform: rotate(9deg); }
+.desk-notes    { top: 44%;    left: 1%;    width: 88px;  transform: rotate(-4deg); }
 
-.diary-doodle-swirl    { top: 30px;    right: 68px;  width: 62px; transform: rotate(-6deg); }
-.diary-doodle-heart    { bottom: 110px; left: 36px;   width: 36px; transform: rotate(8deg); }
-.diary-doodle-star     { top: 46%;     left: 22px;   width: 30px; transform: rotate(-10deg); }
-.diary-doodle-underline {
-    bottom: 70px;
-    right: 90px;
-    width: 80px;
-    color: rgba(255, 253, 248, 0.24);
-    transform: rotate(-2deg);
-}
-.diary-doodle-scribble {
-    top: 90px;
-    left: 54px;
-    width: 46px;
-    color: rgba(255, 253, 248, 0.2);
-    transform: rotate(5deg);
+@media (max-width: 1180px) {
+    .desk-mug, .desk-plant, .desk-glasses, .desk-phone, .desk-notes {
+        display: none;
+    }
 }
 
 /* Eleganter Kugelschreiber - realistischere Rundung durch mehrere
    Glanz-/Schattenstreifen auf dem Schaft, Metallclip, facettierte
    Spitze mit Schreibschlitz und weicher Kontaktschatten auf dem
-   Papier darunter. */
+   Papier darunter. Liegt direkt AUF der aufgeschlagenen Seite, als
+   würde man gerade schreiben. */
 .diary-pen {
     position: absolute;
-    top: 74px;
-    right: -6px;
-    width: 210px;
-    transform: rotate(31deg);
+    top: 46px;
+    right: -34px;
+    width: 190px;
+    transform: rotate(23deg);
     pointer-events: none;
+    z-index: 2;
+    filter: drop-shadow(0 4px 6px rgba(40, 24, 10, 0.25));
 }
 
+/* Aufgeschlagenes Buch als Doppelseite: zwei "Seiten" mit Mittelfalz-
+   Schatten, abgerundete Außenkanten, leichte Seiten-Wölbung zur Mitte
+   hin (Kurven statt gerader Kanten) und ein angedeuteter Seitenstapel
+   an den Außenrändern (mehrere feine Linien) - wirkt dadurch wie ein
+   wirklich aufgeschlagenes, am Tisch liegendes Buch statt einer
+   flachen Karte. */
 .diary-page {
     position: relative;
     max-width: 900px;
     margin: 0 auto;
     background: #FFFDF5;
-    border-radius: 14px;
+    border-radius: 10px;
     padding: 32px 34px 26px;
-    box-shadow: 0 18px 36px rgba(40, 24, 10, 0.32);
+    box-shadow:
+        0 1px 0 1px #F1E6CE,
+        0 3px 0 3px #FFFDF5,
+        0 5px 0 4px #F1E6CE,
+        0 22px 40px rgba(40, 24, 10, 0.38);
     color: var(--ink);
+    z-index: 1;
 }
 
+/* Mittelfalz: eine sanfte dunkle Linie samt beidseitigem Schlagschatten
+   genau in der Mitte der Doppelseite. */
 .diary-page::before {
-    /* zarte Linierung wie bei echtem Schreibpapier */
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(90deg,
+            transparent calc(50% - 22px), rgba(70, 48, 20, 0.14) calc(50% - 2px),
+            rgba(70, 48, 20, 0.22) 50%,
+            rgba(70, 48, 20, 0.14) calc(50% + 2px), transparent calc(50% + 22px));
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Zarte Linierung wie bei echtem Schreibpapier, auf beiden Seiten der
+   Doppelseite. */
+.diary-page::after {
     content: "";
     position: absolute;
     inset: 86px 0 18px;
     background: repeating-linear-gradient(180deg,
         transparent 0px, transparent 27px,
         rgba(91, 58, 34, 0.08) 27px, rgba(91, 58, 34, 0.08) 28px);
-    border-radius: 0 0 14px 14px;
+    border-radius: 0 0 10px 10px;
     pointer-events: none;
     z-index: 0;
 }
@@ -2119,13 +2114,14 @@ body.diary-desk-mode {
     }
 
     .diary-pen {
-        width: 140px;
-        top: 24px;
-        right: -22px;
+        width: 130px;
+        top: 16px;
+        right: -18px;
     }
 
-    .diary-doodle-swirl { width: 44px; right: 24px; top: 18px; }
-    .diary-doodle-scribble { display: none; }
+    .desk-mug, .desk-plant, .desk-glasses, .desk-phone, .desk-notes {
+        display: none;
+    }
 }
 
 .diary-history-title {
@@ -3199,13 +3195,6 @@ footer {
 <body>
 
 
-<!-- Fliegt beim Aufschlagen des Tagebuchs von der Buch-Position auf
-     volle Bildschirmgröße (siehe openDiaryEntries()) - rein
-     dekorativ/technisch, liegt deshalb außerhalb aller .screen-
-     Container, damit position:fixed unabhängig vom sichtbaren
-     Screen funktioniert. -->
-<div id="diaryFlyOverlay" class="diary-fly-overlay" aria-hidden="true"></div>
-
 <!-- =====================================================
      DYNAMISCHER HINTERGRUND (rein dekorativ)
 ===================================================== -->
@@ -3429,6 +3418,136 @@ footer {
         <path d="M8.5 10.5h.01M14.5 9.5c.8-.5 1.8-.5 2.5 0"/>
         <path d="M9 15c1 .8 2 .8 3 .3"/>
         <path d="M16 17c.8.6 1.2 1.6.9 2.6"/>
+    </svg>
+
+</div>
+
+<!-- =====================================================
+     SCHREIBTISCH-SZENE (nur im Tagebuch-Einträge-Screen
+     sichtbar, siehe body.diary-desk-mode): realistische
+     Gegenstände rund um die aufgeschlagene Buchseite, von
+     oben gesehen. Sitzt wie .bg-scene fest hinter allen
+     Inhalten außerhalb von .container, damit die Objekte bis
+     an den echten Bildschirmrand reichen können statt nur
+     innerhalb der (schmaleren) Karte. Bewusst keine
+     Icons/Emojis, sondern schattierte, flächige Objekte wie
+     auf einem echten Schreibtisch-Foto.
+===================================================== -->
+
+<div class="bg-scene diary-desk-scene" aria-hidden="true">
+
+    <!-- Kaffeetasse mit Untertasse und Henkel, von oben: Rand-Ellipse,
+         dunkler Kaffee-Spiegel mit Lichtreflex, kleiner Henkel. -->
+    <svg class="desk-item desk-mug" viewBox="0 0 100 100" aria-hidden="true">
+        <defs>
+            <radialGradient id="mugSaucer" cx="42%" cy="38%" r="65%">
+                <stop offset="0%" stop-color="#FDFDFB"/>
+                <stop offset="70%" stop-color="#EDEAE2"/>
+                <stop offset="100%" stop-color="#CFC9BB"/>
+            </radialGradient>
+            <radialGradient id="mugRim" cx="42%" cy="38%" r="60%">
+                <stop offset="0%" stop-color="#F6F2E9"/>
+                <stop offset="75%" stop-color="#E7E0CF"/>
+                <stop offset="100%" stop-color="#B8AE94"/>
+            </radialGradient>
+            <radialGradient id="mugCoffee" cx="40%" cy="35%" r="65%">
+                <stop offset="0%" stop-color="#6B4324"/>
+                <stop offset="60%" stop-color="#4A2C15"/>
+                <stop offset="100%" stop-color="#2E1A0C"/>
+            </radialGradient>
+        </defs>
+        <ellipse cx="50" cy="54" rx="46" ry="42" fill="rgba(20,12,4,0.22)"/>
+        <ellipse cx="50" cy="50" rx="46" ry="42" fill="url(#mugSaucer)"/>
+        <ellipse cx="50" cy="50" rx="33" ry="30" fill="url(#mugRim)"/>
+        <path d="M80 42c9 2 10 16 0 19" fill="none" stroke="#B8AE94" stroke-width="5" stroke-linecap="round"/>
+        <ellipse cx="50" cy="49" rx="27" ry="24" fill="url(#mugCoffee)"/>
+        <ellipse cx="41" cy="41" rx="8" ry="5" fill="rgba(255,255,255,0.16)"/>
+    </svg>
+
+    <!-- Kleine Topfpflanze von oben: runder Topf, mehrere überlappende,
+         unterschiedlich geformte Blätter mit Mittelader. -->
+    <svg class="desk-item desk-plant" viewBox="0 0 110 110" aria-hidden="true">
+        <defs>
+            <radialGradient id="plantPot" cx="40%" cy="35%" r="65%">
+                <stop offset="0%" stop-color="#C77D4E"/>
+                <stop offset="100%" stop-color="#8A4A26"/>
+            </radialGradient>
+            <linearGradient id="plantLeaf" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#6FA667"/>
+                <stop offset="100%" stop-color="#34633A"/>
+            </linearGradient>
+        </defs>
+        <ellipse cx="55" cy="58" rx="32" ry="30" fill="rgba(20,12,4,0.18)"/>
+        <g fill="url(#plantLeaf)" stroke="#294E2E" stroke-width="0.6">
+            <path d="M55 55 C40 48 28 34 34 16 C48 22 56 36 55 55Z"/>
+            <path d="M55 55 C70 46 84 32 78 14 C64 20 54 34 55 55Z"/>
+            <path d="M55 55 C36 56 18 50 16 34 C34 32 50 40 55 55Z"/>
+            <path d="M55 55 C74 58 92 54 95 37 C77 34 60 42 55 55Z"/>
+            <path d="M55 55 C50 70 46 88 58 98 C68 86 66 68 55 55Z"/>
+        </g>
+        <ellipse cx="55" cy="63" rx="20" ry="17" fill="url(#plantPot)"/>
+        <path d="M37 63a18 9 0 0 0 36 0" fill="none" stroke="#6E3A1E" stroke-width="2"/>
+    </svg>
+
+    <!-- Lesebrille, aufgeklappt auf dem Tisch liegend: zwei Gläser mit
+         Metallrand plus Bügel. -->
+    <svg class="desk-item desk-glasses" viewBox="0 0 160 70" aria-hidden="true">
+        <defs>
+            <radialGradient id="glassLens" cx="35%" cy="30%" r="75%">
+                <stop offset="0%" stop-color="rgba(255,255,255,0.65)"/>
+                <stop offset="55%" stop-color="rgba(210,224,230,0.32)"/>
+                <stop offset="100%" stop-color="rgba(150,170,180,0.22)"/>
+            </radialGradient>
+            <linearGradient id="glassFrame" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#5B4A2E"/>
+                <stop offset="100%" stop-color="#2E2414"/>
+            </linearGradient>
+        </defs>
+        <ellipse cx="40" cy="36" rx="30" ry="24" fill="rgba(20,12,4,0.16)"/>
+        <ellipse cx="120" cy="36" rx="30" ry="24" fill="rgba(20,12,4,0.16)"/>
+        <ellipse cx="40" cy="34" rx="30" ry="24" fill="url(#glassLens)" stroke="url(#glassFrame)" stroke-width="4"/>
+        <ellipse cx="120" cy="34" rx="30" ry="24" fill="url(#glassLens)" stroke="url(#glassFrame)" stroke-width="4"/>
+        <path d="M70 32c6-6 14-6 20 0" fill="none" stroke="url(#glassFrame)" stroke-width="4" stroke-linecap="round"/>
+        <path d="M10 28c-6 0-9 3-9 7" fill="none" stroke="url(#glassFrame)" stroke-width="4" stroke-linecap="round"/>
+        <path d="M150 28c6 0 9 3 9 7" fill="none" stroke="url(#glassFrame)" stroke-width="4" stroke-linecap="round"/>
+    </svg>
+
+    <!-- Smartphone von oben: Gehäuse, Bildschirm mit sanftem
+         Lichtreflex, Kamera-"Insel". -->
+    <svg class="desk-item desk-phone" viewBox="0 0 70 130" aria-hidden="true">
+        <defs>
+            <linearGradient id="phoneBody" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#3B3F45"/>
+                <stop offset="100%" stop-color="#17181B"/>
+            </linearGradient>
+            <linearGradient id="phoneScreen" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#2C3E4E"/>
+                <stop offset="55%" stop-color="#101820"/>
+                <stop offset="100%" stop-color="#060A0E"/>
+            </linearGradient>
+        </defs>
+        <rect x="4" y="4" width="62" height="122" rx="14" fill="rgba(20,12,4,0.22)"/>
+        <rect x="2" y="2" width="62" height="122" rx="14" fill="url(#phoneBody)"/>
+        <rect x="8" y="10" width="50" height="110" rx="8" fill="url(#phoneScreen)"/>
+        <rect x="12" y="16" width="18" height="7" rx="3.5" fill="rgba(255,255,255,0.14)"/>
+        <circle cx="52" cy="18" r="3" fill="#0A0D10" stroke="#3A4450" stroke-width="0.8"/>
+    </svg>
+
+    <!-- Block mit gelben Klebezetteln, oberste Ecke leicht
+         abgelöst/aufgebogen. -->
+    <svg class="desk-item desk-notes" viewBox="0 0 90 90" aria-hidden="true">
+        <defs>
+            <linearGradient id="noteYellow" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#FFE999"/>
+                <stop offset="100%" stop-color="#F7CE4E"/>
+            </linearGradient>
+        </defs>
+        <rect x="10" y="14" width="64" height="64" rx="3" fill="rgba(20,12,4,0.16)"/>
+        <rect x="8" y="12" width="64" height="64" rx="3" fill="#E8B93E"/>
+        <rect x="6" y="9" width="64" height="64" rx="3" fill="#EFC24A"/>
+        <path d="M4 6h64v64H19C10 70 4 64 4 55Z" fill="url(#noteYellow)"/>
+        <path d="M4 6l40 0 0 2-38 0 0 36c0 9-1 17-6 20Z" fill="rgba(255,255,255,0.25)"/>
+        <path d="M14 20h34M14 30h34M14 40h22" stroke="rgba(120,92,20,0.3)" stroke-width="2" stroke-linecap="round"/>
     </svg>
 
 </div>
@@ -4261,9 +4380,6 @@ footer {
 
     <div class="figure-wrap" id="analysisFigure">
 
-        <button class="link-btn zoom-back-btn hidden" id="zoomBackBtn"
-                onclick="unzoomBody()">← Zurück zur Körperübersicht</button>
-
         <div class="view-toggle">
             <button class="view-btn active" data-view="front"
                     aria-pressed="true"
@@ -4374,7 +4490,11 @@ footer {
     </div>
 
     <div id="resultExercises" class="result-exercises hidden">
-        <p class="analysis-advice-title">Passende Übung</p>
+        <p class="analysis-advice-title" id="resultExercisesTitle">Passende Übung</p>
+        <p class="result-exercises-doctor-note hidden" id="resultExercisesDoctorNote">
+            Diese Übung ersetzt den empfohlenen Arztbesuch nicht – sie kann ihn
+            sinnvoll ergänzen, bis der Termin stattfindet.
+        </p>
         <div id="resultExercisesList" class="result-exercises-list"></div>
     </div>
 
@@ -4955,42 +5075,6 @@ footer {
 
 <div id="diaryEntriesScreen" class="screen card diary-desk hidden">
 
-    <!-- Kleine Kritzeleien auf der Tischplatte - rein dekorativ,
-         sollen wie spontane, mit der Hand hingeworfene Skizzen neben
-         dem aufgeschlagenen Tagebuch wirken (nicht wie perfekte
-         Vektorformen: jede besteht aus zwei leicht versetzten
-         Strichen plus Wackel-Filter). -->
-    <svg class="diary-doodle diary-doodle-swirl" viewBox="0 0 60 60" aria-hidden="true">
-        <path class="stroke-2" d="M7 31c-1-11 7-19 17-19s17 6 15 14-11 11-18 5 1-15 12-13 15 8 10 17-17 11-25 3"
-              fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M6 30c0-10 8-18 18-18s16 7 14 15-12 10-17 4 2-14 11-13 14 9 9 16-16 10-24 4"
-              fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-    </svg>
-
-    <svg class="diary-doodle diary-doodle-heart" viewBox="0 0 40 36" aria-hidden="true">
-        <path class="stroke-2" d="M19 33C8 25 2 18 2.5 11 3 6 7 3 11 3c3-0.2 6 1.5 8.5 5 2.3-3.6 5.3-5.3 8.8-5 4 .3 7.5 3.5 7.2 8.5-.4 7-6.8 13.6-16.5 21.5z"
-              fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-        <path d="M20 32C9 24 3 17 3 10.5 3 5 7 2 11.5 2c3 0 6 1.7 8.5 5 2.5-3.3 5.5-5 8.5-5C33 2 37 5 37 10.5 37 17 31 24 20 32z"
-              fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
-    </svg>
-
-    <svg class="diary-doodle diary-doodle-star" viewBox="0 0 40 40" aria-hidden="true">
-        <path class="stroke-2" d="M19 5l3.8 10.3 11.4.3-9.2 6.8 3.2 11.1-9-7-9.2 6.4 3.6-10.9-9.4-6.8 11.6-.6z"
-              fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
-        <path d="M20 4l3.5 10.8H34l-9 6.6 3.5 10.8L20 25.6l-8.5 6.6L15 21.4l-9-6.6h10.5z"
-              fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-    </svg>
-
-    <svg class="diary-doodle diary-doodle-underline" viewBox="0 0 80 14" aria-hidden="true">
-        <path class="stroke-2" d="M3 10c11-9 23-7 35-2s29 5 39-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-        <path d="M2 9c12-8 24-8 36-2s30 4 40-4" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>
-    </svg>
-
-    <svg class="diary-doodle diary-doodle-scribble" viewBox="0 0 50 30" aria-hidden="true">
-        <path d="M3 15c4-9 9-12 14-9s4 10-1 11-8-6-3-11 13-5 17 1 2 12-4 12"
-              fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-    </svg>
-
     <!-- Eleganter Kugelschreiber, liegt diagonal auf der Seite -
          als würde man gerade etwas eintragen. Mehrschichtiger Schaft
          (Grundfarbe + Glanzstreifen + Kernschatten) für eine runde,
@@ -5348,12 +5432,6 @@ let selectedSubArea = "";
 
 let currentView = "front";
 
-let zoomedArea = null;
-
-let zoomedSide = null;
-
-const KNIE_ZOOM_SCALE = 3;
-
 const screens = [
     "homeScreen",
     "sectionScreen",
@@ -5642,11 +5720,7 @@ function makeZone(zone, view, mirrored) {
     }
 
     function activate() {
-        if (zone.area === "Knie") {
-            zoomToKnie(side);
-        } else {
-            selectArea(zone.area, side);
-        }
+        selectArea(zone.area, side);
     }
 
     el.addEventListener("click", activate);
@@ -5808,11 +5882,7 @@ function makeBodySvg(view) {
     defs.appendChild(clip);
     svg.appendChild(defs);
 
-    /* Zoom-Gruppe: hier wird per Transform ran- und
-       rausgezoomt (z. B. beim Anklicken des Knies) */
-
     const zoomGroup = document.createElementNS(SVG_NS, "g");
-    zoomGroup.setAttribute("class", "zoom-group");
 
     /* sichtbare Silhouette */
 
@@ -5898,14 +5968,6 @@ function makeBodySvg(view) {
 
     zoomGroup.appendChild(group);
 
-    /* Hotspots: sichtbare, beschriftete Punkte im
-       rangezoomten Zustand (z. B. am Knie) */
-
-    const hotspotLayer = document.createElementNS(SVG_NS, "g");
-    hotspotLayer.setAttribute("class", "hotspot-layer");
-
-    zoomGroup.appendChild(hotspotLayer);
-
     svg.appendChild(zoomGroup);
 
     return svg;
@@ -5940,176 +6002,6 @@ function buildBody(wrap) {
     holder.addEventListener("focusin", showLabel);
     holder.addEventListener("mouseleave", resetLabel);
     holder.addEventListener("focusout", resetLabel);
-}
-
-
-
-/* =====================================================
-   ZOOM-INTERAKTION (Pilot: Knie)
-   Beim Anklicken eines Knies wird an diese Stelle
-   rangezoomt. Von dort aus können beschriftete Punkte
-   (Vorderseite, Innenseite, Außenseite, Kniekehle)
-   direkt angeklickt werden.
-===================================================== */
-
-function knieZoomCenter(view, side) {
-
-    const mirrored = (view === "front") !== (side === "rechts");
-
-    return {
-        cx: mirrored ? 190 : 110,
-        cy: 485,
-        mirrored: mirrored
-    };
-}
-
-function zoomToKnie(side) {
-
-    zoomedArea = "Knie";
-    zoomedSide = side;
-
-    document.getElementById("analysisFigure").classList.add("zoomed");
-    document.getElementById("zoomBackBtn").classList.remove("hidden");
-
-    applyZoomTransform();
-    renderHotspots();
-
-}
-
-function unzoomBody() {
-
-    zoomedArea = null;
-    zoomedSide = null;
-
-    const figure = document.getElementById("analysisFigure");
-
-    if (figure) {
-        figure.classList.remove("zoomed");
-    }
-
-    const backBtn = document.getElementById("zoomBackBtn");
-
-    if (backBtn) {
-        backBtn.classList.add("hidden");
-    }
-
-    document.querySelectorAll(".zoom-group").forEach(function(g) {
-        g.style.transform = "";
-    });
-
-    document.querySelectorAll(".hotspot-layer").forEach(function(g) {
-        g.innerHTML = "";
-    });
-
-}
-
-function applyZoomTransform() {
-
-    if (!zoomedArea) {
-        return;
-    }
-
-    const center = knieZoomCenter(currentView, zoomedSide);
-    const s = KNIE_ZOOM_SCALE;
-
-    const tx = 150 - s * center.cx;
-    const ty = 325 - s * center.cy;
-
-    document.querySelectorAll(".zoom-group").forEach(function(g) {
-        g.style.transform = "translate(" + tx + "px, " + ty + "px) scale(" + s + ")";
-    });
-
-}
-
-function renderHotspots() {
-
-    document.querySelectorAll(".hotspot-layer").forEach(function(g) {
-        g.innerHTML = "";
-    });
-
-    if (zoomedArea !== "Knie") {
-        return;
-    }
-
-    const svg = document.querySelector('.body-svg[data-view="' + currentView + '"]');
-
-    if (!svg) {
-        return;
-    }
-
-    const layer = svg.querySelector(".hotspot-layer");
-    const center = knieZoomCenter(currentView, zoomedSide);
-
-    let points;
-
-    if (currentView === "front") {
-
-        points = [
-            { area: "Vorderseite", x: center.cx, y: 472, label: "Vorderseite" },
-            { area: "Innenseite",  x: center.mirrored ? 158 : 142, y: 490, label: "Innenseite" },
-            { area: "Außenseite",  x: center.mirrored ? 222 : 78,  y: 490, label: "Außenseite" }
-        ];
-
-    } else {
-
-        points = [
-            { area: "Rückseite / Kniekehle", x: center.cx, y: 485, label: "Kniekehle" }
-        ];
-
-    }
-
-    points.forEach(function(pt) {
-
-        const g = document.createElementNS(SVG_NS, "g");
-
-        g.setAttribute("class", "hotspot");
-        g.setAttribute("role", "button");
-        g.setAttribute("tabindex", "0");
-        g.setAttribute("aria-label", pt.area);
-        g.setAttribute("transform", "translate(" + pt.x + " " + pt.y + ")");
-
-        const dot = document.createElementNS(SVG_NS, "circle");
-        dot.setAttribute("class", "hotspot-dot");
-        dot.setAttribute("r", "3");
-        g.appendChild(dot);
-
-        const text = document.createElementNS(SVG_NS, "text");
-        text.setAttribute("class", "hotspot-label");
-        text.setAttribute("x", "0");
-        text.setAttribute("y", "-6");
-        text.setAttribute("text-anchor", "middle");
-        text.textContent = pt.label;
-        g.appendChild(text);
-
-        function activate() {
-            chooseHotspot(pt.area);
-        }
-
-        g.addEventListener("click", activate);
-
-        g.addEventListener("keydown", function(event) {
-
-            if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                activate();
-            }
-
-        });
-
-        layer.appendChild(g);
-
-    });
-
-}
-
-function chooseHotspot(area) {
-
-    selectedMainArea = "Knie";
-    selectedSide = zoomedSide;
-    selectedSubArea = area;
-
-    startQuestionnaire();
-
 }
 
 
@@ -6155,8 +6047,6 @@ function showHome() {
     selectedMainArea = "";
 
     selectedSide = "";
-
-    unzoomBody();
 
     showFront();
 
@@ -7159,7 +7049,7 @@ const LWS_RESULTS = {
             return "Bei " + area + " hast du mindestens ein allgemeines Warnsignal angegeben, das erst ärztlich abgeklärt werden sollte, bevor eine physiotherapeutische Einschätzung sinnvoll weiterhilft.";
         },
         advice: [
-            "Vereinbare zeitnah einen Arzttermin, statt zunächst abzuwarten.",
+            "Vereinbare zeitnah einen Termin bei deiner Hausärztin/deinem Hausarzt oder in einer orthopädischen Praxis, statt zunächst abzuwarten – von dort kannst du bei Bedarf gezielt weiterverwiesen werden.",
             "Nimm die von dir angekreuzten Punkte konkret mit zum Termin.",
             "Eine physiotherapeutische Behandlung kann sinnvoll ergänzen, sobald ernsthafte Ursachen ausgeschlossen sind."
         ]
@@ -7171,7 +7061,7 @@ const LWS_RESULTS = {
             return "Deine Angaben zu " + area + " – Ausstrahlung ins Bein, Verstärkung bei Husten/Beugung sowie zusätzliche Taubheit, Kraftminderung oder Reflexauffälligkeit – passen zu einer Reizung einer Nervenwurzel im Bereich der Lendenwirbelsäule (radikuläres Muster) mit begleitendem neurologischem Ausfall.";
         },
         advice: [
-            "Lass diese Kombination zeitnah ärztlich abklären, insbesondere wegen der Kraftminderung bzw. Reflexauffälligkeit.",
+            "Lass diese Kombination zeitnah ärztlich (Neurologie oder Orthopädie) abklären, insbesondere wegen der Kraftminderung bzw. Reflexauffälligkeit.",
             "Physiotherapeutisch lässt sich parallel oft schon schmerzlindernd und stabilisierend unterstützen.",
             "Beobachte, ob die Kraft oder Taubheit zunimmt – das wäre ein Grund, nicht länger zu warten."
         ]
@@ -7429,6 +7319,7 @@ const BWS_RESULTS = {
         },
         advice: [
             "Ruf jetzt den Rettungsdienst oder suche umgehend eine Notaufnahme auf.",
+            "Dort wird je nach Befund meist kardiologisch bzw. pneumologisch (Lunge) weiter abgeklärt.",
             "Physiotherapie oder Abwarten sind in dieser Situation nicht der richtige nächste Schritt."
         ]
     },
@@ -7439,7 +7330,7 @@ const BWS_RESULTS = {
             return "Bei " + area + " hast du mindestens ein allgemeines Warnsignal angegeben, das erst ärztlich abgeklärt werden sollte, bevor eine physiotherapeutische Einschätzung sinnvoll weiterhilft.";
         },
         advice: [
-            "Vereinbare zeitnah einen Arzttermin, statt zunächst abzuwarten.",
+            "Vereinbare zeitnah einen Termin bei deiner Hausärztin/deinem Hausarzt oder in einer orthopädischen Praxis, statt zunächst abzuwarten – von dort kannst du bei Bedarf gezielt weiterverwiesen werden.",
             "Nimm die von dir angekreuzten Punkte konkret mit zum Termin.",
             "Eine physiotherapeutische Behandlung kann sinnvoll ergänzen, sobald ernsthafte Ursachen ausgeschlossen sind."
         ]
@@ -7451,7 +7342,7 @@ const BWS_RESULTS = {
             return "Bei " + area + " verändert sich der Schmerz nicht mit Atmung, Husten oder Bewegung des Oberkörpers. Das spricht eher gegen ein rein mechanisches Problem der Wirbelsäule oder Rippen und sollte ärztlich eingeordnet werden, da der Brustkorbbereich auch Schmerzen aus inneren Organen weiterleiten kann.";
         },
         advice: [
-            "Lass diese Konstellation ärztlich abklären, auch wenn sie sich aktuell nicht dramatisch anfühlt.",
+            "Lass diese Konstellation bei deiner Hausärztin/deinem Hausarzt abklären, auch wenn sie sich aktuell nicht dramatisch anfühlt – von dort erfolgt bei Bedarf eine Überweisung (z. B. Kardiologie oder Innere Medizin).",
             "Notiere dir, wodurch sich der Schmerz auslösen oder lindern lässt – das hilft bei der Einordnung."
         ]
     },
@@ -7462,7 +7353,7 @@ const BWS_RESULTS = {
             return "Bei " + area + " passt die Kombination aus Morgensteifigkeit, langsamem Beginn vor dem 45. Lebensjahr und/oder Besserung durch Bewegung zu einem entzündlich-rheumatischen Muster, wie es z. B. bei Morbus Bechterew vorkommt. Das lässt sich nur ärztlich sicher einordnen.";
         },
         advice: [
-            "Eine ärztliche bzw. rheumatologische Abklärung ist hier sinnvoll, um die genaue Ursache zu bestimmen.",
+            "Eine ärztliche bzw. rheumatologische Abklärung (Rheumatologie, ggf. über die Hausärztin/den Hausarzt) ist hier sinnvoll, um die genaue Ursache zu bestimmen.",
             "Physiotherapeutisch begleitende Bewegungstherapie hilft bei diesem Muster erfahrungsgemäß gut, ersetzt aber nicht die medizinische Diagnostik.",
             "Bleib in Bewegung – bei entzündlichen Mustern tut Ruhigstellung meist nicht gut."
         ]
@@ -7476,7 +7367,7 @@ const BWS_RESULTS = {
         advice: [
             "Sanfte Rippen- und Brustkorb-Mobilisation sowie Atemtherapie helfen bei diesem Muster oft gut.",
             "Rotations- und Dehnübungen für den Brustkorb können die Beweglichkeit der Rippen verbessern.",
-            "Falls der Schmerz weiterhin wie Herzschmerz wirkt oder du unsicher bist, lieber einmal zu viel ärztlich abklären lassen als zu wenig."
+            "Falls der Schmerz weiterhin wie Herzschmerz wirkt oder du unsicher bist, lieber einmal zu viel abklären lassen als zu wenig – im Zweifel über die Notaufnahme oder kardiologisch."
         ]
     },
 
@@ -7717,7 +7608,7 @@ const HWS_RESULTS = {
             return "Bei " + area + " hast du mindestens ein allgemeines Warnsignal angegeben, das erst ärztlich abgeklärt werden sollte, bevor eine physiotherapeutische Einschätzung sinnvoll weiterhilft.";
         },
         advice: [
-            "Vereinbare zeitnah einen Arzttermin, statt zunächst abzuwarten.",
+            "Vereinbare zeitnah einen Termin bei deiner Hausärztin/deinem Hausarzt oder in einer orthopädischen Praxis, statt zunächst abzuwarten – von dort kannst du bei Bedarf gezielt weiterverwiesen werden.",
             "Nimm die von dir angekreuzten Punkte konkret mit zum Termin.",
             "Eine physiotherapeutische Behandlung kann sinnvoll ergänzen, sobald ernsthafte Ursachen ausgeschlossen sind."
         ]
@@ -7742,7 +7633,7 @@ const HWS_RESULTS = {
             return "Deine Angaben zu " + area + " – Ausstrahlung in den Arm mit Verstärkung bei Kopfbewegung, Husten oder Pressen sowie zusätzlicher Taubheit, Kraftminderung oder Reflexauffälligkeit – passen zu einer Reizung einer Nervenwurzel im Bereich der Halswirbelsäule (zervikobrachiales Syndrom) mit begleitendem neurologischem Ausfall.";
         },
         advice: [
-            "Lass diese Kombination zeitnah ärztlich abklären, insbesondere wegen der Kraftminderung bzw. Reflexauffälligkeit.",
+            "Lass diese Kombination zeitnah ärztlich (Neurologie oder Orthopädie) abklären, insbesondere wegen der Kraftminderung bzw. Reflexauffälligkeit.",
             "Physiotherapeutisch lässt sich parallel oft schon schmerzlindernd und stabilisierend unterstützen.",
             "Beobachte, ob die Kraft oder Taubheit zunimmt – das wäre ein Grund, nicht länger zu warten."
         ]
@@ -7956,7 +7847,7 @@ const SCHULTER_SUMMARY_LABELS = {
 const SCHULTER_RESULTS = {
 
     "notfall-fraktur-luxation": {
-        redflag: "Deine Angaben deuten auf einen möglichen Knochenbruch oder eine ausgerenkte Schulter hin. Das muss zeitnah ärztlich (Notaufnahme) versorgt werden.",
+        redflag: "Deine Angaben deuten auf einen möglichen Knochenbruch oder eine ausgerenkte Schulter hin. Das muss zeitnah ärztlich (Notaufnahme/Unfallchirurgie) versorgt werden.",
         text: function(area) {
             return "Deine Angaben zu " + area + " enthalten Hinweise auf eine mögliche Fraktur oder Luxation nach einem Trauma.";
         },
@@ -7972,7 +7863,7 @@ const SCHULTER_RESULTS = {
             return "Bei " + area + " hast du mindestens ein allgemeines Warnsignal angegeben, das erst ärztlich abgeklärt werden sollte, bevor eine physiotherapeutische Einschätzung sinnvoll weiterhilft.";
         },
         advice: [
-            "Vereinbare zeitnah einen Arzttermin, statt zunächst abzuwarten.",
+            "Vereinbare zeitnah einen Termin bei deiner Hausärztin/deinem Hausarzt oder in einer orthopädischen Praxis, statt zunächst abzuwarten – von dort kannst du bei Bedarf gezielt weiterverwiesen werden.",
             "Nimm die von dir angekreuzten Punkte konkret mit zum Termin."
         ]
     },
@@ -8007,7 +7898,7 @@ const SCHULTER_RESULTS = {
             return "Bei " + area + " beschreibst du eine deutliche Kraftminderung beim Anheben des Arms – das passt zum Verdacht auf eine größere Schädigung der Rotatorenmanschette.";
         },
         advice: [
-            "Lass das zeitnah ärztlich bzw. physiotherapeutisch untersuchen, um das Ausmaß einzuschätzen.",
+            "Lass das zeitnah ärztlich (Orthopädie) bzw. physiotherapeutisch untersuchen, um das Ausmaß einzuschätzen.",
             "Vermeide vorerst Belastungen, die die Kraftminderung deutlich hervorrufen.",
             "Auch bei einer bestätigten Sehnenschädigung ist nicht automatisch eine Operation nötig – oft hilft zunächst gezieltes Training."
         ]
@@ -8187,7 +8078,7 @@ const ELLENBOGEN_SUMMARY_LABELS = {
 const ELLENBOGEN_RESULTS = {
 
     "notfall-fraktur-ellenbogen": {
-        redflag: "Deine Angaben deuten auf einen möglichen Knochenbruch am Ellenbogen hin. Das muss zeitnah ärztlich (Notaufnahme) versorgt werden.",
+        redflag: "Deine Angaben deuten auf einen möglichen Knochenbruch am Ellenbogen hin. Das muss zeitnah ärztlich (Notaufnahme/Unfallchirurgie) versorgt werden.",
         text: function(area) {
             return "Deine Angaben zu " + area + " enthalten Hinweise auf eine mögliche Fraktur nach einem Trauma.";
         },
@@ -8203,7 +8094,7 @@ const ELLENBOGEN_RESULTS = {
             return "Bei " + area + " hast du mindestens ein allgemeines Warnsignal angegeben, das erst ärztlich abgeklärt werden sollte, bevor eine physiotherapeutische Einschätzung sinnvoll weiterhilft.";
         },
         advice: [
-            "Vereinbare zeitnah einen Arzttermin, statt zunächst abzuwarten.",
+            "Vereinbare zeitnah einen Termin bei deiner Hausärztin/deinem Hausarzt oder in einer orthopädischen Praxis, statt zunächst abzuwarten – von dort kannst du bei Bedarf gezielt weiterverwiesen werden.",
             "Nimm die von dir angekreuzten Punkte konkret mit zum Termin."
         ]
     },
@@ -8216,7 +8107,7 @@ const ELLENBOGEN_RESULTS = {
         advice: [
             "Längeres, starkes Abknicken oder Aufstützen des Ellenbogens (z. B. beim Telefonieren) vorerst vermeiden.",
             "Eine physiotherapeutische bzw. neurologische Untersuchung hilft, die Reizung genauer einzuordnen.",
-            "Wenn die Kraftminderung zunimmt, zeitnah ärztlich abklären lassen."
+            "Wenn die Kraftminderung zunimmt, zeitnah ärztlich (Neurologie oder Orthopädie) abklären lassen."
         ]
     },
 
@@ -8430,7 +8321,7 @@ const HAND_SUMMARY_LABELS = {
 const HAND_RESULTS = {
 
     "notfall-fraktur-hand": {
-        redflag: "Deine Angaben deuten auf einen möglichen Knochenbruch an Hand oder Finger hin. Das muss zeitnah ärztlich (Notaufnahme) versorgt werden.",
+        redflag: "Deine Angaben deuten auf einen möglichen Knochenbruch an Hand oder Finger hin. Das muss zeitnah ärztlich (Notaufnahme/Unfallchirurgie) versorgt werden.",
         text: function(area) {
             return "Deine Angaben zu " + area + " enthalten Hinweise auf eine mögliche Fraktur nach einem Trauma.";
         },
@@ -8446,7 +8337,7 @@ const HAND_RESULTS = {
             return "Bei " + area + " hast du mindestens ein allgemeines Warnsignal angegeben, das erst ärztlich abgeklärt werden sollte, bevor eine physiotherapeutische Einschätzung sinnvoll weiterhilft.";
         },
         advice: [
-            "Vereinbare zeitnah einen Arzttermin, statt zunächst abzuwarten.",
+            "Vereinbare zeitnah einen Termin bei deiner Hausärztin/deinem Hausarzt oder in einer orthopädischen Praxis, statt zunächst abzuwarten – von dort kannst du bei Bedarf gezielt weiterverwiesen werden.",
             "Nimm die von dir angekreuzten Punkte konkret mit zum Termin."
         ]
     },
@@ -8495,7 +8386,7 @@ const HAND_RESULTS = {
         advice: [
             "Wiederholtes, kräftiges Greifen vorübergehend reduzieren.",
             "Sanfte Dehn- und Gleitübungen der Fingersehnen können helfen.",
-            "Wenn der Finger sich gar nicht mehr strecken lässt oder es sehr schmerzhaft ist, ärztlich bzw. handtherapeutisch abklären lassen."
+            "Wenn der Finger sich gar nicht mehr strecken lässt oder es sehr schmerzhaft ist, ärztlich (Handchirurgie/Orthopädie) bzw. handtherapeutisch abklären lassen."
         ]
     },
 
@@ -8692,7 +8583,7 @@ const BECKEN_SUMMARY_LABELS = {
 const BECKEN_RESULTS = {
 
     "notfall-fraktur-huefte": {
-        redflag: "Deine Angaben deuten auf einen möglichen Knochenbruch im Becken-/Hüftbereich hin (insbesondere bei älteren Menschen nach einem Sturz auch ohne starke Schwellung möglich). Das muss zeitnah ärztlich (Notaufnahme) versorgt werden.",
+        redflag: "Deine Angaben deuten auf einen möglichen Knochenbruch im Becken-/Hüftbereich hin (insbesondere bei älteren Menschen nach einem Sturz auch ohne starke Schwellung möglich). Das muss zeitnah ärztlich (Notaufnahme/Unfallchirurgie) versorgt werden.",
         text: function(area) {
             return "Deine Angaben zu " + area + " enthalten Hinweise auf eine mögliche Fraktur nach einem Trauma.";
         },
@@ -8708,7 +8599,7 @@ const BECKEN_RESULTS = {
             return "Bei " + area + " hast du mindestens ein allgemeines Warnsignal angegeben, das erst ärztlich abgeklärt werden sollte, bevor eine physiotherapeutische Einschätzung sinnvoll weiterhilft.";
         },
         advice: [
-            "Vereinbare zeitnah einen Arzttermin, statt zunächst abzuwarten.",
+            "Vereinbare zeitnah einen Termin bei deiner Hausärztin/deinem Hausarzt oder in einer orthopädischen Praxis, statt zunächst abzuwarten – von dort kannst du bei Bedarf gezielt weiterverwiesen werden.",
             "Nimm die von dir angekreuzten Punkte konkret mit zum Termin."
         ]
     },
@@ -8959,7 +8850,7 @@ const KNIE_RESULTS = {
             return "Bei " + area + " hast du mindestens ein allgemeines Warnsignal angegeben, das erst ärztlich abgeklärt werden sollte, bevor eine physiotherapeutische Einschätzung sinnvoll weiterhilft.";
         },
         advice: [
-            "Vereinbare zeitnah einen Arzttermin, statt zunächst abzuwarten.",
+            "Vereinbare zeitnah einen Termin bei deiner Hausärztin/deinem Hausarzt oder in einer orthopädischen Praxis, statt zunächst abzuwarten – von dort kannst du bei Bedarf gezielt weiterverwiesen werden.",
             "Nimm die von dir angekreuzten Punkte konkret mit zum Termin."
         ]
     },
@@ -8996,7 +8887,7 @@ const KNIE_RESULTS = {
         advice: [
             "Starke Drehbewegungen unter Belastung sowie tiefes Hocken vorerst reduzieren.",
             "Eine physiotherapeutische bzw. orthopädische Untersuchung hilft, das Ausmaß genauer einzuschätzen.",
-            "Wenn sich das Knie tatsächlich blockiert (nicht mehr streckbar), zeitnah ärztlich abklären lassen."
+            "Wenn sich das Knie tatsächlich blockiert (nicht mehr streckbar), zeitnah ärztlich (Orthopädie) abklären lassen."
         ]
     },
 
@@ -9205,7 +9096,7 @@ const UNTERSCHENKEL_SUMMARY_LABELS = {
 const UNTERSCHENKEL_RESULTS = {
 
     "notfall-fraktur-unterschenkel": {
-        redflag: "Deine Angaben deuten auf einen möglichen Knochenbruch am Unterschenkel hin. Das muss zeitnah ärztlich (Notaufnahme) versorgt werden.",
+        redflag: "Deine Angaben deuten auf einen möglichen Knochenbruch am Unterschenkel hin. Das muss zeitnah ärztlich (Notaufnahme/Unfallchirurgie) versorgt werden.",
         text: function(area) {
             return "Deine Angaben zu " + area + " enthalten Hinweise auf eine mögliche Fraktur nach einem Trauma.";
         },
@@ -9216,7 +9107,7 @@ const UNTERSCHENKEL_RESULTS = {
     },
 
     "notfall-kompartmentsyndrom": {
-        redflag: "Deine Angaben (unverhältnismäßig starke, zunehmende Schmerzen mit praller Spannung und Taubheit) können auf ein Kompartmentsyndrom hindeuten – eine seltene, aber ernste Durchblutungsstörung der Muskulatur. Das muss sofort ärztlich (Notaufnahme) abgeklärt werden.",
+        redflag: "Deine Angaben (unverhältnismäßig starke, zunehmende Schmerzen mit praller Spannung und Taubheit) können auf ein Kompartmentsyndrom hindeuten – eine seltene, aber ernste Durchblutungsstörung der Muskulatur. Das muss sofort ärztlich (Notaufnahme/Chirurgie) abgeklärt werden.",
         text: function(area) {
             return "Deine Angaben zu " + area + " enthalten mindestens ein akutes Warnzeichen, das sofortiges Handeln erfordert.";
         },
@@ -9244,7 +9135,7 @@ const UNTERSCHENKEL_RESULTS = {
             return "Bei " + area + " hast du mindestens ein allgemeines Warnsignal angegeben, das erst ärztlich abgeklärt werden sollte, bevor eine physiotherapeutische Einschätzung sinnvoll weiterhilft.";
         },
         advice: [
-            "Vereinbare zeitnah einen Arzttermin, statt zunächst abzuwarten.",
+            "Vereinbare zeitnah einen Termin bei deiner Hausärztin/deinem Hausarzt oder in einer orthopädischen Praxis, statt zunächst abzuwarten – von dort kannst du bei Bedarf gezielt weiterverwiesen werden.",
             "Nimm die von dir angekreuzten Punkte konkret mit zum Termin."
         ]
     },
@@ -9486,7 +9377,7 @@ const FUSS_SUMMARY_LABELS = {
 const FUSS_RESULTS = {
 
     "notfall-fraktur-fuss": {
-        redflag: "Deine Angaben deuten auf einen möglichen Knochenbruch am Fuß oder Sprunggelenk hin. Das muss zeitnah ärztlich (Notaufnahme) versorgt werden.",
+        redflag: "Deine Angaben deuten auf einen möglichen Knochenbruch am Fuß oder Sprunggelenk hin. Das muss zeitnah ärztlich (Notaufnahme/Unfallchirurgie) versorgt werden.",
         text: function(area) {
             return "Deine Angaben zu " + area + " enthalten Hinweise auf eine mögliche Fraktur nach einem Trauma.";
         },
@@ -9502,7 +9393,7 @@ const FUSS_RESULTS = {
             return "Bei " + area + " hast du mindestens ein allgemeines Warnsignal angegeben, das erst ärztlich abgeklärt werden sollte, bevor eine physiotherapeutische Einschätzung sinnvoll weiterhilft.";
         },
         advice: [
-            "Vereinbare zeitnah einen Arzttermin, statt zunächst abzuwarten.",
+            "Vereinbare zeitnah einen Termin bei deiner Hausärztin/deinem Hausarzt oder in einer orthopädischen Praxis, statt zunächst abzuwarten – von dort kannst du bei Bedarf gezielt weiterverwiesen werden.",
             "Nimm die von dir angekreuzten Punkte konkret mit zum Termin."
         ]
     },
@@ -9513,7 +9404,7 @@ const FUSS_RESULTS = {
             return "Bei " + area + " deuten die Angaben nach dem Umknicken auf eine stärkere Sprunggelenksverletzung hin.";
         },
         advice: [
-            "Lass das zeitnah ärztlich bzw. röntgenologisch abklären.",
+            "Lass das zeitnah ärztlich (Notaufnahme oder Orthopädie, ggf. mit Röntgen) abklären.",
             "Bis dahin nach dem PECH-Schema versorgen: Pause, Eis, Compression, Hochlagern."
         ]
     },
@@ -9538,7 +9429,7 @@ const FUSS_RESULTS = {
         advice: [
             "Plötzliche Belastungssteigerungen (Lauf-/Sprungumfang) vorerst vermeiden.",
             "Exzentrisches Kräftigungstraining der Wadenmuskulatur ist bei diesem Muster meist der wirksamste Ansatz.",
-            "Wenn du einen plötzlichen, stechenden Schmerz mit hörbarem Knall erlebt hast und den Fuß nicht mehr vom Boden abdrücken kannst, sofort ärztlich abklären lassen (möglicher Sehnenriss)."
+            "Wenn du einen plötzlichen, stechenden Schmerz mit hörbarem Knall erlebt hast und den Fuß nicht mehr vom Boden abdrücken kannst, sofort ärztlich (Notaufnahme/Orthopädie) abklären lassen (möglicher Sehnenriss)."
         ]
     },
 
@@ -9573,7 +9464,7 @@ const FUSS_RESULTS = {
         },
         advice: [
             "Die auslösende Belastung (z. B. Laufen, Springen) bis zur Abklärung pausieren.",
-            "Lass das ärztlich abklären, insbesondere da eine Stressfraktur auf dem Röntgenbild anfangs nicht immer sichtbar ist.",
+            "Lass das ärztlich (Orthopädie, ggf. mit MRT) abklären, insbesondere da eine Stressfraktur auf dem Röntgenbild anfangs nicht immer sichtbar ist.",
             "Ein zu schneller Wiedereinstieg ohne Abklärung kann die Fraktur verschlimmern."
         ]
     },
@@ -9781,6 +9672,7 @@ const KOPF_RESULTS = {
         },
         advice: [
             "Ruf jetzt den Rettungsdienst oder suche umgehend eine Notaufnahme auf.",
+            "Dort wird je nach Befund meist neurologisch weiter abgeklärt.",
             "Physiotherapie oder Abwarten sind in dieser Situation nicht der richtige nächste Schritt."
         ]
     },
@@ -9791,7 +9683,7 @@ const KOPF_RESULTS = {
             return "Bei " + area + " hast du mindestens ein Warnsignal angegeben, das erst ärztlich abgeklärt werden sollte, bevor eine physiotherapeutische Einschätzung sinnvoll weiterhilft.";
         },
         advice: [
-            "Vereinbare zeitnah einen Arzttermin, statt zunächst abzuwarten.",
+            "Vereinbare zeitnah einen Termin bei deiner Hausärztin/deinem Hausarzt oder in einer orthopädischen Praxis, statt zunächst abzuwarten – von dort kannst du bei Bedarf gezielt weiterverwiesen werden.",
             "Nimm die von dir angekreuzten Punkte konkret mit zum Termin.",
             "Eine physiotherapeutische Behandlung kann sinnvoll ergänzen, sobald ernsthafte Ursachen ausgeschlossen sind."
         ]
@@ -9805,7 +9697,7 @@ const KOPF_RESULTS = {
         advice: [
             "Stressreduktion und Entspannungsverfahren stehen bei diesem Muster im Vordergrund.",
             "Sanfte Nacken- und Schultermobilisation kann unterstützend helfen, wenn zusätzlich eine Nackenkomponente spürbar ist.",
-            "Bei mehr als 15 Kopfschmerztagen im Monat (chronische Form) lohnt sich eine ärztliche Einordnung."
+            "Bei mehr als 15 Kopfschmerztagen im Monat (chronische Form) lohnt sich eine ärztliche Einordnung (Hausarzt oder Neurologie)."
         ]
     },
 
@@ -9816,7 +9708,7 @@ const KOPF_RESULTS = {
         },
         advice: [
             "Ein Kopfschmerztagebuch hilft, individuelle Auslöser (z. B. bestimmte Nahrungsmittel, Schlafmangel, Stress) zu erkennen.",
-            "Bei der ersten Migräne-Episode, bei Aura-Symptomen oder bei deutlicher Veränderung des gewohnten Musters ist eine ärztliche Abklärung sinnvoll, um andere Ursachen auszuschließen.",
+            "Bei der ersten Migräne-Episode, bei Aura-Symptomen oder bei deutlicher Veränderung des gewohnten Musters ist eine ärztliche Abklärung (Neurologie) sinnvoll, um andere Ursachen auszuschließen.",
             "Physiotherapeutisch lässt sich eine begleitende Nackenkomponente oft zusätzlich lindern."
         ]
     },
@@ -10005,6 +9897,7 @@ const BRUST_RESULTS = {
         },
         advice: [
             "Ruf jetzt den Rettungsdienst oder suche umgehend eine Notaufnahme auf.",
+            "Dort wird je nach Befund meist kardiologisch bzw. pneumologisch (Lunge) weiter abgeklärt.",
             "Physiotherapie oder Abwarten sind in dieser Situation nicht der richtige nächste Schritt."
         ]
     },
@@ -10015,7 +9908,7 @@ const BRUST_RESULTS = {
             return "Bei " + area + " hast du mindestens ein allgemeines Warnsignal angegeben, das erst ärztlich abgeklärt werden sollte, bevor eine physiotherapeutische Einschätzung sinnvoll weiterhilft.";
         },
         advice: [
-            "Vereinbare zeitnah einen Arzttermin, statt zunächst abzuwarten.",
+            "Vereinbare zeitnah einen Termin bei deiner Hausärztin/deinem Hausarzt oder in einer orthopädischen Praxis, statt zunächst abzuwarten – von dort kannst du bei Bedarf gezielt weiterverwiesen werden.",
             "Nimm die von dir angekreuzten Punkte konkret mit zum Termin.",
             "Eine physiotherapeutische Behandlung kann sinnvoll ergänzen, sobald ernsthafte Ursachen ausgeschlossen sind."
         ]
@@ -10027,7 +9920,7 @@ const BRUST_RESULTS = {
             return "Bei " + area + " verändert sich der Schmerz nicht mit Atmung, Husten oder Bewegung des Oberkörpers. Das spricht eher gegen ein rein mechanisches Problem von Rippen, Brustbein oder Wirbelsäule und sollte ärztlich eingeordnet werden, da der Brustkorbbereich auch Schmerzen aus inneren Organen weiterleiten kann.";
         },
         advice: [
-            "Lass diese Konstellation ärztlich abklären, auch wenn sie sich aktuell nicht dramatisch anfühlt.",
+            "Lass diese Konstellation bei deiner Hausärztin/deinem Hausarzt abklären, auch wenn sie sich aktuell nicht dramatisch anfühlt – von dort erfolgt bei Bedarf eine Überweisung (z. B. Kardiologie oder Innere Medizin).",
             "Notiere dir, wodurch sich der Schmerz auslösen oder lindern lässt – das hilft bei der Einordnung."
         ]
     },
@@ -10052,7 +9945,7 @@ const BRUST_RESULTS = {
         advice: [
             "Sanfte Rippen- und Brustkorb-Mobilisation sowie Atemtherapie helfen bei diesem Muster oft gut.",
             "Rotations- und Dehnübungen für den Brustkorb können die Beweglichkeit der Rippen verbessern.",
-            "Falls der Schmerz weiterhin wie Herzschmerz wirkt oder du unsicher bist, lieber einmal zu viel ärztlich abklären lassen als zu wenig."
+            "Falls der Schmerz weiterhin wie Herzschmerz wirkt oder du unsicher bist, lieber einmal zu viel abklären lassen als zu wenig – im Zweifel über die Notaufnahme oder kardiologisch."
         ]
     },
 
@@ -10455,15 +10348,22 @@ function questionGoBack() {
 /* Verlinkt ein Ergebnis der Beschwerdeanalyse DIREKT mit einem
    passenden Übungsziel im Prävention-Bereich (goalName = der
    Name des Übungsziels dort, siehe PREVENTION_AREAS unten - keine
-   Diagnose, sondern eine Alltagssprache-Formulierung). Bewusst NICHT
-   bei Notfällen, roten Flaggen, Verdacht auf strukturelle/schwere
-   Verletzung (Fraktur, Band-/Rotatorenmanschettenriss, Instabilität),
-   neurologischen Ausfällen, Entzündungsverdacht oder unklaren/
-   organischen Ursachen verlinkt - dort soll die Empfehlung "ärztlich/
-   physiotherapeutisch abklären" nicht durch eine Selbstübung
-   überdeckt werden. ellenbogen/hand/unterschenkel bleiben leer, weil
-   die Übungsbibliothek (EXERCISE_LIBRARY) dafür noch keine passenden
-   Übungen enthält. */
+   Diagnose, sondern eine Alltagssprache-Formulierung).
+
+   Die Seite soll auch als Selbsthilfe funktionieren - deshalb gibt es,
+   wo immer medizinisch sinnvoll, AUCH DANN eine sanfte Übung, wenn
+   gleichzeitig ein Arztbesuch empfohlen wird (die Übung ersetzt den
+   Arztbesuch nicht, siehe Hinweis im Ergebnis-Screen). Bewusst OHNE
+   Übung bleiben aber weiterhin: echte Notfälle, Fraktur-/Luxations-
+   verdacht, Verdacht auf einen (teilweisen) Band- oder Sehnenriss bzw.
+   Instabilität, akute neurologische Ausfälle (Kraftminderung,
+   Reflexausfall, Taubheit), Verdacht auf eine Stressfraktur sowie
+   unklare/organische Ursachen - dort könnte eine Übung die betroffene
+   Struktur zusätzlich belasten oder von der nötigen Abklärung ablenken.
+   ellenbogen/hand/unterschenkel bleiben komplett leer, weil die
+   Übungsbibliothek (EXERCISE_LIBRARY) dafür noch keine passenden
+   Übungen enthält - das ist eine inhaltliche Lücke, keine bewusste
+   Sicherheits-Entscheidung. */
 const REGION_EXERCISE_MAP = {
 
     lws: {
@@ -10472,7 +10372,12 @@ const REGION_EXERCISE_MAP = {
         "funktionsgruppe-extension": { exerciseId: "bird-dog", areaName: "Rücken", goalName: "Rumpf und unteren Rücken kräftigen" },
         "funktionsgruppe-sitzen": { exerciseId: "glute-bridge", areaName: "Rücken", goalName: "Nach langem Sitzen lockern" },
         "funktionsgruppe-unspezifisch": { exerciseId: "katze-kuh", areaName: "Rücken", goalName: "Beweglichkeit im Rücken zurückgewinnen" },
-        "chronisch-ohne-gelbe-flaggen": { exerciseId: "bird-dog", areaName: "Rücken", goalName: "Rumpf und unteren Rücken kräftigen" }
+        "chronisch-ohne-gelbe-flaggen": { exerciseId: "bird-dog", areaName: "Rücken", goalName: "Rumpf und unteren Rücken kräftigen" },
+        // Chronischer Rückenschmerz mit psychosozialen Belastungsfaktoren:
+        // Bewegung ist hier ausdrücklich Teil der Empfehlung (siehe advice-
+        // Text oben), kein Notfall und keine strukturelle Gefahr - daher
+        // bewusst MIT Übung, nicht ohne.
+        "chronisch-gelbe-flaggen": { exerciseId: "katze-kuh", areaName: "Rücken", goalName: "Beweglichkeit im Rücken zurückgewinnen", doctorAlso: true }
     },
 
     // Mittlerer Rücken nutzt dieselben Rücken-Übungen wie LWS (eigene
@@ -10481,11 +10386,18 @@ const REGION_EXERCISE_MAP = {
     bws: {
         "rippenblockade-interkostal": { exerciseId: "katze-kuh", areaName: "Rücken", goalName: "Beweglichkeit im Rücken zurückgewinnen" },
         "segmentale-blockade": { exerciseId: "katze-kuh", areaName: "Rücken", goalName: "Beweglichkeit im Rücken zurückgewinnen" },
-        "chronisch-haltung": { exerciseId: "katze-kuh", areaName: "Rücken", goalName: "Nach langem Sitzen lockern" }
+        "chronisch-haltung": { exerciseId: "katze-kuh", areaName: "Rücken", goalName: "Nach langem Sitzen lockern" },
+        // Entzündlich-rheumatisches Muster (z. B. Morbus Bechterew):
+        // laut advice-Text ausdrücklich "Bleib in Bewegung" - Ruhigstellung
+        // ist hier contraindiziert, eine sanfte Mobilisation nicht.
+        "entzuendlich-verdacht": { exerciseId: "katze-kuh", areaName: "Rücken", goalName: "Beweglichkeit im Rücken zurückgewinnen", doctorAlso: true }
     },
 
     hws: {
         "radikulaer-ohne-ausfall": { exerciseId: "nackendehnung", areaName: "Nacken & Halswirbelsäule", goalName: "Verspannungen im Nacken lösen" },
+        // Schleudertrauma: frühe, sanfte Bewegung gilt als günstiger als
+        // Ruhigstellung/Halskrause - daher bewusst mit (sehr sanfter) Übung.
+        "schleudertrauma": { exerciseId: "kinngleiten", areaName: "Nacken & Halswirbelsäule", goalName: "Verspannungen im Nacken lösen", doctorAlso: true },
         "zervikogener-schwindel": { exerciseId: "kinngleiten", areaName: "Nacken & Halswirbelsäule", goalName: "Verspannungen im Nacken lösen" },
         "zervikogener-kopfschmerz": { exerciseId: "nackendehnung", areaName: "Nacken & Halswirbelsäule", goalName: "Kopfschmerzen aus dem Nacken lindern" },
         "segmentale-blockade-hws": { exerciseId: "kinngleiten", areaName: "Nacken & Halswirbelsäule", goalName: "Haltung am Schreibtisch verbessern" },
@@ -10527,7 +10439,12 @@ const REGION_EXERCISE_MAP = {
 
     kopf: {
         "spannungskopfschmerz": { exerciseId: "nackendehnung", areaName: "Nacken & Halswirbelsäule", goalName: "Verspannungen im Nacken lösen" },
-        "zervikogener-kopfschmerz-primaer": { exerciseId: "nackendehnung", areaName: "Nacken & Halswirbelsäule", goalName: "Kopfschmerzen aus dem Nacken lindern" }
+        "zervikogener-kopfschmerz-primaer": { exerciseId: "nackendehnung", areaName: "Nacken & Halswirbelsäule", goalName: "Kopfschmerzen aus dem Nacken lindern" },
+        // Migräne ist keine Nackenerkrankung und die Übung behandelt sie
+        // nicht - viele Betroffene haben aber zusätzlich Nackenverspannungen,
+        // die die Beschwerden verstärken können. Daher als ergänzende
+        // Selbsthilfe sinnvoll, Neurologie bleibt trotzdem die Empfehlung.
+        "migraene-verdacht": { exerciseId: "nackendehnung", areaName: "Nacken & Halswirbelsäule", goalName: "Verspannungen im Nacken lösen", doctorAlso: true }
     },
 
     // Vordere Brust nutzt ebenfalls die Rücken-/Brustkorb-Mobilisation
@@ -10545,6 +10462,8 @@ function renderResultExercises() {
 
     const box = document.getElementById("resultExercises");
     const list = document.getElementById("resultExercisesList");
+    const title = document.getElementById("resultExercisesTitle");
+    const note = document.getElementById("resultExercisesDoctorNote");
 
     list.innerHTML = "";
 
@@ -10558,6 +10477,26 @@ function renderResultExercises() {
     if (!mapping || !EXERCISE_LIBRARY[mapping.exerciseId]) {
         box.classList.add("hidden");
         return;
+    }
+
+    // Wird gerade zusätzlich ein Arztbesuch empfohlen (Rotflag-Box
+    // sichtbar ODER die Übungs-Zuordnung ist explizit als "trotzdem
+    // zum Arzt" markiert, z. B. bei chronischen/entzündlichen Mustern,
+    // deren Arztempfehlung nur im advice-Text steht)? Dann die Übung
+    // klar als Ergänzung einordnen, nicht als Ersatz für die ärztliche
+    // Abklärung.
+    const redflagBox = document.getElementById("resultRedflag");
+    const doctorRecommended = mapping.doctorAlso === true ||
+        (redflagBox && !redflagBox.classList.contains("hidden"));
+
+    if (title) {
+        title.innerText = doctorRecommended
+            ? "Übung für die Zwischenzeit"
+            : "Passende Übung";
+    }
+
+    if (note) {
+        note.classList.toggle("hidden", !doctorRecommended);
     }
 
     const ex = EXERCISE_LIBRARY[mapping.exerciseId];
@@ -10724,11 +10663,6 @@ function setView(view) {
 
     });
 
-    if (zoomedArea) {
-        applyZoomTransform();
-        renderHotspots();
-    }
-
 }
 
 function showFront() {
@@ -10751,8 +10685,6 @@ function showBack() {
 
 function goBack() {
 
-    unzoomBody();
-
     showScreen("startScreen");
 
 }
@@ -10774,8 +10706,6 @@ function restart() {
     questionAnswers = {};
 
     questionHistory = [];
-
-    unzoomBody();
 
     showFront();
 
@@ -12386,90 +12316,108 @@ function openDiaryEntries() {
 
     const bookCol = document.querySelector("#diaryScreen .diary-book-col");
     const bookVisual = bookCol && bookCol.querySelector(".diary-book-visual");
-    const overlay = document.getElementById("diaryFlyOverlay");
 
-    if (prefersReducedMotion || !bookCol || !bookVisual || !overlay) {
+    if (prefersReducedMotion || !bookCol || !bookVisual) {
         enterEntries();
         return;
     }
 
-    // Statt den echten Bildschirminhalt zu vergrößern (und dadurch
-    // unscharf werden zu lassen), "fliegt" ein eigenes, blickdichtes
-    // Papier-Overlay von genau der Position/Größe des Buchs auf volle
-    // Bildschirmgröße - eine reine Formänderung ohne jede Unschärfe.
-    // Start: Overlay deckungsgleich mit dem Buch-Rechteck.
+    // Echter, durchgehender Zoom INS Buch hinein, ohne Schnitt: statt
+    // eines leeren Platzhalter-Rechtecks "fliegt" ein KLON des
+    // tatsächlichen Buchs (inkl. Einband-Grafik) von seiner echten
+    // Position auf dem Formular-Screen bis zu der ungefähren Stelle,
+    // an der gleich die aufgeschlagene Seite auf dem Schreibtisch
+    // erscheinen wird - nicht auf volle Bildschirmgröße. Dadurch sieht
+    // man während der ganzen Bewegung durchgehend dasselbe Buch
+    // größer werden, statt eines Sprungs auf eine leere Fläche.
     const rect = bookVisual.getBoundingClientRect();
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const scaleX = rect.width / vw;
-    const scaleY = rect.height / vh;
+
+    // Zielgröße/-position entspricht ungefähr der aufgeschlagenen
+    // Tagebuchseite (.diary-page) auf dem kommenden Schreibtisch-
+    // Screen - siehe dessen CSS (max-width 900px, zentriert, Screen-
+    // Padding oben ca. 54px).
+    const targetWidth = Math.min(900, vw - 64);
+    const targetHeight = Math.min(vh * 0.64, 620);
+    const targetLeft = (vw - targetWidth) / 2;
+    const targetTop = Math.max(90, (vh - targetHeight) / 2 - 10);
+
+    const scaleX = targetWidth / rect.width;
+    const scaleY = targetHeight / rect.height;
+    const translateX = targetLeft - rect.left;
+    const translateY = targetTop - rect.top;
 
     document.body.classList.add("diary-zoom-active");
 
-    // Der Buchdeckel klappt WIRKLICH weit auf (siehe CSS
-    // @keyframes diary-cover-open, bis -146deg) - dadurch sieht man
-    // für einen Moment direkt auf die aufgeschlagene Seite, bevor man
-    // "hineinfliegt".
-    bookCol.classList.add("diary-book-opening");
+    const clone = bookVisual.cloneNode(true);
 
-    overlay.style.transition = "none";
-    overlay.style.borderRadius = "14px";
-    overlay.style.transform =
-        "translate(" + rect.left + "px, " + rect.top + "px) " +
-        "scale(" + scaleX + ", " + scaleY + ")";
-    overlay.classList.add("diary-fly-visible");
+    clone.classList.add("diary-zoom-clone");
+    clone.style.position = "fixed";
+    clone.style.left = rect.left + "px";
+    clone.style.top = rect.top + "px";
+    clone.style.width = rect.width + "px";
+    clone.style.height = rect.height + "px";
+    clone.style.maxWidth = "none";
+    clone.style.margin = "0";
+    clone.style.zIndex = "9999";
+    clone.style.transition = "none";
+    clone.style.transformOrigin = "top left";
+    clone.style.transform = "translate(0px, 0px) scale(1, 1)";
+
+    document.body.appendChild(clone);
+
+    // Der Buchdeckel des KLONS klappt WIRKLICH weit auf (siehe CSS
+    // @keyframes diary-cover-open, bis -146deg), während der Klon
+    // gleichzeitig wächst - dadurch öffnet sich das Buch sichtbar
+    // während des Hineinzoomens, statt vorher oder danach.
+    clone.classList.add("diary-book-opening");
 
     // Erzwungener Reflow, damit der obige Ausgangszustand (ohne
     // Transition) sicher angewendet ist, bevor im nächsten Frame die
-    // eigentliche Flug-Animation zum Zielzustand gestartet wird -
+    // eigentliche Zoom-Animation zum Zielzustand gestartet wird -
     // sonst könnte der Browser beide Zustände zusammenfassen und die
     // Animation würde nie sichtbar ablaufen (abbrechen, bevor sie
     // beginnt).
-    overlay.getBoundingClientRect();
+    clone.getBoundingClientRect();
 
     requestAnimationFrame(function () {
         requestAnimationFrame(function () {
-            overlay.style.transition =
-                "transform 0.56s cubic-bezier(0.62, 0, 0.18, 1), " +
-                "border-radius 0.56s ease";
-            overlay.style.transform = "translate(0px, 0px) scale(1, 1)";
-            overlay.style.borderRadius = "0px";
+            clone.style.transition =
+                "transform 0.62s cubic-bezier(0.62, 0, 0.18, 1)";
+            clone.style.transform =
+                "translate(" + translateX + "px, " + translateY + "px) " +
+                "scale(" + scaleX + ", " + scaleY + ")";
         });
     });
 
-    overlay.addEventListener("transitionend", function handleFlyIn(e) {
+    clone.addEventListener("transitionend", function handleZoomIn(e) {
 
-        if (e.target !== overlay || e.propertyName !== "transform") {
+        if (e.target !== clone || e.propertyName !== "transform") {
             return;
         }
 
-        overlay.removeEventListener("transitionend", handleFlyIn);
-        bookCol.classList.remove("diary-book-opening");
+        clone.removeEventListener("transitionend", handleZoomIn);
 
-        // Das Overlay bedeckt jetzt den GESAMTEN Bildschirm (reine
-        // Papierfläche) - der eigentliche Screen-Wechsel passiert
-        // dahinter unsichtbar, bevor das Overlay wieder ausblendet.
+        // Der Klon ist jetzt (ungefähr) an Ort und Stelle der echten
+        // Seite angekommen, Deckel komplett offen. Jetzt den
+        // eigentlichen Screen-Wechsel anstoßen - der neue Screen
+        // blendet über die normale ".screen.enter"-Animation sanft
+        // ein, während der Klon im selben Moment ausblendet. Das
+        // ergibt eine weiche Überblendung statt eines harten Schnitts.
         enterEntries();
 
-        requestAnimationFrame(function () {
-            overlay.style.transition = "opacity 0.26s ease-out";
-            overlay.style.opacity = "0";
+        clone.style.transition = "opacity 0.28s ease-out";
+        clone.style.opacity = "0";
 
-            overlay.addEventListener("transitionend", function handleFade(e2) {
+        clone.addEventListener("transitionend", function handleFade(e2) {
 
-                if (e2.target !== overlay || e2.propertyName !== "opacity") {
-                    return;
-                }
+            if (e2.target !== clone || e2.propertyName !== "opacity") {
+                return;
+            }
 
-                overlay.removeEventListener("transitionend", handleFade);
-                overlay.classList.remove("diary-fly-visible");
-                overlay.style.transition = "";
-                overlay.style.transform = "";
-                overlay.style.opacity = "";
-                overlay.style.borderRadius = "";
-                document.body.classList.remove("diary-zoom-active");
-
-            });
+            clone.remove();
+            document.body.classList.remove("diary-zoom-active");
 
         });
 
