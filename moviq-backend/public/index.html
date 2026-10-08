@@ -1803,20 +1803,31 @@ header {
     100% { transform: rotateY(-146deg); }
 }
 
-/* Übergang beim Aufschlagen des Buchs: ein ECHTER, durchgehender
-   Zoom OHNE Schnitt. openDiaryEntries() klont das tatsächliche
-   Buch-Element (.diary-book-visual) und lässt genau diesen Klon -
-   nicht ein leeres Platzhalter-Rechteck - sichtbar größer werden,
-   während sich sein Deckel gleichzeitig öffnet. Der Klon wächst nur
-   bis zur ungefähren Position/Größe, an der gleich die echte
-   Tagebuchseite auf dem Schreibtisch erscheinen wird (nicht auf
-   volle Bildschirmgröße) - dadurch sitzt man am Ende bereits
-   "richtig" vor dem Schreibtisch. Sobald der Klon dort angekommen
-   ist, blendet der neue Bildschirm über die normale
-   ".screen.enter"-Animation sanft ein, während der Klon gleichzeitig
-   ausblendet - eine weiche Überblendung statt eines harten Schnitts.
-   Die CSS-Regeln hier liefern nur den Ausgangszustand, den Rest
-   steuert openDiaryEntries() per JS (dynamische Start-/Zielwerte). */
+/* Übergang beim Aufschlagen des Buchs: ein ECHTER, durchgehender Zoom
+   OHNE Schnitt - und zwar so, dass man selbst INS Buch hineinfliegt,
+   nicht so, dass das Buch auf einen zufliegt. openDiaryEntries()
+   baut dafür drei übereinanderliegende Klone, die alle vom selben
+   Brennpunkt (der echten Position des Buchs) aus gemeinsam wachsen:
+   1. Ein Klon des GESAMTEN bisherigen Formular-Screens wächst stark
+      über den Bildschirm hinaus und verblasst dabei - dadurch zieht
+      alles DRUMHERUM scheinbar an einem vorbei, wie beim Vorwärts-
+      fliegen auf einen Punkt zu.
+   2. Ein Klon des geschlossenen Buch-Einbands wächst an genau dieser
+      Stelle und klappt dabei gleichzeitig auf.
+   3. Ein Klon der ECHTEN Zielseite (.diary-page, bereits mit den
+      geladenen Einträgen gefüllt) startet unsichtbar/klein exakt an
+      der Buch-Position und wächst GENAU in seine wirkliche End-
+      position/-größe auf dem Schreibtisch hinein, während er
+      gleichzeitig einblendet (Überblendung mit dem Einband-Klon).
+   Weil Klon 3 wortwörtlich dieselbe Seite mit denselben Inhalten ist,
+   die am Ende auf dem Schreibtisch liegt, ist das Buch während des
+   gesamten Übergangs durchgehend dasselbe Objekt - kein Wechsel auf
+   ein anders aussehendes Platzhalter-Element. Sobald Klon 3 an Ort
+   und Stelle angekommen ist, blendet der neue Bildschirm ein,
+   während alle drei Klone gleichzeitig ausblenden und entfernt
+   werden. Die CSS-Regeln hier liefern nur Hilfsklassen, den Rest
+   (Rechtecke, Brennpunkt, Transformationen) berechnet
+   openDiaryEntries() per JS. */
 body.diary-zoom-active {
     overflow: hidden;
 }
@@ -1824,6 +1835,15 @@ body.diary-zoom-active {
 .diary-zoom-clone {
     pointer-events: none;
     will-change: transform, opacity;
+}
+
+/* Der Klon des gesamten alten Screens (siehe openDiaryEntries(), Klon
+   1) wächst weit über die Bildschirmgrenzen hinaus - ohne eigenes
+   Overflow-Clipping würde das nichts an der Optik ändern, da
+   body.diary-zoom-active bereits das Abschneiden an den echten
+   Bildschirmrändern übernimmt. */
+.diary-zoom-stage-clone {
+    overflow: hidden;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -12304,119 +12324,211 @@ async function updateDiaryBookTeaser() {
 
 }
 
-function openDiaryEntries() {
+async function openDiaryEntries() {
 
     function enterEntries() {
         showScreen("diaryEntriesScreen");
-        renderDiaryList();
+    }
+
+    // Klonte Elemente (siehe unten) dürfen keine IDs doppelt ins DOM
+    // bringen - sonst würde z. B. #diaryList oder #diaryDate zweimal
+    // existieren, solange der echte Screen noch im DOM ist.
+    function stripIds(el) {
+        el.removeAttribute("id");
+        el.querySelectorAll("[id]").forEach(function(node) {
+            node.removeAttribute("id");
+        });
     }
 
     const prefersReducedMotion = window.matchMedia &&
         window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    const bookCol = document.querySelector("#diaryScreen .diary-book-col");
-    const bookVisual = bookCol && bookCol.querySelector(".diary-book-visual");
+    const diaryScreenEl = document.getElementById("diaryScreen");
+    const bookVisual = document.querySelector("#diaryScreen .diary-book-col .diary-book-visual");
+    const entriesScreenEl = document.getElementById("diaryEntriesScreen");
+    const pageEl = entriesScreenEl && entriesScreenEl.querySelector(".diary-page");
 
-    if (prefersReducedMotion || !bookCol || !bookVisual) {
+    if (prefersReducedMotion || !diaryScreenEl || !bookVisual || !entriesScreenEl || !pageEl) {
+        await renderDiaryList();
         enterEntries();
         return;
     }
 
-    // Echter, durchgehender Zoom INS Buch hinein, ohne Schnitt: statt
-    // eines leeren Platzhalter-Rechtecks "fliegt" ein KLON des
-    // tatsächlichen Buchs (inkl. Einband-Grafik) von seiner echten
-    // Position auf dem Formular-Screen bis zu der ungefähren Stelle,
-    // an der gleich die aufgeschlagene Seite auf dem Schreibtisch
-    // erscheinen wird - nicht auf volle Bildschirmgröße. Dadurch sieht
-    // man während der ganzen Bewegung durchgehend dasselbe Buch
-    // größer werden, statt eines Sprungs auf eine leere Fläche.
-    const rect = bookVisual.getBoundingClientRect();
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
+    // Den Inhalt der Zielseite VORAB laden, damit der Seiten-Klon
+    // (Klon 3 unten) wortwörtlich dieselben Einträge zeigt wie die
+    // Seite, die am Ende tatsächlich auf dem Schreibtisch liegt.
+    await renderDiaryList();
 
-    // Zielgröße/-position entspricht ungefähr der aufgeschlagenen
-    // Tagebuchseite (.diary-page) auf dem kommenden Schreibtisch-
-    // Screen - siehe dessen CSS (max-width 900px, zentriert, Screen-
-    // Padding oben ca. 54px).
-    const targetWidth = Math.min(900, vw - 64);
-    const targetHeight = Math.min(vh * 0.64, 620);
-    const targetLeft = (vw - targetWidth) / 2;
-    const targetTop = Math.max(90, (vh - targetHeight) / 2 - 10);
+    // Das echte Ziel-Rechteck von .diary-page ermitteln: dafür den
+    // Zielscreen kurz unsichtbar (aber im Layout) einblenden, messen,
+    // und sofort wieder verstecken - ohne das für den Betrachter
+    // sichtbar zu machen.
+    entriesScreenEl.classList.remove("hidden");
+    entriesScreenEl.style.visibility = "hidden";
+    const targetRect = pageEl.getBoundingClientRect();
+    entriesScreenEl.classList.add("hidden");
+    entriesScreenEl.style.visibility = "";
 
-    const scaleX = targetWidth / rect.width;
-    const scaleY = targetHeight / rect.height;
-    const translateX = targetLeft - rect.left;
-    const translateY = targetTop - rect.top;
+    const bookRect = bookVisual.getBoundingClientRect();
+    const screenRect = diaryScreenEl.getBoundingClientRect();
+
+    // Brennpunkt für Schicht 1: die Mitte des Buchs, als Prozentwert
+    // innerhalb des geklonten Screens - darauf wächst gleich alles
+    // andere zu, damit es wirkt, als würde man selbst darauf
+    // zufliegen.
+    const bookCenterX = bookRect.left + bookRect.width / 2;
+    const bookCenterY = bookRect.top + bookRect.height / 2;
+    const originX = ((bookCenterX - screenRect.left) / screenRect.width) * 100;
+    const originY = ((bookCenterY - screenRect.top) / screenRect.height) * 100;
 
     document.body.classList.add("diary-zoom-active");
+    diaryScreenEl.style.visibility = "hidden";
 
-    const clone = bookVisual.cloneNode(true);
+    const DURATION = 0.62;
+    const EASE = "cubic-bezier(0.62, 0, 0.18, 1)";
 
-    clone.classList.add("diary-zoom-clone");
-    clone.style.position = "fixed";
-    clone.style.left = rect.left + "px";
-    clone.style.top = rect.top + "px";
-    clone.style.width = rect.width + "px";
-    clone.style.height = rect.height + "px";
-    clone.style.maxWidth = "none";
-    clone.style.margin = "0";
-    clone.style.zIndex = "9999";
-    clone.style.transition = "none";
-    clone.style.transformOrigin = "top left";
-    clone.style.transform = "translate(0px, 0px) scale(1, 1)";
+    // Schicht 1: Klon des GESAMTEN bisherigen Screens - wächst, vom
+    // Buch als Brennpunkt aus, weit über den Bildschirm hinaus und
+    // verblasst dabei. Dadurch zieht alles drumherum scheinbar an
+    // einem vorbei, statt dass nur das Buch isoliert näher kommt.
+    const stageClone = diaryScreenEl.cloneNode(true);
+    stripIds(stageClone);
+    stageClone.classList.add("diary-zoom-clone", "diary-zoom-stage-clone");
+    stageClone.style.position = "fixed";
+    stageClone.style.left = screenRect.left + "px";
+    stageClone.style.top = screenRect.top + "px";
+    stageClone.style.width = screenRect.width + "px";
+    stageClone.style.height = screenRect.height + "px";
+    stageClone.style.margin = "0";
+    stageClone.style.maxWidth = "none";
+    stageClone.style.zIndex = "9997";
+    stageClone.style.transformOrigin = originX + "% " + originY + "%";
+    stageClone.style.transform = "scale(1)";
+    stageClone.style.transition = "none";
+    document.body.appendChild(stageClone);
 
-    document.body.appendChild(clone);
+    // Schicht 2: Klon des geschlossenen Buch-Einbands, an der echten
+    // Stelle auf dem Formular-Screen - wächst und klappt gleichzeitig
+    // auf.
+    const bookClone = bookVisual.cloneNode(true);
+    stripIds(bookClone);
+    bookClone.classList.add("diary-zoom-clone");
+    bookClone.style.position = "fixed";
+    bookClone.style.left = bookRect.left + "px";
+    bookClone.style.top = bookRect.top + "px";
+    bookClone.style.width = bookRect.width + "px";
+    bookClone.style.height = bookRect.height + "px";
+    bookClone.style.maxWidth = "none";
+    bookClone.style.margin = "0";
+    bookClone.style.zIndex = "9998";
+    bookClone.style.transformOrigin = "top left";
+    bookClone.style.transform = "translate(0px, 0px) scale(1, 1)";
+    bookClone.style.transition = "none";
+    document.body.appendChild(bookClone);
+    bookClone.classList.add("diary-book-opening");
 
-    // Der Buchdeckel des KLONS klappt WIRKLICH weit auf (siehe CSS
-    // @keyframes diary-cover-open, bis -146deg), während der Klon
-    // gleichzeitig wächst - dadurch öffnet sich das Buch sichtbar
-    // während des Hineinzoomens, statt vorher oder danach.
-    clone.classList.add("diary-book-opening");
+    // Schicht 3: Klon der ECHTEN Zielseite (.diary-page, bereits mit
+    // den geladenen Einträgen gefüllt) - startet unsichtbar/klein
+    // exakt an der Buch-Position und wächst GENAU in seine wirkliche
+    // Endposition/-größe hinein, während er gleichzeitig einblendet.
+    // Weil das wortwörtlich dieselbe Seite mit denselben Inhalten ist,
+    // die am Ende dort liegt, bleibt es während des ganzen Übergangs
+    // durchgehend dasselbe Buch.
+    const pageClone = pageEl.cloneNode(true);
+    stripIds(pageClone);
+    pageClone.classList.add("diary-zoom-clone");
+    pageClone.style.position = "fixed";
+    pageClone.style.left = targetRect.left + "px";
+    pageClone.style.top = targetRect.top + "px";
+    pageClone.style.width = targetRect.width + "px";
+    pageClone.style.height = targetRect.height + "px";
+    pageClone.style.maxWidth = "none";
+    pageClone.style.margin = "0";
+    pageClone.style.zIndex = "9999";
+    pageClone.style.transformOrigin = "top left";
 
-    // Erzwungener Reflow, damit der obige Ausgangszustand (ohne
-    // Transition) sicher angewendet ist, bevor im nächsten Frame die
-    // eigentliche Zoom-Animation zum Zielzustand gestartet wird -
-    // sonst könnte der Browser beide Zustände zusammenfassen und die
-    // Animation würde nie sichtbar ablaufen (abbrechen, bevor sie
-    // beginnt).
-    clone.getBoundingClientRect();
+    const startScaleX = bookRect.width / targetRect.width;
+    const startScaleY = bookRect.height / targetRect.height;
+    const startTranslateX = bookRect.left - targetRect.left;
+    const startTranslateY = bookRect.top - targetRect.top;
+
+    pageClone.style.transform =
+        "translate(" + startTranslateX + "px, " + startTranslateY + "px) " +
+        "scale(" + startScaleX + ", " + startScaleY + ")";
+    pageClone.style.opacity = "0";
+    pageClone.style.transition = "none";
+    document.body.appendChild(pageClone);
+
+    // Erzwungener Reflow, damit die obigen Ausgangszustände (ohne
+    // Transition) sicher angewendet sind, bevor im nächsten Frame die
+    // eigentlichen Ziel-Transformationen gesetzt werden - sonst
+    // könnte der Browser Start- und Endzustand zusammenfassen und die
+    // Animationen würden nie sichtbar ablaufen.
+    stageClone.getBoundingClientRect();
+    bookClone.getBoundingClientRect();
+    pageClone.getBoundingClientRect();
+
+    const bookScaleX = targetRect.width / bookRect.width;
+    const bookScaleY = targetRect.height / bookRect.height;
+    const bookTranslateX = targetRect.left - bookRect.left;
+    const bookTranslateY = targetRect.top - bookRect.top;
 
     requestAnimationFrame(function () {
         requestAnimationFrame(function () {
-            clone.style.transition =
-                "transform 0.62s cubic-bezier(0.62, 0, 0.18, 1)";
-            clone.style.transform =
-                "translate(" + translateX + "px, " + translateY + "px) " +
-                "scale(" + scaleX + ", " + scaleY + ")";
+
+            stageClone.style.transition =
+                "transform " + DURATION + "s " + EASE + ", " +
+                "opacity " + (DURATION * 0.75) + "s ease-in";
+            stageClone.style.transform = "scale(2.4)";
+            stageClone.style.opacity = "0";
+
+            bookClone.style.transition =
+                "transform " + DURATION + "s " + EASE + ", " +
+                "opacity " + (DURATION * 0.55) + "s ease-in " + (DURATION * 0.25) + "s";
+            bookClone.style.transform =
+                "translate(" + bookTranslateX + "px, " + bookTranslateY + "px) " +
+                "scale(" + bookScaleX + ", " + bookScaleY + ")";
+            bookClone.style.opacity = "0";
+
+            pageClone.style.transition =
+                "transform " + DURATION + "s " + EASE + ", " +
+                "opacity " + (DURATION * 0.55) + "s ease-out " + (DURATION * 0.3) + "s";
+            pageClone.style.transform = "translate(0px, 0px) scale(1, 1)";
+            pageClone.style.opacity = "1";
+
         });
     });
 
-    clone.addEventListener("transitionend", function handleZoomIn(e) {
+    pageClone.addEventListener("transitionend", function handleZoomIn(e) {
 
-        if (e.target !== clone || e.propertyName !== "transform") {
+        if (e.target !== pageClone || e.propertyName !== "transform") {
             return;
         }
 
-        clone.removeEventListener("transitionend", handleZoomIn);
+        pageClone.removeEventListener("transitionend", handleZoomIn);
 
-        // Der Klon ist jetzt (ungefähr) an Ort und Stelle der echten
-        // Seite angekommen, Deckel komplett offen. Jetzt den
-        // eigentlichen Screen-Wechsel anstoßen - der neue Screen
-        // blendet über die normale ".screen.enter"-Animation sanft
-        // ein, während der Klon im selben Moment ausblendet. Das
-        // ergibt eine weiche Überblendung statt eines harten Schnitts.
+        // Der Seiten-Klon ist jetzt exakt an der echten Stelle
+        // angekommen. Jetzt den eigentlichen Screen-Wechsel anstoßen -
+        // da die echte Seite an derselben Stelle, in derselben
+        // Größe, mit denselben Inhalten liegt, ist der Übergang
+        // nahtlos.
         enterEntries();
+        diaryScreenEl.style.visibility = "";
 
-        clone.style.transition = "opacity 0.28s ease-out";
-        clone.style.opacity = "0";
+        [stageClone, bookClone, pageClone].forEach(function(el) {
+            el.style.transition = "opacity 0.22s ease-out";
+            el.style.opacity = "0";
+        });
 
-        clone.addEventListener("transitionend", function handleFade(e2) {
+        pageClone.addEventListener("transitionend", function handleFade(e2) {
 
-            if (e2.target !== clone || e2.propertyName !== "opacity") {
+            if (e2.target !== pageClone || e2.propertyName !== "opacity") {
                 return;
             }
 
-            clone.remove();
+            stageClone.remove();
+            bookClone.remove();
+            pageClone.remove();
             document.body.classList.remove("diary-zoom-active");
 
         });
