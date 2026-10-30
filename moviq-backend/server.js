@@ -23,38 +23,42 @@ const diaryRoutes = require("./routes/diary");
 const wheelRoutes = require("./routes/wheel");
 const profileRoutes = require("./routes/profile");
 
-// 3D-Anatomiemodell (public/anatomie.glb). Wird einmal gzip-komprimiert
-// im Speicher gehalten und mit Cache-Header ausgeliefert.
-const MODEL_FILE = path.join(__dirname, "public", "anatomie.glb");
-let modelGz = null;
+// 3D-Anatomie: Modell (anatomie.glb) und 3D-Bibliothek (three-bundle.js)
+// liegen in public/. Beide werden einmal gzip-komprimiert im Speicher
+// gehalten und mit Cache-Header ausgeliefert.
+const ASSETS = {
+    "/anatomie.glb": { file: "anatomie.glb", type: "model/gltf-binary" },
+    "/three-bundle.js": { file: "three-bundle.js", type: "text/javascript; charset=utf-8" }
+};
+const assetCache = {};
 
-function serveModel(req, res) {
+function serveAsset(req, res, pathname) {
 
-    fs.readFile(MODEL_FILE, (err, raw) => {
+    const asset = ASSETS[pathname];
+
+    fs.readFile(path.join(__dirname, "public", asset.file), (err, raw) => {
 
         if (err) {
-            sendJson(res, 404, { error: "Modell nicht gefunden." });
+            sendJson(res, 404, { error: "Datei nicht gefunden." });
             return;
         }
 
         const headers = {
-            "Content-Type": "model/gltf-binary",
+            "Content-Type": asset.type,
             "Cache-Control": "public, max-age=86400"
         };
 
-        const acceptsGzip = /\bgzip\b/.test(req.headers["accept-encoding"] || "");
+        let body = raw;
 
-        if (acceptsGzip) {
-            modelGz = modelGz || zlib.gzipSync(raw, { level: 9 });
+        if (/\bgzip\b/.test(req.headers["accept-encoding"] || "")) {
+            assetCache[pathname] = assetCache[pathname] || zlib.gzipSync(raw, { level: 9 });
+            body = assetCache[pathname];
             headers["Content-Encoding"] = "gzip";
-            headers["Content-Length"] = modelGz.length;
-            res.writeHead(200, headers);
-            res.end(req.method === "HEAD" ? undefined : modelGz);
-        } else {
-            headers["Content-Length"] = raw.length;
-            res.writeHead(200, headers);
-            res.end(req.method === "HEAD" ? undefined : raw);
         }
+
+        headers["Content-Length"] = body.length;
+        res.writeHead(200, headers);
+        res.end(req.method === "HEAD" ? undefined : body);
     });
 }
 
@@ -100,8 +104,8 @@ const server = http.createServer(async (req, res) => {
 
     }
 
-    if (pathname === "/anatomie.glb" && (req.method === "GET" || req.method === "HEAD")) {
-        return serveModel(req, res);
+    if (ASSETS[pathname] && (req.method === "GET" || req.method === "HEAD")) {
+        return serveAsset(req, res, pathname);
     }
 
     if (serveStatic(req, res, pathname)) return;
