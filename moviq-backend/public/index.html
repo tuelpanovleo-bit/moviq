@@ -5087,15 +5087,6 @@ body.performance-mode .anat-card { background: rgba(38, 38, 46, 0.92); }
 
     <div class="figure-wrap" id="analysisFigure">
 
-        <div class="mode-toggle" role="group" aria-label="Darstellung">
-            <button class="mode-btn active" data-mode="2d"
-                    aria-pressed="true"
-                    onclick="setAnalysisMode('2d')">Übersicht</button>
-            <button class="mode-btn" data-mode="3d"
-                    aria-pressed="false"
-                    onclick="setAnalysisMode('3d')">3D-Anatomie</button>
-        </div>
-
         <div class="view-toggle">
             <button class="view-btn active" data-view="front"
                     aria-pressed="true"
@@ -15732,7 +15723,7 @@ const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-mo
 
 let viewer = null;       // gesetzt, sobald geladen
 let loadState = "idle";  // idle | loading | ready | error
-let wantActive = false;
+let wantActive = true;
 
 function showMsg(text, pulse) {
     const m = $("anatMsg");
@@ -15770,6 +15761,7 @@ window.setAnalysisMode = function (mode) {
 /* Beim Verlassen des Startscreens Render-Schleife pausieren */
 new MutationObserver(function () {
     const visible = !$("startScreen").classList.contains("hidden");
+    if (visible && loadState === "idle") { initViewer(); }
     if (viewer) { viewer.setActive(wantActive && visible); }
 }).observe($("startScreen"), { attributes: true, attributeFilter: ["class"] });
 
@@ -16307,6 +16299,10 @@ async function buildViewer(THREE, OrbitControls, GLTFLoader, RoomEnvironment) {
         }
     };
 }
+
+/* Das 3D-Modell ist die einzige Darstellung der Körperauswahl */
+$("analysisFigure").classList.add("mode-3d");
+if (!$("startScreen").classList.contains("hidden")) { initViewer(); }
 
 </script>
 </body>
