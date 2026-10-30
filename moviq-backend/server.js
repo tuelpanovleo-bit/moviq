@@ -8,6 +8,9 @@
 // Start:  node server.js   (oder: npm start)
 
 const http = require("http");
+const fs = require("fs");
+const path = require("path");
+const zlib = require("zlib");
 const { loadEnv } = require("./lib/env");
 
 loadEnv();
@@ -20,6 +23,41 @@ const diaryRoutes = require("./routes/diary");
 const wheelRoutes = require("./routes/wheel");
 const profileRoutes = require("./routes/profile");
 
+// 3D-Anatomiemodell (public/anatomie.glb). Wird einmal gzip-komprimiert
+// im Speicher gehalten und mit Cache-Header ausgeliefert.
+const MODEL_FILE = path.join(__dirname, "public", "anatomie.glb");
+let modelGz = null;
+
+function serveModel(req, res) {
+
+    fs.readFile(MODEL_FILE, (err, raw) => {
+
+        if (err) {
+            sendJson(res, 404, { error: "Modell nicht gefunden." });
+            return;
+        }
+
+        const headers = {
+            "Content-Type": "model/gltf-binary",
+            "Cache-Control": "public, max-age=86400"
+        };
+
+        const acceptsGzip = /\bgzip\b/.test(req.headers["accept-encoding"] || "");
+
+        if (acceptsGzip) {
+            modelGz = modelGz || zlib.gzipSync(raw, { level: 9 });
+            headers["Content-Encoding"] = "gzip";
+            headers["Content-Length"] = modelGz.length;
+            res.writeHead(200, headers);
+            res.end(req.method === "HEAD" ? undefined : modelGz);
+        } else {
+            headers["Content-Length"] = raw.length;
+            res.writeHead(200, headers);
+            res.end(req.method === "HEAD" ? undefined : raw);
+        }
+    });
+}
+
 const router = new Router();
 
 authRoutes.register(router);
@@ -29,38 +67,6 @@ profileRoutes.register(router);
 
 router.get("/api/health", async (req, res) => {
     sendJson(res, 200, { status: "ok" });
-});
-
-// Temporäre Diagnose-Route, um zu sehen, welche Dateien auf dem Server
-// wirklich vorhanden sind (hilft beim Einrichten des Deployments; kann
-// später wieder entfernt werden).
-router.get("/api/debug", async (req, res) => {
-
-    const fs = require("fs");
-    const path = require("path");
-
-    const backendDir = __dirname;
-    let rootListing;
-    let publicListing;
-
-    try {
-        rootListing = fs.readdirSync(backendDir);
-    } catch (e) {
-        rootListing = "FEHLER: " + e.message;
-    }
-
-    try {
-        publicListing = fs.readdirSync(path.join(backendDir, "public"));
-    } catch (e) {
-        publicListing = "FEHLER: " + e.message;
-    }
-
-    sendJson(res, 200, {
-        backendDir,
-        rootListing,
-        publicListing
-    });
-
 });
 
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
@@ -92,6 +98,10 @@ const server = http.createServer(async (req, res) => {
 
         return;
 
+    }
+
+    if (pathname === "/anatomie.glb" && (req.method === "GET" || req.method === "HEAD")) {
+        return serveModel(req, res);
     }
 
     if (serveStatic(req, res, pathname)) return;
