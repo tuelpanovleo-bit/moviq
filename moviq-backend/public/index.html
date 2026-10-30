@@ -2,6 +2,13 @@
 <html lang="de">
 
 <head>
+<script type="importmap">
+{ "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -3563,6 +3570,324 @@ footer {
     }
 }
 
+
+/* =====================================================
+   3D-ANATOMIE (Beschwerdeanalyse)
+===================================================== */
+
+.mode-toggle {
+    display: inline-flex;
+    gap: 2px;
+    padding: 4px;
+    margin-bottom: 12px;
+    background: var(--sand-200);
+    border-radius: 999px;
+}
+
+.mode-btn {
+    padding: 9px 20px;
+    border-radius: 999px;
+    background: transparent;
+    font-size: 15px;
+}
+
+.mode-btn:hover { background: var(--sand-300); }
+
+.mode-btn.active {
+    background: var(--green-700);
+    color: white;
+}
+
+.anat-wrap { width: 100%; }
+
+.anat-stage {
+    position: relative;
+    width: 100%;
+    max-width: 980px;
+    margin: 0 auto;
+    height: clamp(460px, 74vh, 780px);
+    border-radius: 28px;
+    overflow: hidden;
+    background:
+        radial-gradient(ellipse 70% 62% at 50% 46%, #FBF8F2 0%, #EFE9DD 58%, #E2DACA 100%);
+    border: 1px solid var(--sand-200);
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+body.performance-mode .anat-stage {
+    background: radial-gradient(ellipse 70% 62% at 50% 46%, #3A3A44 0%, #2A2A32 60%, #202026 100%);
+}
+
+.anat-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    outline: none;
+    cursor: grab;
+    touch-action: none;
+}
+
+.anat-canvas:active { cursor: grabbing; }
+.anat-canvas.pick { cursor: pointer; }
+
+.anat-layers {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    right: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    pointer-events: none;
+}
+
+.anat-chip {
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 13px 7px 11px;
+    border-radius: 999px;
+    font-size: 13.5px;
+    line-height: 1;
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(0, 0, 0, 0.07);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    transition: background 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+}
+
+body.performance-mode .anat-chip {
+    background: rgba(40, 40, 48, 0.72);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.anat-chip:hover { transform: translateY(-1px); }
+
+.anat-chip i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--dot);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.7);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.anat-chip.off { opacity: 0.55; }
+.anat-chip.off i { opacity: 0.25; transform: scale(0.7); }
+
+.anat-reset {
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(0, 0, 0, 0.07);
+    color: var(--ink);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    transition: transform 0.25s ease;
+}
+
+body.performance-mode .anat-reset { background: rgba(40, 40, 48, 0.78); }
+.anat-reset:hover { transform: rotate(-60deg); }
+
+.anat-hint {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 18px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+    pointer-events: none;
+    transition: opacity 0.6s ease;
+}
+
+.anat-hint.gone { opacity: 0; }
+
+.anat-tip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: 6px 11px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    white-space: nowrap;
+    color: #fff;
+    background: rgba(30, 38, 34, 0.9);
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, -140%);
+    transition: opacity 0.15s ease;
+    z-index: 3;
+}
+
+.anat-tip.show { opacity: 1; }
+
+.anat-card {
+    position: absolute;
+    left: 14px;
+    bottom: 14px;
+    width: min(330px, calc(100% - 28px - 56px));
+    padding: 16px 18px 16px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.07);
+    box-shadow: var(--shadow);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    opacity: 0;
+    transform: translateY(14px);
+    pointer-events: none;
+    transition: opacity 0.28s ease, transform 0.28s ease;
+}
+
+body.performance-mode .anat-card { background: rgba(38, 38, 46, 0.92); }
+
+.anat-card.show {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+}
+
+.anat-card .tag {
+    display: inline-block;
+    font-size: 11.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--green-700);
+    margin-bottom: 4px;
+}
+
+.anat-card h3 {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: 21px;
+    line-height: 1.2;
+    color: var(--ink);
+}
+
+.anat-card .lat {
+    margin: 3px 0 0;
+    font-size: 13.5px;
+    font-style: italic;
+    color: var(--muted);
+}
+
+.anat-card .acts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 13px;
+}
+
+.anat-go {
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: 14.5px;
+    background: var(--green-700);
+    color: #fff;
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.anat-go:hover { transform: translateY(-1px); filter: brightness(1.08); }
+
+.anat-sec {
+    padding: 10px 14px;
+    border-radius: 999px;
+    font-size: 14px;
+    background: var(--sand-200);
+    color: var(--ink);
+}
+
+.anat-sec:hover { background: var(--sand-300); }
+
+.anat-x {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--muted);
+    background: transparent;
+}
+
+.anat-x:hover { background: var(--sand-200); }
+
+.anat-msg {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding: 24px;
+    color: var(--muted);
+    font-size: 15px;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+}
+
+.anat-msg.gone { opacity: 0; }
+
+.anat-msg .pulse {
+    display: block;
+    width: 46px;
+    height: 46px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    border: 2px solid var(--green-700);
+    animation: anatPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes anatPulse {
+    0%   { transform: scale(0.6); opacity: 0.9; }
+    100% { transform: scale(1.25); opacity: 0; }
+}
+
+.anat-credit {
+    max-width: 980px;
+    margin: 10px auto 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--muted);
+    text-align: center;
+}
+
+.anat-credit a { color: inherit; }
+
+.figure-wrap.mode-3d .view-toggle,
+.figure-wrap.mode-3d .figure-svgs,
+.figure-wrap.mode-3d .figure-caption,
+.figure-wrap.mode-3d .hint { display: none; }
+
+.figure-wrap:not(.mode-3d) .anat-wrap { display: none; }
+
+@media (max-width: 640px) {
+    .anat-stage { height: clamp(480px, 78vh, 640px); border-radius: 22px; }
+    .anat-card { width: calc(100% - 28px); bottom: 14px; }
+    .anat-reset { bottom: auto; top: 58px; right: 14px; width: 38px; height: 38px; }
+    .anat-card.show ~ .anat-hint { opacity: 0; }
+    .anat-chip { padding: 6px 11px 6px 9px; font-size: 13px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .anat-card, .anat-chip, .anat-hint, .anat-msg { transition: none; }
+    .anat-msg .pulse { animation: none; }
+}
+
 </style>
 
 </head>
@@ -4762,6 +5087,15 @@ footer {
 
     <div class="figure-wrap" id="analysisFigure">
 
+        <div class="mode-toggle" role="group" aria-label="Darstellung">
+            <button class="mode-btn active" data-mode="2d"
+                    aria-pressed="true"
+                    onclick="setAnalysisMode('2d')">Übersicht</button>
+            <button class="mode-btn" data-mode="3d"
+                    aria-pressed="false"
+                    onclick="setAnalysisMode('3d')">3D-Anatomie</button>
+        </div>
+
         <div class="view-toggle">
             <button class="view-btn active" data-view="front"
                     aria-pressed="true"
@@ -4776,6 +5110,34 @@ footer {
         <p class="figure-caption" aria-live="polite"></p>
 
         <p class="hint">Die Seiten werden aus Sicht der Person angegeben.</p>
+
+        <div class="anat-wrap" id="anatWrap">
+            <div class="anat-stage" id="anatStage">
+                <canvas class="anat-canvas" id="anatCanvas" tabindex="0"
+                        aria-label="Interaktives 3D-Modell des menschlichen Körpers. Mit Pfeiltasten drehen, mit Plus und Minus zoomen."></canvas>
+                <div class="anat-layers" id="anatLayers"></div>
+                <button class="anat-reset" id="anatReset" aria-label="Ansicht zurücksetzen" title="Ansicht zurücksetzen">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+                </button>
+                <div class="anat-hint" id="anatHint">Ziehen zum Drehen · Scrollen zum Zoomen · Struktur antippen</div>
+                <div class="anat-tip" id="anatTip"></div>
+                <div class="anat-card" id="anatCard" aria-live="polite">
+                    <button class="anat-x" id="anatX" aria-label="Schließen">×</button>
+                    <span class="tag" id="anatTag"></span>
+                    <h3 id="anatName"></h3>
+                    <p class="lat" id="anatLat"></p>
+                    <div class="acts">
+                        <button class="anat-go" id="anatGo">Hier Beschwerden analysieren</button>
+                        <button class="anat-sec" id="anatPeel">Ausblenden</button>
+                    </div>
+                </div>
+                <div class="anat-msg" id="anatMsg"><div><span class="pulse"></span><span id="anatMsgTxt">Anatomie wird geladen …</span></div></div>
+            </div>
+            <p class="anat-credit">Anatomische Daten: BodyParts3D, © 2008 Life Science Integrated Database Center,
+                lizenziert unter <a href="https://creativecommons.org/licenses/by-sa/2.1/jp/deed.de" target="_blank" rel="noopener">CC BY-SA 2.1 Japan</a>.
+                Vereinfachtes Modell für Bildungszwecke – keine Diagnose.</p>
+        </div>
+
 
     </div>
 
@@ -15349,6 +15711,604 @@ loadAuthState().then(function() {
 </script>
 
 
+<script type="module">
+/* =====================================================
+   3D-ANATOMIE: Viewer (Three.js, BodyParts3D-Modell)
+===================================================== */
+
+const ANAT_URL = "anatomie.glb";
+const PAIR_AREAS = ["Schulter", "Arm", "Hand", "Oberschenkel", "Knie", "Unterschenkel", "Fuß"];
+const GROUP_LABEL = { muscle: "Muskulatur", bone: "Skelett", organ: "Organ", vessel: "Herz & Gefäße", brain: "Gehirn" };
+const LAYERS = [
+    { key: "muscle", label: "Muskeln",       dot: "#B4574B" },
+    { key: "bone",   label: "Skelett",       dot: "#E4D9C2" },
+    { key: "organ",  label: "Organe",        dot: "#B8793F" },
+    { key: "vessel", label: "Herz & Gefäße", dot: "#C23A3A" },
+    { key: "brain",  label: "Gehirn",        dot: "#D9A9A0" }
+];
+
+const $ = (id) => document.getElementById(id);
+const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+let viewer = null;       // gesetzt, sobald geladen
+let loadState = "idle";  // idle | loading | ready | error
+let wantActive = false;
+
+function showMsg(text, pulse) {
+    const m = $("anatMsg");
+    m.classList.remove("gone");
+    $("anatMsgTxt").textContent = text;
+    m.querySelector(".pulse").style.display = pulse ? "" : "none";
+}
+
+function hideMsg() { $("anatMsg").classList.add("gone"); }
+
+window.setAnalysisMode = function (mode) {
+
+    const wrap = $("analysisFigure");
+    const is3d = mode === "3d";
+
+    wrap.classList.toggle("mode-3d", is3d);
+
+    document.querySelectorAll(".mode-btn").forEach(function (b) {
+        const on = b.dataset.mode === mode;
+        b.classList.toggle("active", on);
+        b.setAttribute("aria-pressed", on);
+    });
+
+    wantActive = is3d;
+
+    if (is3d && loadState === "idle") { initViewer(); }
+    if (is3d) {
+        setTimeout(function () {
+            $("anatStage").scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "nearest" });
+        }, 60);
+    }
+    if (viewer) { viewer.setActive(is3d); }
+};
+
+/* Beim Verlassen des Startscreens Render-Schleife pausieren */
+new MutationObserver(function () {
+    const visible = !$("startScreen").classList.contains("hidden");
+    if (viewer) { viewer.setActive(wantActive && visible); }
+}).observe($("startScreen"), { attributes: true, attributeFilter: ["class"] });
+
+async function initViewer() {
+
+    loadState = "loading";
+    showMsg("Anatomie wird geladen …", true);
+
+    try {
+
+        const THREE = await import("three");
+        const { OrbitControls } = await import("three/addons/controls/OrbitControls.js");
+        const { GLTFLoader } = await import("three/addons/loaders/GLTFLoader.js");
+        const { RoomEnvironment } = await import("three/addons/environments/RoomEnvironment.js");
+
+        viewer = await buildViewer(THREE, OrbitControls, GLTFLoader, RoomEnvironment);
+        loadState = "ready";
+        hideMsg();
+        viewer.setActive(wantActive && !$("startScreen").classList.contains("hidden"));
+
+    } catch (err) {
+
+        console.error("3D-Anatomie:", err);
+        loadState = "error";
+        showMsg("Das 3D-Modell konnte nicht geladen werden. Bitte nutze die Übersicht.", false);
+    }
+}
+
+async function buildViewer(THREE, OrbitControls, GLTFLoader, RoomEnvironment) {
+
+    const stage = $("anatStage");
+    const canvas = $("anatCanvas");
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.toneMapping = THREE.NeutralToneMapping;
+    renderer.toneMappingExposure = 1.0;
+    renderer.setClearColor(0x000000, 0);
+
+    const scene = new THREE.Scene();
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    scene.environmentIntensity = 0.85;
+
+    const key = new THREE.DirectionalLight(0xfff3e4, 1.5);
+    key.position.set(1.6, 3.2, 3.2);
+    scene.add(key);
+    const rim = new THREE.DirectionalLight(0xdfe9ff, 0.7);
+    rim.position.set(-2.4, 1.8, -2.6);
+    scene.add(rim);
+
+    const camera = new THREE.PerspectiveCamera(30, 1, 0.03, 30);
+
+    const controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.09;
+    controls.rotateSpeed = 0.75;
+    controls.zoomSpeed = 0.9;
+    controls.minDistance = 0.14;
+    controls.maxDistance = 4.6;
+    controls.screenSpacePanning = true;
+    controls.maxPolarAngle = Math.PI * 0.94;
+    controls.minPolarAngle = Math.PI * 0.06;
+    controls.autoRotate = !reduceMotion;
+    controls.autoRotateSpeed = 0.7;
+    controls.listenToKeyEvents(canvas);
+
+    /* ---------- Modell laden ---------- */
+
+    const gltf = await new Promise(function (resolve, reject) {
+        new GLTFLoader().load(ANAT_URL, resolve, function (e) {
+            if (e.total) { showMsg("Anatomie wird geladen … " + Math.min(99, Math.round(e.loaded / e.total * 100)) + " %", true); }
+        }, reject);
+    });
+
+    const model = gltf.scene;
+    scene.add(model);
+
+    const entries = [];   // { mesh, info, base:Color, center, size }
+    const byId = [null];
+
+    const C = (hex) => new THREE.Color(hex);
+
+    function colorFor(info) {
+
+        const e = (info.e || "").toLowerCase();
+        const g = info.g;
+
+        if (g === "muscle") {
+            return /tendon|aponeurosis|fascia|retinaculum|ligament|raphe|linea/.test(e) ? C(0xe0d3b6) : C(0xb4574b);
+        }
+        if (g === "bone") {
+            return /cartilage|disc|symphysis|meniscus/.test(e) ? C(0xb7ced4) : C(0xe6dcc6);
+        }
+        if (g === "brain") { return /cereb(ell)/.test(e) ? C(0xd6a095) : C(0xd9aca3); }
+        if (g === "vessel") {
+            if (/heart|atrium|ventricle|auricle|valve/.test(e)) { return C(0xa84540); }
+            if (/vein|vena|sinus|venous/.test(e)) { return C(0x3f62a3); }
+            if (/arter|aorta|trunk/.test(e)) { return C(0xc23a3a); }
+            return C(0xa8575b);
+        }
+        /* Organe */
+        if (/liver/.test(e)) { return C(0x8a3f2e); }
+        if (/kidney|adrenal/.test(e)) { return C(0x9a4a3c); }
+        if (/spleen/.test(e)) { return C(0x7a3a4e); }
+        if (/pancreas/.test(e)) { return C(0xd9a86a); }
+        if (/gallbladder/.test(e)) { return C(0x6f8a3c); }
+        if (/stomach|esophag/.test(e)) { return C(0xd08a7c); }
+        if (/lung/.test(e)) { return C(0xe3a5a0); }
+        if (/trachea|bronch|thyroid cart/.test(e)) { return C(0xcfd8dc); }
+        if (/thyroid|thymus|pituitary/.test(e)) { return C(0xc9786b); }
+        if (/bladder|ureter/.test(e)) { return C(0xd9b49c); }
+        if (/eyeball/.test(e)) { return C(0xf1efe8); }
+        return C(0xd8a28f); /* Darm u. a. */
+    }
+
+    let nextId = 1;
+
+    model.traverse(function (o) {
+
+        if (!o.isMesh || !o.userData || !o.userData.g) { return; }
+
+        const info = o.userData;
+        const geo = o.geometry;
+
+        geo.computeVertexNormals();
+        geo.computeBoundingBox();
+        geo.computeBoundingSphere();
+
+        const base = colorFor(info);
+        const isBone = info.g === "bone";
+
+        const mat = new THREE.MeshStandardMaterial({
+            color: base.clone(),
+            roughness: isBone ? 0.55 : (info.g === "muscle" ? 0.62 : 0.5),
+            metalness: 0,
+            envMapIntensity: 1
+        });
+        mat.emissive = new THREE.Color(0x000000);
+        o.material = mat;
+
+        const id = nextId++;
+        const pickMat = new THREE.MeshBasicMaterial({ toneMapped: false });
+        pickMat.color.setRGB(((id >> 16) & 255) / 255, ((id >> 8) & 255) / 255, (id & 255) / 255, THREE.LinearSRGBColorSpace);
+
+        const center = new THREE.Vector3();
+        const size = new THREE.Vector3();
+        geo.boundingBox.getCenter(center);
+        geo.boundingBox.getSize(size);
+
+        const en = { mesh: o, info: info, base: base, mat: mat, pickMat: pickMat, center: center,
+                     size: Math.max(size.x, size.y, size.z), hover: 0, hoverT: 0, peeled: false };
+        entries.push(en);
+        byId[id] = en;
+        o.userData.entry = en;
+    });
+
+    /* Sanfter Kontaktschatten unter den Füßen */
+
+    const shadowTex = (function () {
+        const c = document.createElement("canvas");
+        c.width = c.height = 128;
+        const x = c.getContext("2d");
+        const gr = x.createRadialGradient(64, 64, 4, 64, 64, 62);
+        gr.addColorStop(0, "rgba(40,30,20,0.42)");
+        gr.addColorStop(0.55, "rgba(40,30,20,0.16)");
+        gr.addColorStop(1, "rgba(40,30,20,0)");
+        x.fillStyle = gr;
+        x.fillRect(0, 0, 128, 128);
+        const t = new THREE.CanvasTexture(c);
+        t.colorSpace = THREE.SRGBColorSpace;
+        return t;
+    })();
+
+    const shadow = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.5, 0.95),
+        new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, toneMapped: false })
+    );
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.position.set(0, -0.012, 0.1);
+    scene.add(shadow);
+
+    /* ---------- Kamera ---------- */
+
+    const BODY_CENTER = new THREE.Vector3(0, 0.86, 0.1);
+    const BOUNDS_MIN = new THREE.Vector3(-0.45, 0.02, -0.25);
+    const BOUNDS_MAX = new THREE.Vector3(0.45, 1.72, 0.45);
+
+    function fitDistance() {
+        const w = stage.clientWidth || 1, h = stage.clientHeight || 1;
+        const vf = THREE.MathUtils.degToRad(camera.fov);
+        const dH = (1.82 / 2) / Math.tan(vf / 2);
+        const hf = 2 * Math.atan(Math.tan(vf / 2) * (w / h));
+        const dW = (0.86 / 2) / Math.tan(hf / 2);
+        return Math.max(dH, dW) * 1.04;
+    }
+
+    function resetCamera(animate) {
+        const d = fitDistance();
+        const dir = new THREE.Vector3(0.0, 0.05, 1).normalize();
+        flyTo(BODY_CENTER.clone(), BODY_CENTER.clone().addScaledVector(dir, d), animate ? 900 : 0);
+    }
+
+    let tween = null;
+
+    function flyTo(target, position, ms) {
+        if (!ms || reduceMotion) {
+            controls.target.copy(target);
+            camera.position.copy(position);
+            tween = null;
+            controls.update();
+            need = true;
+            return;
+        }
+        tween = { t0: performance.now(), ms: ms,
+                  fromT: controls.target.clone(), toT: target,
+                  fromP: camera.position.clone(), toP: position };
+    }
+
+    function flyToCenter(center, dist, ms) {
+        const dir = camera.position.clone().sub(controls.target).normalize();
+        flyTo(center.clone(), center.clone().addScaledVector(dir, dist), ms);
+    }
+
+    const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+    /* ---------- Zustand ---------- */
+
+    let need = true, active = false, raf = 0, last = performance.now();
+    let selected = null, hovered = null, dim = 0, dimT = 0;
+    const layerOn = { muscle: true, bone: true, organ: true, vessel: true, brain: true };
+
+    const dimColor = new THREE.Color(0xd8d1c4);
+    const hiColor = new THREE.Color(0x35c28f);
+    const tmp = new THREE.Color();
+
+    function applyVisibility() {
+        entries.forEach(function (e) { e.mesh.visible = layerOn[e.info.g] && !e.peeled; });
+        need = true;
+    }
+
+    function paint() {
+        entries.forEach(function (e) {
+            const m = e.mat;
+            if (e === selected) {
+                m.color.copy(e.base).lerp(hiColor, 0.55);
+                m.emissive.copy(hiColor).multiplyScalar(0.28);
+            } else {
+                m.color.copy(e.base).lerp(dimColor, dim * 0.78);
+                m.emissive.copy(hiColor).multiplyScalar(0.34 * e.hover);
+            }
+        });
+    }
+
+    function select(e) {
+        selected = e;
+        dimT = e ? 1 : 0;
+        need = true;
+        showCard(e);
+    }
+
+    /* ---------- Karte ---------- */
+
+    const card = $("anatCard");
+
+    function showCard(e) {
+        if (!e) { card.classList.remove("show"); return; }
+        const i = e.info;
+        $("anatTag").textContent = GROUP_LABEL[i.g] + (i.s ? " · " + i.s : "");
+        $("anatName").textContent = i.n || i.e;
+        const lat = i.l && i.l !== i.n ? i.l : "";
+        $("anatLat").textContent = lat;
+        $("anatLat").style.display = lat ? "" : "none";
+        $("anatGo").style.display = i.a ? "" : "none";
+        card.classList.add("show");
+    }
+
+    $("anatX").onclick = function () { select(null); };
+
+    $("anatGo").onclick = function () {
+        if (!selected || !selected.info.a) { return; }
+        const a = selected.info.a;
+        const side = PAIR_AREAS.indexOf(a) >= 0 ? (selected.info.s || "") : "";
+        window.selectArea(a, side);
+    };
+
+    $("anatPeel").onclick = function () {
+        if (!selected) { return; }
+        selected.peeled = true;
+        select(null);
+        applyVisibility();
+    };
+
+    $("anatReset").onclick = function () {
+        entries.forEach(function (e) { e.peeled = false; });
+        Object.keys(layerOn).forEach(function (k) { layerOn[k] = true; });
+        document.querySelectorAll(".anat-chip").forEach(function (c) { c.classList.remove("off"); c.setAttribute("aria-pressed", "true"); });
+        select(null);
+        applyVisibility();
+        resetCamera(true);
+    };
+
+    /* Ebenen */
+
+    const chipBox = $("anatLayers");
+    chipBox.innerHTML = "";
+    LAYERS.forEach(function (L) {
+        const b = document.createElement("button");
+        b.className = "anat-chip";
+        b.type = "button";
+        b.setAttribute("aria-pressed", "true");
+        b.style.setProperty("--dot", L.dot);
+        b.innerHTML = "<i></i>" + L.label;
+        b.onclick = function () {
+            layerOn[L.key] = !layerOn[L.key];
+            b.classList.toggle("off", !layerOn[L.key]);
+            b.setAttribute("aria-pressed", layerOn[L.key]);
+            if (selected && !layerOn[selected.info.g]) { select(null); }
+            applyVisibility();
+        };
+        chipBox.appendChild(b);
+    });
+
+    /* ---------- Picking (GPU, Farb-ID) ---------- */
+
+    const pickRT = new THREE.WebGLRenderTarget(1, 1, { colorSpace: THREE.LinearSRGBColorSpace });
+    const pixel = new Uint8Array(4);
+
+    function pick(clientX, clientY) {
+
+        const r = canvas.getBoundingClientRect();
+        const x = Math.floor(clientX - r.left), y = Math.floor(clientY - r.top);
+        if (x < 0 || y < 0 || x >= r.width || y >= r.height) { return null; }
+
+        entries.forEach(function (e) { e.mesh.material = e.pickMat; });
+        shadow.visible = false;
+        const oldEnv = scene.environment;
+        const oldTone = renderer.toneMapping;
+
+        camera.setViewOffset(r.width, r.height, x, y, 1, 1);
+        renderer.setRenderTarget(pickRT);
+        renderer.setClearColor(0x000000, 1);
+        renderer.clear();
+        renderer.render(scene, camera);
+        renderer.readRenderTargetPixels(pickRT, 0, 0, 1, 1, pixel);
+        renderer.setRenderTarget(null);
+        renderer.setClearColor(0x000000, 0);
+        camera.clearViewOffset();
+
+        entries.forEach(function (e) { e.mesh.material = e.mat; });
+        shadow.visible = true;
+        scene.environment = oldEnv;
+        renderer.toneMapping = oldTone;
+
+        const id = (pixel[0] << 16) | (pixel[1] << 8) | pixel[2];
+        return byId[id] || null;
+    }
+
+    /* ---------- Eingaben ---------- */
+
+    const tip = $("anatTip");
+    let down = null, hoverQueued = false, hx = 0, hy = 0;
+
+    function stopAuto() {
+        controls.autoRotate = false;
+        $("anatHint").classList.add("gone");
+    }
+
+    controls.addEventListener("start", function () { stopAuto(); tween = null; });
+    controls.addEventListener("change", function () { need = true; });
+
+    canvas.addEventListener("pointerdown", function (ev) {
+        down = { x: ev.clientX, y: ev.clientY, t: performance.now() };
+        tip.classList.remove("show");
+    });
+
+    canvas.addEventListener("pointerup", function (ev) {
+        if (!down) { return; }
+        const moved = Math.hypot(ev.clientX - down.x, ev.clientY - down.y);
+        const quick = performance.now() - down.t < 600;
+        down = null;
+        if (moved > 6 || !quick) { return; }
+
+        stopAuto();
+        setHover(null);
+        const hit = pick(ev.clientX, ev.clientY);
+        select(hit);
+        if (hit) {
+            const d = camera.position.distanceTo(controls.target);
+            flyToCenter(hit.center, Math.min(d, Math.max(hit.size * 3.4, 0.5)), 650);
+        }
+    });
+
+    canvas.addEventListener("dblclick", function (ev) {
+        const hit = pick(ev.clientX, ev.clientY);
+        if (hit) {
+            select(hit);
+            flyToCenter(hit.center, Math.max(hit.size * 2.3, 0.22), 800);
+        } else {
+            resetCamera(true);
+        }
+    });
+
+    canvas.addEventListener("pointermove", function (ev) {
+        if (ev.pointerType !== "mouse" || ev.buttons) { return; }
+        hx = ev.clientX; hy = ev.clientY;
+        if (hoverQueued) { return; }
+        hoverQueued = true;
+        setTimeout(function () {
+            hoverQueued = false;
+            if (!active) { return; }
+            const hit = pick(hx, hy);
+            setHover(hit);
+        }, 40);
+    });
+
+    canvas.addEventListener("pointerleave", function () { setHover(null); });
+
+    function setHover(hit) {
+        if (hit === hovered) {
+            if (hit) { placeTip(); }
+            return;
+        }
+        if (hovered) { hovered.hoverT = 0; }
+        hovered = hit;
+        if (hit) { hit.hoverT = 1; }
+        canvas.classList.toggle("pick", !!hit);
+        if (hit) {
+            tip.textContent = hit.info.n || hit.info.e;
+            placeTip();
+            tip.classList.add("show");
+        } else {
+            tip.classList.remove("show");
+        }
+        need = true;
+    }
+
+    function placeTip() {
+        const r = stage.getBoundingClientRect();
+        tip.style.left = Math.min(Math.max(hx - r.left, 70), r.width - 70) + "px";
+        tip.style.top = (hy - r.top) + "px";
+    }
+
+    /* ---------- Größe & Schleife ---------- */
+
+    function resize() {
+        const w = stage.clientWidth, h = stage.clientHeight;
+        if (!w || !h) { return; }
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        need = true;
+    }
+
+    new ResizeObserver(function () {
+        const first = !resize.done;
+        resize();
+        if (first && stage.clientWidth) { resize.done = true; resetCamera(false); }
+    }).observe(stage);
+
+    function frame(now) {
+
+        raf = requestAnimationFrame(frame);
+        if (!active) { return; }
+
+        const dt = Math.min(0.05, (now - last) / 1000);
+        last = now;
+        let dirty = need;
+        need = false;
+
+        if (tween) {
+            const k = Math.min(1, (now - tween.t0) / tween.ms);
+            const e = ease(k);
+            controls.target.lerpVectors(tween.fromT, tween.toT, e);
+            camera.position.lerpVectors(tween.fromP, tween.toP, e);
+            if (k >= 1) { tween = null; }
+            dirty = true;
+        }
+
+        if (controls.update(dt)) { dirty = true; }
+
+        /* Schwenk begrenzen */
+        const t = controls.target;
+        tmp2.copy(t).clamp(BOUNDS_MIN, BOUNDS_MAX);
+        if (!tmp2.equals(t)) {
+            camera.position.add(tmp2.clone().sub(t));
+            t.copy(tmp2);
+            dirty = true;
+        }
+
+        let paintNeeded = false;
+
+        if (Math.abs(dim - dimT) > 0.002) {
+            dim += (dimT - dim) * Math.min(1, dt * 9);
+            if (Math.abs(dim - dimT) <= 0.002) { dim = dimT; }
+            paintNeeded = true;
+        }
+
+        for (let i = 0; i < entries.length; i++) {
+            const e = entries[i];
+            if (e.hover !== e.hoverT) {
+                e.hover += (e.hoverT - e.hover) * Math.min(1, dt * 14);
+                if (Math.abs(e.hover - e.hoverT) < 0.01) { e.hover = e.hoverT; }
+                paintNeeded = true;
+            }
+        }
+
+        if (paintNeeded) { paint(); dirty = true; }
+
+        if (dirty) { renderer.render(scene, camera); }
+    }
+
+    const tmp2 = new THREE.Vector3();
+
+    canvas.addEventListener("webglcontextlost", function (ev) {
+        ev.preventDefault();
+        showMsg("Die 3D-Ansicht wurde unterbrochen. Bitte wechsle kurz zur Übersicht und zurück.", false);
+    });
+
+    canvas.addEventListener("webglcontextrestored", function () { hideMsg(); need = true; });
+
+    applyVisibility();
+    paint();
+    resize();
+    resetCamera(false);
+    raf = requestAnimationFrame(frame);
+
+    /* Test-/Debug-Zugriff */
+    window.__anat = { entries: entries, camera: camera, controls: controls, select: select, pick: pick, layerOn: layerOn };
+
+    return {
+        setActive: function (on) {
+            active = on;
+            if (on) { last = performance.now(); need = true; resize(); }
+        }
+    };
+}
+
+</script>
 </body>
 
 </html>
