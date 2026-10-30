@@ -50,6 +50,10 @@
     box-sizing: border-box;
 }
 
+html {
+    min-height: 100%;
+}
+
 body {
     margin: 0;
     font-family: var(--sans);
@@ -732,25 +736,6 @@ header {
     max-width: 320px;
 }
 
-.silhouette {
-    fill: url(#bodyGradient);
-    stroke: #8A4B3C;
-    stroke-width: 1.5;
-}
-
-.muscle-fill {
-    stroke: rgba(88, 18, 16, 0.5);
-    stroke-width: 1;
-    stroke-linejoin: round;
-}
-
-.muscle-line {
-    fill: none;
-    stroke: rgba(70, 14, 12, 0.55);
-    stroke-width: 1.4;
-    stroke-linecap: round;
-}
-
 .click-zone {
     fill: transparent;
     stroke: transparent;
@@ -765,15 +750,81 @@ header {
     stroke: var(--green-700);
 }
 
-.face-eye {
-    fill: #8B7654;
+.body-silhouette-fill {
+    fill: url(#bodyGradient);
+    stroke: none;
+    pointer-events: none;
 }
 
-.face-mouth {
+.body-silhouette-head {
+    fill: url(#headGradient);
+    stroke: none;
+    pointer-events: none;
+}
+
+.body-silhouette-limb {
+    fill: url(#limbGradient);
+    stroke: none;
+    pointer-events: none;
+}
+
+.body-silhouette-outline {
     fill: none;
-    stroke: #8B7654;
-    stroke-width: 3;
+    stroke: #4A2A1E;
+    stroke-opacity: 0.55;
+    stroke-width: 1.5;
+    stroke-linejoin: round;
     stroke-linecap: round;
+    pointer-events: none;
+}
+
+.body-muscle-line {
+    fill: none;
+    stroke: #5C3324;
+    stroke-opacity: 0.38;
+    stroke-width: 1.1;
+    stroke-linecap: round;
+    pointer-events: none;
+}
+
+.body-face-line {
+    fill: none;
+    stroke: #4A2A1E;
+    stroke-opacity: 0.6;
+    stroke-width: 2;
+    stroke-linecap: round;
+    pointer-events: none;
+}
+
+.body-face-dot {
+    fill: #4A2A1E;
+    fill-opacity: 0.6;
+    pointer-events: none;
+}
+
+.body-hair {
+    fill: #4A3222;
+    stroke: #35230F;
+    stroke-opacity: 0.4;
+    stroke-width: 1;
+    pointer-events: none;
+}
+
+.body-ear {
+    fill: url(#headGradient);
+    stroke: #4A2A1E;
+    stroke-opacity: 0.5;
+    stroke-width: 1.2;
+    pointer-events: none;
+}
+
+.body-detail-line {
+    fill: none;
+    stroke: #5C3324;
+    stroke-opacity: 0.45;
+    stroke-width: 1;
+    stroke-linecap: round;
+    pointer-events: none;
 }
 
 .figure-caption {
@@ -1791,65 +1842,88 @@ header {
     transform: translateY(-4px) rotate(-1deg);
 }
 
-/* Beim Klick auf das Buch (siehe openDiaryEntries()): der Einband
-   klappt WIRKLICH weit auf (fast senkrecht zur Seite). */
-.diary-book-opening .diary-book-cover {
-    transform-origin: left center;
-    animation: diary-cover-open 0.62s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-@keyframes diary-cover-open {
-    0%   { transform: rotateY(0deg); }
-    100% { transform: rotateY(-146deg); }
-}
-
-/* Übergang beim Aufschlagen des Buchs: ein ECHTER, durchgehender Zoom
-   OHNE Schnitt - und zwar so, dass man selbst INS Buch hineinfliegt,
-   nicht so, dass das Buch auf einen zufliegt. openDiaryEntries()
-   baut dafür drei übereinanderliegende Klone, die alle vom selben
-   Brennpunkt (der echten Position des Buchs) aus gemeinsam wachsen:
-   1. Ein Klon des GESAMTEN bisherigen Formular-Screens wächst stark
-      über den Bildschirm hinaus und verblasst dabei - dadurch zieht
-      alles DRUMHERUM scheinbar an einem vorbei, wie beim Vorwärts-
-      fliegen auf einen Punkt zu.
-   2. Ein Klon des geschlossenen Buch-Einbands wächst an genau dieser
-      Stelle und klappt dabei gleichzeitig auf.
-   3. Ein Klon der ECHTEN Zielseite (.diary-page, bereits mit den
-      geladenen Einträgen gefüllt) startet unsichtbar/klein exakt an
-      der Buch-Position und wächst GENAU in seine wirkliche End-
-      position/-größe auf dem Schreibtisch hinein, während er
-      gleichzeitig einblendet (Überblendung mit dem Einband-Klon).
-   Weil Klon 3 wortwörtlich dieselbe Seite mit denselben Inhalten ist,
-   die am Ende auf dem Schreibtisch liegt, ist das Buch während des
-   gesamten Übergangs durchgehend dasselbe Objekt - kein Wechsel auf
-   ein anders aussehendes Platzhalter-Element. Sobald Klon 3 an Ort
-   und Stelle angekommen ist, blendet der neue Bildschirm ein,
-   während alle drei Klone gleichzeitig ausblenden und entfernt
-   werden. Die CSS-Regeln hier liefern nur Hilfsklassen, den Rest
-   (Rechtecke, Brennpunkt, Transformationen) berechnet
-   openDiaryEntries() per JS. */
-body.diary-zoom-active {
+/* Übergang beim Aufschlagen des Buchs (siehe openDiaryEntries()):
+   EINE durchgehende Kamerafahrt. Ein einziges Overlay (.diary-fly)
+   enthält eine "Kamera" (.diary-fly-cam), die gleichmäßig auf das Buch
+   zufliegt (echter Zoom um einen festen Fixpunkt, ausschließlich
+   gleichmäßige Skalierung - nichts wird verzerrt). In dieser Welt
+   liegen der alte Screen, das Buch und die echte Zielseite; alles
+   wird von EINER gemeinsamen Zeitachse gesteuert (Web Animations API),
+   daher laufen Zoom, Aufklappen, Überblendung und Schatten perfekt
+   synchron. Nur transform/opacity werden animiert (läuft auf der
+   Grafikkarte, kein Layout, kein Flackern). Der Seiten-Scroll wird
+   nicht per overflow:hidden gesperrt (das würde die Seite um die
+   Breite der Scrollleiste springen lassen), sondern über das Overlay
+   abgefangen. */
+.diary-fly {
+    position: fixed;
+    inset: 0;
+    z-index: 9996;
     overflow: hidden;
+    touch-action: none;
+    overscroll-behavior: contain;
 }
 
-.diary-zoom-clone {
+/* Die Kopfzeile bleibt während der ganzen Fahrt stehen (sie ist auf
+   beiden Screens identisch) - die Welt fliegt unter ihr hindurch. */
+body.diary-flying header {
+    position: relative;
+    z-index: 9997;
+}
+
+.diary-fly-desk {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    isolation: isolate;
+}
+
+.diary-fly-desk .diary-desk-scene {
+    display: block;
+}
+
+.diary-fly-tilt {
+    position: absolute;
+    inset: 0;
+    transform-origin: 50% 50%;
+    backface-visibility: hidden;
+}
+
+.diary-fly-cam {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 0;
+    transform-origin: 0 0;
+    backface-visibility: hidden;
+}
+
+.diary-fly-item {
+    position: absolute;
+    margin: 0;
+    max-width: none;
     pointer-events: none;
-    will-change: transform, opacity;
+    backface-visibility: hidden;
 }
 
-/* Der Klon des gesamten alten Screens (siehe openDiaryEntries(), Klon
-   1) wächst weit über die Bildschirmgrenzen hinaus - ohne eigenes
-   Overflow-Clipping würde das nichts an der Optik ändern, da
-   body.diary-zoom-active bereits das Abschneiden an den echten
-   Bildschirmrändern übernimmt. */
-.diary-zoom-stage-clone {
-    overflow: hidden;
+.diary-fly-item .diary-book-cover {
+    transform-origin: left center;
+    /* Sobald der Einband über die Senkrechte hinausklappt, ist er
+       nicht mehr sichtbar (sonst würde seine Rückseite gespiegelt
+       erscheinen). */
+    backface-visibility: hidden;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .diary-book-opening .diary-book-cover {
-        animation: none !important;
-    }
+/* Zarte Randabdunklung: gibt dem Flug Tiefe, ist am Anfang und am
+   Ende vollständig weg. */
+.diary-fly-shade {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse 85% 80% at 50% 50%,
+        rgba(20, 12, 4, 0) 52%, rgba(20, 12, 4, 0.34) 100%);
 }
 
 /* Angedeutete Papierseiten - liegen leicht versetzt hinter dem
@@ -1972,7 +2046,8 @@ body.diary-zoom-active {
    innerhalb der Karte.
 ===================================================== */
 
-body.diary-desk-mode {
+body.diary-desk-mode,
+.diary-fly-desk {
     background:
         radial-gradient(ellipse 70% 55% at 50% 42%, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.22) 100%),
         radial-gradient(ellipse at 14% 8%, rgba(255, 255, 255, 0.07), transparent 48%),
@@ -4362,6 +4437,27 @@ footer {
      ANALYSE: KÖRPERAUSWAHL
 ===================================================== -->
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+        <radialGradient id="bodyGradient" cx="38%" cy="28%" r="85%">
+            <stop offset="0%"  stop-color="#E7C7A8" />
+            <stop offset="45%" stop-color="#CC9A78" />
+            <stop offset="78%" stop-color="#A66C52" />
+            <stop offset="100%" stop-color="#7C4A38" />
+        </radialGradient>
+        <radialGradient id="headGradient" cx="40%" cy="30%" r="80%">
+            <stop offset="0%"  stop-color="#E9CBAD" />
+            <stop offset="55%" stop-color="#CE9D7C" />
+            <stop offset="100%" stop-color="#9C6A4E" />
+        </radialGradient>
+        <radialGradient id="limbGradient" cx="35%" cy="15%" r="95%">
+            <stop offset="0%"  stop-color="#E2BFA0" />
+            <stop offset="50%" stop-color="#C08F6C" />
+            <stop offset="100%" stop-color="#8A5640" />
+        </radialGradient>
+    </defs>
+</svg>
+
 <div id="startScreen" class="screen card analysis hidden">
 
     <button class="link-btn" onclick="showHome()">← Startseite</button>
@@ -4372,31 +4468,6 @@ footer {
         Wähle zunächst die Körperregion aus,
         in der du Beschwerden hast.
     </p>
-
-    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-        <defs>
-            <linearGradient id="bodyGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%"  stop-color="#EFC9AE" />
-                <stop offset="45%" stop-color="#E3B597" />
-                <stop offset="100%" stop-color="#D2A17F" />
-            </linearGradient>
-            <radialGradient id="muscleGradientRed" cx="35%" cy="30%" r="80%">
-                <stop offset="0%"  stop-color="#DE6255" />
-                <stop offset="55%" stop-color="#B8362F" />
-                <stop offset="100%" stop-color="#7E211D" />
-            </radialGradient>
-            <radialGradient id="muscleGradientPale" cx="35%" cy="30%" r="80%">
-                <stop offset="0%"  stop-color="#F5ECDC" />
-                <stop offset="55%" stop-color="#E7D8BE" />
-                <stop offset="100%" stop-color="#C7B191" />
-            </radialGradient>
-            <radialGradient id="muscleGradientKnee" cx="35%" cy="30%" r="80%">
-                <stop offset="0%"  stop-color="#E4A78F" />
-                <stop offset="55%" stop-color="#C97A64" />
-                <stop offset="100%" stop-color="#95493A" />
-            </radialGradient>
-        </defs>
-    </svg>
 
     <div class="figure-wrap" id="analysisFigure">
 
@@ -5584,114 +5655,56 @@ const subAreas = {
 
 
 
-/* =====================================================
-   KÖRPERGRAFIK: SILHOUETTE
-   Es wird nur die linke Bildhälfte beschrieben (jedes
-   Segment: Kontrollpunkt 1, Kontrollpunkt 2, Endpunkt).
-   Die rechte Hälfte entsteht durch Spiegelung an x = 150.
-===================================================== */
-
-const SILHOUETTE_START = [150, 22];
-
-const SILHOUETTE_HALF = [
-    [131,  22, 117,  38, 117,  60],   /* Kopf              */
-    [117,  78, 126,  92, 137,  99],   /* Kiefer            */
-    [137, 108, 137, 117, 136, 124],   /* Hals              */
-    [126, 128, 114, 129, 104, 135],   /* Nacken zur Schulter */
-    [ 92, 137,  80, 144,  76, 157],   /* Schulterrundung   */
-    [ 72, 186,  62, 222,  55, 249],   /* Oberarm außen     */
-    [ 51, 274,  43, 310,  38, 338],   /* Unterarm außen    */
-    [ 35, 358,  28, 374,  30, 396],   /* Hand außen        */
-    [ 30, 410,  46, 412,  48, 399],   /* Fingerspitzen     */
-    [ 50, 374,  54, 356,  58, 339],   /* Hand innen        */
-    [ 62, 310,  76, 280,  82, 253],   /* Unterarm innen    */
-    [ 86, 229,  92, 205, 100, 184],   /* Oberarm innen     */
-    [104, 204, 109, 229, 108, 254],   /* Rumpf bis Taille  */
-    [107, 276,  90, 294,  90, 318],   /* Hüfte             */
-    [ 90, 356,  96, 424, 111, 479],   /* Oberschenkel außen */
-    [115, 502, 106, 516, 108, 542],   /* Knie zur Wade     */
-    [109, 568, 118, 585, 121, 602],   /* Wade zum Knöchel  */
-    [116, 613, 106, 622, 104, 633],   /* Fuß außen         */
-    [104, 642, 114, 642, 126, 641],   /* Zehen             */
-    [135, 640, 139, 631, 139, 620],   /* Fuß innen         */
-    [139, 596, 141, 568, 142, 542],   /* Wade innen        */
-    [142, 518, 145, 502, 145, 480],   /* Knie innen        */
-    [145, 441, 149, 407, 150, 372]    /* Oberschenkel innen bis Schritt */
-];
-
-function buildSilhouettePath() {
-
-    let d = "M" + SILHOUETTE_START.join(" ");
-
-    /* linke Hälfte, von oben nach unten */
-
-    SILHOUETTE_HALF.forEach(function(s) {
-        d += " C" + s.join(" ");
-    });
-
-    /* rechte Hälfte gespiegelt, von unten nach oben */
-
-    for (let i = SILHOUETTE_HALF.length - 1; i >= 0; i--) {
-
-        const s = SILHOUETTE_HALF[i];
-
-        const prev = i === 0
-            ? SILHOUETTE_START
-            : [SILHOUETTE_HALF[i - 1][4], SILHOUETTE_HALF[i - 1][5]];
-
-        d += " C" + [
-            300 - s[2], s[3],
-            300 - s[0], s[1],
-            300 - prev[0], prev[1]
-        ].join(" ");
-    }
-
-    return d + " Z";
-}
-
-const SILHOUETTE_PATH = buildSilhouettePath();
-
-
 
 /* =====================================================
    KÖRPERGRAFIK: KLICKZONEN
+   Die Koordinaten wurden ursprünglich per Raster-Overlay an einem
+   hochgeladenen Anatomie-Foto (Vorder-/Rückansicht) eingemessen und
+   gelten weiterhin, auch nachdem das Foto selbst wieder durch eine
+   gezeichnete Silhouette ersetzt wurde (siehe AREA_FILL weiter unten) -
+   gemeinsames Koordinatensystem BODY_VIEWBOX_W × BODY_VIEWBOX_H.
    pair: true  = wird für beide Körperhälften erzeugt
                  (Geometrie gilt für die linke Bildhälfte)
    views       = in welcher Ansicht die Zone existiert
-   Die Zonen werden auf die Silhouette zugeschnitten und
-   überlappen sich nicht.
 ===================================================== */
 
+const BODY_VIEWBOX_W = 280;
+const BODY_VIEWBOX_H = 620;
+
+// Die Koordinaten unten wurden per Pixel-Raster direkt am hochgeladenen
+// Anatomie-Foto abgelesen (Vorder- und Rückseite) und in das gemeinsame
+// 280x620-Koordinatensystem umgerechnet. Dadurch folgen die Klickbereiche
+// den tatsächlichen Körperkonturen auf dem Foto statt grober Rechtecke.
 const ZONES = [
 
-    { area: "Kopf",   pts: "0,0 300,0 300,100 0,100" },
+    { area: "Kopf",   pts: "0,0 280,0 280,98 0,98" },
 
-    { area: "Nacken", pts: "118,100 182,100 182,131 118,131" },
+    { area: "Nacken", pts: "124,98 156,98 156,110 124,110" },
 
     { area: "Brust",  views: ["front"],
-      pts: "122,131 178,131 178,149 200,178 196,225 104,225 100,178 122,149" },
+      pts: "131,110 104,133 102,182 107,203 173,203 178,182 176,133 149,110" },
 
     { area: "Bauch",  views: ["front"],
-      pts: "104,225 196,225 216,300 84,300" },
+      pts: "107,203 116,223 99,270 97,312 183,312 181,270 164,223 173,203" },
 
     { area: "Rücken", views: ["back"],
-      pts: "122,131 178,131 178,149 200,178 196,225 216,300 84,300 104,225 100,178 122,149" },
+      pts: "124,110 82,120 84,178 88,214 98,240 86,280 99,312 181,312 194,280 182,240 192,214 196,178 198,120 156,110" },
 
-    { area: "Becken", pts: "70,300 230,300 230,367 70,367" },
+    { area: "Becken", pts: "97,312 183,312 193,345 92,345" },
 
-    { area: "Schulter",      pair: true, pts: "122,131 30,131 30,178 100,178 122,149" },
+    { area: "Schulter",      pair: true, pts: "131,110 85,96 78,156 104,151" },
 
-    { area: "Arm",           pair: true, pts: "20,178 100,178 104,249 80,339 20,339" },
+    { area: "Arm",           pair: true, pts: "107,157 85,162 71,239 53,278 72,278 89,239" },
 
-    { area: "Hand",          pair: true, pts: "20,339 80,339 80,424 20,424" },
+    { area: "Hand",          pair: true, pts: "72,278 53,278 18,345 71,345" },
 
-    { area: "Oberschenkel",  pair: true, pts: "70,367 150,367 150,461 70,461" },
+    { area: "Oberschenkel",  pair: true, pts: "92,353 105,469 134,469 136,353" },
 
-    { area: "Knie",          pair: true, pts: "70,461 150,461 150,509 70,509" },
+    { area: "Knie",          pair: true, pts: "105,465 97,498 130,498 136,465" },
 
-    { area: "Unterschenkel", pair: true, pts: "70,509 150,509 150,598 70,598" },
+    { area: "Unterschenkel", pair: true, pts: "97,498 130,498 120,550 104,550" },
 
-    { area: "Fuß",           pair: true, pts: "70,598 150,598 150,651 70,651" }
+    { area: "Fuß",           pair: true, pts: "104,561 75,608 130,608 120,561" }
 
 ];
 
@@ -5702,8 +5715,6 @@ const ZONES = [
 ===================================================== */
 
 const SVG_NS = "http://www.w3.org/2000/svg";
-
-let bodyCounter = 0;
 
 function makeZone(zone, view, mirrored) {
 
@@ -5736,7 +5747,7 @@ function makeZone(zone, view, mirrored) {
     el.dataset.label = label;
 
     if (mirrored) {
-        el.setAttribute("transform", "translate(300 0) scale(-1 1)");
+        el.setAttribute("transform", "translate(" + BODY_VIEWBOX_W + " 0) scale(-1 1)");
     }
 
     function activate() {
@@ -5758,129 +5769,170 @@ function makeZone(zone, view, mirrored) {
 }
 
 /* =====================================================
-   MUSKEL-EINFÄRBUNG
-   Die vorhandenen Klickzonen-Umrisse (ZONES) werden
-   zusätzlich sichtbar eingefärbt, damit der Körper
-   wie ein echtes Muskel-/Anatomiemodell aussieht statt
-   wie eine flache Silhouette. Kopf und Nacken bleiben
-   bewusst in Hautfarbe.
+   KOERPERGRAFIK: GEZEICHNETE SILHOUETTE (Stand 2026-10-09)
+   Nutzer-Feedback zur vorherigen Fassung (einzeln eingefaerbte,
+   eckige ZONES-Flaechen): "sieht verunstaltet aus". Deshalb jetzt
+   eine EIGENE, von den Klickbereichen entkoppelte Silhouette -
+   weich gerundete Pfade (Rumpf+Beine, Arme, Kopf als Ellipse),
+   eine Farbflaeche je Koerperhaelfte statt Flickenteppich. Die
+   Klickbereiche (ZONES/ click-zone) liegen wieder unsichtbar
+   darueber, rein fuers Hit-Testing/Hover, wie vor Round 9.
+   Koordinaten per Hand im gemeinsamen 280x620-System entworfen
+   (von Hand per Skript geglaettete Ecken, keine Bezier-Rekonstruktion
+   der allerersten, nicht mehr auffindbaren Silhouette - siehe Chat).
 ===================================================== */
 
-const MUSCLE_FILL_COLORS = {
-    "Brust":          "url(#muscleGradientRed)",
-    "Bauch":          "url(#muscleGradientPale)",
-    "Rücken":         "url(#muscleGradientRed)",
-    "Becken":         "url(#muscleGradientRed)",
-    "Schulter":       "url(#muscleGradientRed)",
-    "Arm":            "url(#muscleGradientRed)",
-    "Hand":           "url(#muscleGradientPale)",
-    "Oberschenkel":   "url(#muscleGradientRed)",
-    "Knie":           "url(#muscleGradientKnee)",
-    "Unterschenkel":  "url(#muscleGradientRed)",
-    "Fuß":            "url(#muscleGradientPale)"
-};
+// Rumpf+Beine, rechte Haelfte: Aussenkontur (Hals->Schulter->Huefte->
+// Fuss) als offener Pfad (fuer die Kontur-Linie) + Innenkante zurueck
+// zum Schritt. "SILHOUETTE_FILL" haengt per gerader Linie zur
+// Mittelachse an, damit die Flaeche (auch ohne sichtbaren Mittelstrich)
+// geschlossen ist.
+const SILHOUETTE_TORSO_STROKE =
+    "M 156.0,96.0 L 173.4,111.9 Q 180.0,118.0 179.4,127.0 L 177.6,151.0 Q 177.0,160.0 177.8,169.0 L 178.2,173.0 Q 179.0,182.0 178.2,191.0 L 177.8,196.0 Q 177.0,205.0 171.8,212.4 L 170.2,214.6 Q 165.0,222.0 169.1,230.0 L 177.9,247.0 Q 182.0,255.0 182.4,264.0 L 183.6,291.0 Q 184.0,300.0 183.4,309.0 L 182.6,321.0 Q 182.0,330.0 180.2,336.8 L 179.8,338.2 Q 178.0,345.0 176.1,353.8 L 163.9,411.2 Q 162.0,420.0 160.2,428.8 L 153.8,459.2 Q 152.0,468.0 150.9,476.9 L 149.1,491.1 Q 148.0,500.0 148.8,509.0 L 151.2,536.0 Q 152.0,545.0 156.9,552.6 L 158.1,554.4 Q 163.0,562.0 161.8,570.9 L 161.2,576.1 Q 160.0,585.0 156.5,593.3 L 155.5,595.7 Q 152.0,604.0 147.5,603.1 L 146.5,602.9 Q 142.0,602.0 140.2,593.2 L 139.8,590.8 Q 138.0,582.0 139.6,573.1 L 140.4,568.9 Q 142.0,560.0 136.6,553.2 L 135.4,551.8 Q 130.0,545.0 129.2,536.0 L 126.8,509.0 Q 126.0,500.0 127.1,491.1 L 128.9,476.9 Q 130.0,468.0 131.5,459.1 L 136.5,428.9 Q 138.0,420.0 138.2,411.0 L 140.0,347.0";
 
-function makeMuscleFill(zone, view, mirrored) {
+const SILHOUETTE_TORSO_FILL = SILHOUETTE_TORSO_STROKE + " L 140.0,96.0 Z";
 
-    const el = document.createElementNS(SVG_NS, "polygon");
+const SILHOUETTE_ARM =
+    "M 178.9,124.6 L 179.1,123.4 Q 180.0,118.0 186.4,122.7 L 192.6,127.3 Q 199.0,132.0 200.2,139.9 L 203.8,162.1 Q 205.0,170.0 204.6,178.0 L 203.4,207.0 Q 203.0,215.0 202.1,222.9 L 199.9,242.1 Q 199.0,250.0 197.5,257.9 L 195.5,268.1 Q 194.0,276.0 196.7,281.4 L 197.3,282.6 Q 200.0,288.0 199.6,296.0 L 199.4,298.0 Q 199.0,306.0 194.9,308.7 L 194.1,309.3 Q 190.0,312.0 186.8,306.6 L 186.2,305.4 Q 183.0,300.0 181.4,292.2 L 180.6,287.8 Q 179.0,280.0 179.7,272.0 L 181.3,256.0 Q 182.0,248.0 182.4,240.0 L 183.6,216.0 Q 184.0,208.0 183.6,200.0 L 182.4,171.0 Q 182.0,163.0 181.0,155.1 L 179.0,137.9 Q 178.0,130.0 178.9,124.6 Z";
 
-    el.setAttribute("points", zone.pts);
-    el.setAttribute("class", "muscle-fill");
-    el.setAttribute("fill", MUSCLE_FILL_COLORS[zone.area]);
-    el.setAttribute("aria-hidden", "true");
+/* Duenne Akzentlinien fuer eine etwas anatomischere ("Autopsie"-artige)
+   Anmutung - rein dekorativ, kein medizinischer Anspruch auf exakte
+   Muskelverlaeufe. Rechte Koerperhaelfte, wird wie der Rest gespiegelt;
+   ein paar Linien (Brustbein, Bauchmitte) liegen schon auf der
+   Mittelachse und werden daher NICHT gespiegelt (sonst doppelt/dicker). */
+const MUSCLE_LINES_SIDE = [
+    "M 172,128 Q 150,150 143,178",          // Brustmuskel-Kontur
+    "M 150,205 Q 160,225 155,248",          // seitliche Bauchmuskel-Linie
+    "M 168,360 L 160,462",                  // Oberschenkel-Laengslinie
+    "M 157,500 L 150,540",                  // Wade
+    "M 191,150 L 189,230",                  // Bizeps/Oberarm
+    "M 190,245 L 188,280"                   // Unterarm
+];
 
-    if (mirrored) {
-        el.setAttribute("transform", "translate(300 0) scale(-1 1)");
+const MUSCLE_LINES_CENTER = [
+    "M 140,118 L 140,210",   // Brustbein/Mittellinie oben
+    "M 140,222 L 140,290"    // Bauchnabel-Mittellinie
+];
+
+// Haar-Kappe (ueber dem Kopf, symmetrisch - nicht gespiegelt, da schon
+// beide Seiten abdeckt).
+const HAIR_PATH =
+    "M 100,42 Q 94,-4 140,-6 Q 186,-4 180,42 Q 182,16 160,8 Q 149,4 140,4 Q 131,4 120,8 Q 98,16 100,42 Z";
+
+// Finger-/Zehen-Andeutung sowie Augenbrauen/Nase, rechte Koerperhaelfte
+// (wird wie die Muskel-Linien gespiegelt).
+const DETAIL_LINES_SIDE = [
+    "M 191,300 L 189,317",   // Finger
+    "M 196,299 L 195,319",
+    "M 200,300 L 200,320",
+    "M 204,302 L 205,318",
+    "M 144,594 L 142,606",   // Zehen
+    "M 150,593 L 149,607",
+    "M 156,594 L 156,606"
+];
+
+function addSilhouette(svg) {
+
+    const ns = SVG_NS;
+
+    function path(d, cls) {
+        const el = document.createElementNS(ns, "path");
+        el.setAttribute("d", d);
+        el.setAttribute("class", cls);
+        return el;
     }
 
-    return el;
-}
-
-/* =====================================================
-   MUSKEL-AKZENTE
-   Dezente Linien auf der Silhouette, damit einzelne
-   Körperpartien besser zu unterscheiden sind.
-===================================================== */
-
-function getMuscleLines(view) {
-
-    if (view === "front") {
-        return [
-            "M104,155 Q128,172 122,198",
-            "M196,155 Q172,172 178,198",
-            "M150,206 L150,298",
-            "M128,222 L172,222",
-            "M124,250 L176,250",
-            "M120,278 L180,278",
-            "M100,178 Q78,190 76,158",
-            "M200,178 Q222,190 224,158",
-            "M55,202 Q49,232 51,274",
-            "M245,202 Q251,232 249,274",
-            "M92,382 Q100,420 100,455",
-            "M208,382 Q200,420 200,455",
-            "M120,390 Q126,425 124,458",
-            "M180,390 Q174,425 176,458",
-            "M100,470 Q110,480 120,470",
-            "M180,470 Q190,480 200,470",
-            "M108,515 L108,590",
-            "M192,515 L192,590"
-        ];
+    function muscleGroup() {
+        const g = document.createElementNS(ns, "g");
+        MUSCLE_LINES_SIDE.forEach(function(d) {
+            g.appendChild(path(d, "body-muscle-line"));
+        });
+        return g;
     }
 
-    return [
-        "M150,135 L150,300",
-        "M122,140 Q150,158 178,140",
-        "M136,165 L136,292",
-        "M164,165 L164,292",
-        "M108,185 Q120,225 110,270",
-        "M192,185 Q180,225 190,270",
-        "M92,382 Q98,420 96,455",
-        "M208,382 Q202,420 204,455",
-        "M105,478 Q115,490 125,478",
-        "M175,478 Q185,490 195,478",
-        "M104,515 Q95,555 104,592",
-        "M196,515 Q205,555 196,592"
-    ];
-}
+    function detailGroup() {
+        const g = document.createElementNS(ns, "g");
+        DETAIL_LINES_SIDE.forEach(function(d) {
+            g.appendChild(path(d, "body-detail-line"));
+        });
+        return g;
+    }
 
-function makeFace() {
+    function ear() {
+        const e = document.createElementNS(ns, "ellipse");
+        e.setAttribute("cx", "179");
+        e.setAttribute("cy", "53");
+        e.setAttribute("rx", "6.5");
+        e.setAttribute("ry", "11");
+        e.setAttribute("class", "body-ear");
+        return e;
+    }
 
-    const face = document.createElementNS(SVG_NS, "g");
+    const head = document.createElementNS(ns, "ellipse");
+    head.setAttribute("cx", "140");
+    head.setAttribute("cy", "48");
+    head.setAttribute("rx", "39");
+    head.setAttribute("ry", "50");
+    head.setAttribute("class", "body-silhouette-head");
 
-    face.setAttribute("aria-hidden", "true");
+    const headOutline = document.createElementNS(ns, "ellipse");
+    headOutline.setAttribute("cx", "140");
+    headOutline.setAttribute("cy", "48");
+    headOutline.setAttribute("rx", "39");
+    headOutline.setAttribute("ry", "50");
+    headOutline.setAttribute("class", "body-silhouette-outline");
 
-    const leftEye = document.createElementNS(SVG_NS, "circle");
-    leftEye.setAttribute("class", "face-eye");
-    leftEye.setAttribute("cx", "137");
-    leftEye.setAttribute("cy", "56");
-    leftEye.setAttribute("r", "3.2");
+    svg.appendChild(ear());
+    const mirrorEar = document.createElementNS(ns, "g");
+    mirrorEar.setAttribute("transform", "translate(" + BODY_VIEWBOX_W + " 0) scale(-1 1)");
+    mirrorEar.appendChild(ear());
+    svg.appendChild(mirrorEar);
 
-    const rightEye = document.createElementNS(SVG_NS, "circle");
-    rightEye.setAttribute("class", "face-eye");
-    rightEye.setAttribute("cx", "163");
-    rightEye.setAttribute("cy", "56");
-    rightEye.setAttribute("r", "3.2");
+    svg.appendChild(head);
+    svg.appendChild(path(SILHOUETTE_TORSO_FILL, "body-silhouette-fill"));
+    svg.appendChild(path(SILHOUETTE_ARM, "body-silhouette-limb"));
 
-    const mouth = document.createElementNS(SVG_NS, "path");
-    mouth.setAttribute("class", "face-mouth");
-    mouth.setAttribute("d", "M136 76 Q150 85 164 76");
+    const mirrorFill = document.createElementNS(ns, "g");
+    mirrorFill.setAttribute("transform", "translate(" + BODY_VIEWBOX_W + " 0) scale(-1 1)");
+    mirrorFill.appendChild(path(SILHOUETTE_TORSO_FILL, "body-silhouette-fill"));
+    mirrorFill.appendChild(path(SILHOUETTE_ARM, "body-silhouette-limb"));
+    svg.appendChild(mirrorFill);
 
-    face.appendChild(leftEye);
-    face.appendChild(rightEye);
-    face.appendChild(mouth);
+    /* Muskel-Akzentlinien, ueber der Farbflaeche, unter der Kontur/den
+       Klickzonen. */
+    MUSCLE_LINES_CENTER.forEach(function(d) {
+        svg.appendChild(path(d, "body-muscle-line"));
+    });
+    svg.appendChild(muscleGroup());
+    const mirrorMuscles = document.createElementNS(ns, "g");
+    mirrorMuscles.setAttribute("transform", "translate(" + BODY_VIEWBOX_W + " 0) scale(-1 1)");
+    mirrorMuscles.appendChild(muscleGroup());
+    svg.appendChild(mirrorMuscles);
 
-    return face;
+    /* Finger-/Zehen-Andeutung. */
+    svg.appendChild(detailGroup());
+    const mirrorDetail = document.createElementNS(ns, "g");
+    mirrorDetail.setAttribute("transform", "translate(" + BODY_VIEWBOX_W + " 0) scale(-1 1)");
+    mirrorDetail.appendChild(detailGroup());
+    svg.appendChild(mirrorDetail);
+
+    svg.appendChild(headOutline);
+    svg.appendChild(path(HAIR_PATH, "body-hair"));
+    svg.appendChild(path(SILHOUETTE_TORSO_STROKE, "body-silhouette-outline"));
+    svg.appendChild(path(SILHOUETTE_ARM, "body-silhouette-outline"));
+
+    const mirrorStroke = document.createElementNS(ns, "g");
+    mirrorStroke.setAttribute("transform", "translate(" + BODY_VIEWBOX_W + " 0) scale(-1 1)");
+    mirrorStroke.appendChild(path(SILHOUETTE_TORSO_STROKE, "body-silhouette-outline"));
+    mirrorStroke.appendChild(path(SILHOUETTE_ARM, "body-silhouette-outline"));
+    svg.appendChild(mirrorStroke);
 }
 
 function makeBodySvg(view) {
 
-    bodyCounter++;
-
-    const clipId = "bodyClip" + bodyCounter;
-
     const svg = document.createElementNS(SVG_NS, "svg");
 
-    svg.setAttribute("viewBox", "0 0 300 650");
+    svg.setAttribute("viewBox", "0 0 " + BODY_VIEWBOX_W + " " + BODY_VIEWBOX_H);
     svg.setAttribute("class", "body-svg");
     svg.setAttribute("role", "group");
     svg.setAttribute(
@@ -5889,88 +5941,16 @@ function makeBodySvg(view) {
     );
     svg.dataset.view = view;
 
-    /* Silhouette als Zuschnitt für die Klickzonen */
+    /* Gezeichnete Silhouette zuunterst (siehe addSilhouette). */
 
-    const defs = document.createElementNS(SVG_NS, "defs");
-    const clip = document.createElementNS(SVG_NS, "clipPath");
-    const clipPath = document.createElementNS(SVG_NS, "path");
+    addSilhouette(svg);
 
-    clip.setAttribute("id", clipId);
-    clipPath.setAttribute("d", SILHOUETTE_PATH);
-
-    clip.appendChild(clipPath);
-    defs.appendChild(clip);
-    svg.appendChild(defs);
-
-    const zoomGroup = document.createElementNS(SVG_NS, "g");
-
-    /* sichtbare Silhouette */
-
-    const silhouette = document.createElementNS(SVG_NS, "path");
-
-    silhouette.setAttribute("class", "silhouette");
-    silhouette.setAttribute("d", SILHOUETTE_PATH);
-
-    zoomGroup.appendChild(silhouette);
-
-    /* Muskel-Einfärbung: bestehende Zonen zusätzlich
-       sichtbar als Muskelpartien einfärben */
-
-    const fillGroup = document.createElementNS(SVG_NS, "g");
-    fillGroup.setAttribute("class", "muscle-fill-group");
-    fillGroup.setAttribute("clip-path", "url(#" + clipId + ")");
-
-    ZONES.forEach(function(zone) {
-
-        if (zone.views && zone.views.indexOf(view) === -1) {
-            return;
-        }
-
-        if (!MUSCLE_FILL_COLORS[zone.area]) {
-            return;
-        }
-
-        fillGroup.appendChild(makeMuscleFill(zone, view, false));
-
-        if (zone.pair) {
-            fillGroup.appendChild(makeMuscleFill(zone, view, true));
-        }
-
-    });
-
-    zoomGroup.appendChild(fillGroup);
-
-    /* Muskel-Akzente, damit Körperpartien und die
-       "Fasern" etwas sichtbar sind */
-
-    const accents = document.createElementNS(SVG_NS, "g");
-    accents.setAttribute("class", "muscle-lines");
-    accents.setAttribute("clip-path", "url(#" + clipId + ")");
-
-    getMuscleLines(view).forEach(function(d) {
-
-        const line = document.createElementNS(SVG_NS, "path");
-        line.setAttribute("class", "muscle-line");
-        line.setAttribute("d", d);
-        accents.appendChild(line);
-
-    });
-
-    zoomGroup.appendChild(accents);
-
-    /* Gesicht: nur auf der Vorderseite, damit man Vorder- und
-       Rückseite auf einen Blick unterscheiden kann */
-
-    if (view === "front") {
-        zoomGroup.appendChild(makeFace());
-    }
-
-    /* Klickzonen */
+    /* Klickzonen - wieder unsichtbar, nur fürs Hit-Testing/Hover
+       (siehe .click-zone-CSS), liegen über der Silhouette. */
 
     const group = document.createElementNS(SVG_NS, "g");
 
     group.setAttribute("class", "zone-group");
-    group.setAttribute("clip-path", "url(#" + clipId + ")");
 
     ZONES.forEach(function(zone) {
 
@@ -5986,9 +5966,43 @@ function makeBodySvg(view) {
 
     });
 
-    zoomGroup.appendChild(group);
+    svg.appendChild(group);
 
-    svg.appendChild(zoomGroup);
+    /* Schlichtes Gesicht nur auf der Vorderseite, rein dekorativ. */
+
+    if (view === "front") {
+
+        const face = document.createElementNS(SVG_NS, "g");
+        face.setAttribute("aria-hidden", "true");
+
+        [124, 156].forEach(function(cx) {
+            const eye = document.createElementNS(SVG_NS, "circle");
+            eye.setAttribute("cx", String(cx));
+            eye.setAttribute("cy", "44");
+            eye.setAttribute("r", "3.5");
+            eye.setAttribute("class", "body-face-dot");
+            face.appendChild(eye);
+        });
+
+        [["M 116,34 Q 124,30 132,34"], ["M 148,34 Q 156,30 164,34"]].forEach(function(entry) {
+            const brow = document.createElementNS(SVG_NS, "path");
+            brow.setAttribute("d", entry[0]);
+            brow.setAttribute("class", "body-face-line");
+            face.appendChild(brow);
+        });
+
+        const nose = document.createElementNS(SVG_NS, "path");
+        nose.setAttribute("d", "M 139,49 Q 135,56 138,59 Q 140,60.5 142,59");
+        nose.setAttribute("class", "body-face-line");
+        face.appendChild(nose);
+
+        const mouth = document.createElementNS(SVG_NS, "path");
+        mouth.setAttribute("d", "M 125,65 Q 140,74 155,65");
+        mouth.setAttribute("class", "body-face-line");
+        face.appendChild(mouth);
+
+        svg.appendChild(face);
+    }
 
     return svg;
 }
@@ -12324,15 +12338,20 @@ async function updateDiaryBookTeaser() {
 
 }
 
+let diaryFlyBusy = false;
+
 async function openDiaryEntries() {
+
+    if (diaryFlyBusy) {
+        return;
+    }
 
     function enterEntries() {
         showScreen("diaryEntriesScreen");
     }
 
-    // Klonte Elemente (siehe unten) dürfen keine IDs doppelt ins DOM
-    // bringen - sonst würde z. B. #diaryList oder #diaryDate zweimal
-    // existieren, solange der echte Screen noch im DOM ist.
+    // Geklonte Elemente dürfen keine IDs doppelt ins DOM bringen -
+    // sonst würde z. B. #diaryList oder #diaryDate zweimal existieren.
     function stripIds(el) {
         el.removeAttribute("id");
         el.querySelectorAll("[id]").forEach(function(node) {
@@ -12347,193 +12366,244 @@ async function openDiaryEntries() {
     const bookVisual = document.querySelector("#diaryScreen .diary-book-col .diary-book-visual");
     const entriesScreenEl = document.getElementById("diaryEntriesScreen");
     const pageEl = entriesScreenEl && entriesScreenEl.querySelector(".diary-page");
+    const canAnimate = typeof Element !== "undefined" && typeof Element.prototype.animate === "function";
 
-    if (prefersReducedMotion || !diaryScreenEl || !bookVisual || !entriesScreenEl || !pageEl) {
+    if (prefersReducedMotion || !canAnimate || !diaryScreenEl || !bookVisual || !entriesScreenEl || !pageEl) {
         await renderDiaryList();
         enterEntries();
         return;
     }
 
-    // Den Inhalt der Zielseite VORAB laden, damit der Seiten-Klon
-    // (Klon 3 unten) wortwörtlich dieselben Einträge zeigt wie die
-    // Seite, die am Ende tatsächlich auf dem Schreibtisch liegt.
+    diaryFlyBusy = true;
+
+    // Inhalt der Zielseite VORAB laden, damit der Seiten-Klon
+    // wortwörtlich dieselben Einträge zeigt wie die echte Seite.
     await renderDiaryList();
 
-    // Das echte Ziel-Rechteck von .diary-page ermitteln: dafür den
-    // Zielscreen kurz unsichtbar (aber im Layout) einblenden, messen,
-    // und sofort wieder verstecken - ohne das für den Betrachter
-    // sichtbar zu machen.
-    entriesScreenEl.classList.remove("hidden");
-    entriesScreenEl.style.visibility = "hidden";
-    const targetRect = pageEl.getBoundingClientRect();
-    entriesScreenEl.classList.add("hidden");
-    entriesScreenEl.style.visibility = "";
-
+    // ---------- 1. Messen ----------
+    // Buch OHNE Hover-Neigung messen (sonst würde der Klon beim Start
+    // um ein paar Pixel springen).
+    const prevTransition = bookVisual.style.transition;
+    const prevTransform = bookVisual.style.transform;
+    bookVisual.style.transition = "none";
+    bookVisual.style.transform = "none";
     const bookRect = bookVisual.getBoundingClientRect();
+    bookVisual.style.transition = prevTransition;
+    bookVisual.style.transform = prevTransform;
+
     const screenRect = diaryScreenEl.getBoundingClientRect();
 
-    // Brennpunkt für Schicht 1: die Mitte des Buchs, als Prozentwert
-    // innerhalb des geklonten Screens - darauf wächst gleich alles
-    // andere zu, damit es wirkt, als würde man selbst darauf
-    // zufliegen.
-    const bookCenterX = bookRect.left + bookRect.width / 2;
-    const bookCenterY = bookRect.top + bookRect.height / 2;
-    const originX = ((bookCenterX - screenRect.left) / screenRect.width) * 100;
-    const originY = ((bookCenterY - screenRect.top) / screenRect.height) * 100;
+    // Zielseite: dafür den Ziel-Screen kurz (unsichtbar) anstelle des
+    // alten Screens ins Layout nehmen, messen, zurücktauschen. Der
+    // Seiten-Scroll wird beim Wechsel auf 0 gesetzt, daher wird die
+    // Position als Dokumentposition ermittelt.
+    const diaryWasHidden = diaryScreenEl.classList.contains("hidden");
+    const entriesWasHidden = entriesScreenEl.classList.contains("hidden");
+    diaryScreenEl.classList.add("hidden");
+    entriesScreenEl.classList.remove("hidden");
+    entriesScreenEl.style.visibility = "hidden";
+    const rawTarget = pageEl.getBoundingClientRect();
+    const targetRect = {
+        left: rawTarget.left + window.scrollX,
+        top: rawTarget.top + window.scrollY,
+        width: rawTarget.width,
+        height: rawTarget.height
+    };
+    entriesScreenEl.classList.toggle("hidden", entriesWasHidden);
+    entriesScreenEl.style.visibility = "";
+    diaryScreenEl.classList.toggle("hidden", diaryWasHidden);
 
-    document.body.classList.add("diary-zoom-active");
-    diaryScreenEl.style.visibility = "hidden";
+    // ---------- 2. Kamera berechnen ----------
+    // Bildschirmposition = s * Weltposition + (1 - s) * F. F ist der
+    // Fixpunkt der Kamerafahrt; er wird so gewählt, dass die Zielseite
+    // am Ende EXAKT auf ihrer echten Position landet.
+    const bookCx = bookRect.left + bookRect.width / 2;
+    const bookCy = bookRect.top + bookRect.height / 2;
+    const targetCx = targetRect.left + targetRect.width / 2;
+    const targetCy = targetRect.top + targetRect.height / 2;
+    const S = Math.max(targetRect.width / bookRect.width, 1.5);
+    const Fx = (targetCx - S * bookCx) / (1 - S);
+    const Fy = (targetCy - S * bookCy) / (1 - S);
 
-    const DURATION = 0.62;
-    const EASE = "cubic-bezier(0.62, 0, 0.18, 1)";
+    const DURATION = window.innerWidth < 760 ? 1300 : 1500;
+    const FRAMES = Math.round(DURATION / 1000 * 60);
 
-    // Schicht 1: Klon des GESAMTEN bisherigen Screens - wächst, vom
-    // Buch als Brennpunkt aus, weit über den Bildschirm hinaus und
-    // verblasst dabei. Dadurch zieht alles drumherum scheinbar an
-    // einem vorbei, statt dass nur das Buch isoliert näher kommt.
+    function clamp01(x) { return x < 0 ? 0 : (x > 1 ? 1 : x); }
+    function smooth(a, b, x) {
+        const t = clamp01((x - a) / (b - a));
+        return t * t * (3 - 2 * t);
+    }
+    // Hauptkurve: Mischung aus quintischem Smootherstep und Sinus -
+    // sanfter Anlauf, ruhiges Ausrollen, keinerlei Ruck.
+    function ease(u) {
+        const q = u * u * u * (u * (u * 6 - 15) + 10);
+        const c = 0.5 - 0.5 * Math.cos(Math.PI * u);
+        return 0.5 * q + 0.5 * c;
+    }
+
+    // ---------- 3. Overlay aufbauen ----------
+    const overlay = document.createElement("div");
+    overlay.className = "diary-fly";
+    overlay.setAttribute("aria-hidden", "true");
+
+    const deskLayer = document.createElement("div");
+    deskLayer.className = "diary-fly-desk";
+    const sceneSrc = document.querySelector(".diary-desk-scene");
+    if (sceneSrc) {
+        // Die Gegenstände nutzen Farbverläufe per url(#id). Die echte
+        // Szene ist (noch) display:none und kann sie nicht liefern -
+        // daher bekommt der Klon eigene, umbenannte IDs.
+        const sceneClone = sceneSrc.cloneNode(true);
+        let sceneHtml = sceneClone.innerHTML;
+        sceneClone.querySelectorAll("[id]").forEach(function(node) {
+            const oldId = node.id;
+            const re = new RegExp("(id=\"|#)" + oldId + "(\"|\\))", "g");
+            sceneHtml = sceneHtml.replace(re, "$1" + oldId + "-fly$2");
+        });
+        sceneClone.innerHTML = sceneHtml;
+        deskLayer.appendChild(sceneClone);
+    }
+
+    const tilt = document.createElement("div");
+    tilt.className = "diary-fly-tilt";
+    const cam = document.createElement("div");
+    cam.className = "diary-fly-cam";
+    tilt.appendChild(cam);
+
+    function place(el, rect) {
+        el.classList.add("diary-fly-item");
+        el.style.left = rect.left + "px";
+        el.style.top = rect.top + "px";
+        el.style.width = rect.width + "px";
+        el.style.height = rect.height + "px";
+    }
+
+    // Alter Screen (ohne Buch - das Buch ist ein eigenes Objekt).
     const stageClone = diaryScreenEl.cloneNode(true);
     stripIds(stageClone);
-    stageClone.classList.add("diary-zoom-clone", "diary-zoom-stage-clone");
-    stageClone.style.position = "fixed";
-    stageClone.style.left = screenRect.left + "px";
-    stageClone.style.top = screenRect.top + "px";
-    stageClone.style.width = screenRect.width + "px";
-    stageClone.style.height = screenRect.height + "px";
-    stageClone.style.margin = "0";
-    stageClone.style.maxWidth = "none";
-    stageClone.style.zIndex = "9997";
-    stageClone.style.transformOrigin = originX + "% " + originY + "%";
-    stageClone.style.transform = "scale(1)";
-    stageClone.style.transition = "none";
-    document.body.appendChild(stageClone);
+    stageClone.classList.remove("hidden", "enter");
+    const stageBook = stageClone.querySelector(".diary-book-col .diary-book-visual");
+    if (stageBook) {
+        stageBook.style.visibility = "hidden";
+    }
+    place(stageClone, screenRect);
+    stageClone.style.visibility = "visible";
 
-    // Schicht 2: Klon des geschlossenen Buch-Einbands, an der echten
-    // Stelle auf dem Formular-Screen - wächst und klappt gleichzeitig
-    // auf.
     const bookClone = bookVisual.cloneNode(true);
     stripIds(bookClone);
-    bookClone.classList.add("diary-zoom-clone");
-    bookClone.style.position = "fixed";
-    bookClone.style.left = bookRect.left + "px";
-    bookClone.style.top = bookRect.top + "px";
-    bookClone.style.width = bookRect.width + "px";
-    bookClone.style.height = bookRect.height + "px";
-    bookClone.style.maxWidth = "none";
-    bookClone.style.margin = "0";
-    bookClone.style.zIndex = "9998";
-    bookClone.style.transformOrigin = "top left";
-    bookClone.style.transform = "translate(0px, 0px) scale(1, 1)";
+    bookClone.style.transform = "none";
     bookClone.style.transition = "none";
-    document.body.appendChild(bookClone);
-    bookClone.classList.add("diary-book-opening");
+    place(bookClone, bookRect);
+    const coverClone = bookClone.querySelector(".diary-book-cover");
 
-    // Schicht 3: Klon der ECHTEN Zielseite (.diary-page, bereits mit
-    // den geladenen Einträgen gefüllt) - startet unsichtbar/klein
-    // exakt an der Buch-Position und wächst GENAU in seine wirkliche
-    // Endposition/-größe hinein, während er gleichzeitig einblendet.
-    // Weil das wortwörtlich dieselbe Seite mit denselben Inhalten ist,
-    // die am Ende dort liegt, bleibt es während des ganzen Übergangs
-    // durchgehend dasselbe Buch.
+    // Echte Zielseite in End-Größe, gleichmäßig auf 1/S verkleinert und
+    // mittig im Buch platziert - die Kamera vergrößert sie auf genau 1.
     const pageClone = pageEl.cloneNode(true);
     stripIds(pageClone);
-    pageClone.classList.add("diary-zoom-clone");
-    pageClone.style.position = "fixed";
-    pageClone.style.left = targetRect.left + "px";
-    pageClone.style.top = targetRect.top + "px";
-    pageClone.style.width = targetRect.width + "px";
-    pageClone.style.height = targetRect.height + "px";
-    pageClone.style.maxWidth = "none";
-    pageClone.style.margin = "0";
-    pageClone.style.zIndex = "9999";
-    pageClone.style.transformOrigin = "top left";
-
-    const startScaleX = bookRect.width / targetRect.width;
-    const startScaleY = bookRect.height / targetRect.height;
-    const startTranslateX = bookRect.left - targetRect.left;
-    const startTranslateY = bookRect.top - targetRect.top;
-
-    pageClone.style.transform =
-        "translate(" + startTranslateX + "px, " + startTranslateY + "px) " +
-        "scale(" + startScaleX + ", " + startScaleY + ")";
+    place(pageClone, {
+        left: bookCx - targetRect.width / 2,
+        top: bookCy - targetRect.height / 2,
+        width: targetRect.width,
+        height: targetRect.height
+    });
+    pageClone.style.transformOrigin = "50% 50%";
+    pageClone.style.transform = "scale(" + (1 / S) + ")";
     pageClone.style.opacity = "0";
-    pageClone.style.transition = "none";
-    document.body.appendChild(pageClone);
 
-    // Erzwungener Reflow, damit die obigen Ausgangszustände (ohne
-    // Transition) sicher angewendet sind, bevor im nächsten Frame die
-    // eigentlichen Ziel-Transformationen gesetzt werden - sonst
-    // könnte der Browser Start- und Endzustand zusammenfassen und die
-    // Animationen würden nie sichtbar ablaufen.
-    stageClone.getBoundingClientRect();
-    bookClone.getBoundingClientRect();
-    pageClone.getBoundingClientRect();
+    const shade = document.createElement("div");
+    shade.className = "diary-fly-shade";
 
-    const bookScaleX = targetRect.width / bookRect.width;
-    const bookScaleY = targetRect.height / bookRect.height;
-    const bookTranslateX = targetRect.left - bookRect.left;
-    const bookTranslateY = targetRect.top - bookRect.top;
+    cam.appendChild(stageClone);
+    cam.appendChild(bookClone);
+    cam.appendChild(pageClone);
+    overlay.appendChild(deskLayer);
+    overlay.appendChild(tilt);
+    overlay.appendChild(shade);
 
-    requestAnimationFrame(function () {
-        requestAnimationFrame(function () {
+    // Scrollen/Wischen während des Flugs verhindern.
+    function block(e) { e.preventDefault(); }
+    overlay.addEventListener("wheel", block, { passive: false });
+    overlay.addEventListener("touchmove", block, { passive: false });
 
-            stageClone.style.transition =
-                "transform " + DURATION + "s " + EASE + ", " +
-                "opacity " + (DURATION * 0.75) + "s ease-in";
-            stageClone.style.transform = "scale(2.4)";
-            stageClone.style.opacity = "0";
+    // ---------- 4. Keyframes aus der Hauptkurve abtasten ----------
+    const kfCam = [], kfTilt = [], kfStage = [], kfBook = [], kfPage = [],
+          kfDesk = [], kfShade = [], kfCover = [];
 
-            bookClone.style.transition =
-                "transform " + DURATION + "s " + EASE + ", " +
-                "opacity " + (DURATION * 0.55) + "s ease-in " + (DURATION * 0.25) + "s";
-            bookClone.style.transform =
-                "translate(" + bookTranslateX + "px, " + bookTranslateY + "px) " +
-                "scale(" + bookScaleX + ", " + bookScaleY + ")";
-            bookClone.style.opacity = "0";
+    for (let i = 0; i <= FRAMES; i++) {
+        const u = i / FRAMES;
+        const e = ease(u);
+        const sc = Math.pow(S, e);
+        const tx = (1 - sc) * Fx;
+        const ty = (1 - sc) * Fy;
+        const o = u;
 
-            pageClone.style.transition =
-                "transform " + DURATION + "s " + EASE + ", " +
-                "opacity " + (DURATION * 0.55) + "s ease-out " + (DURATION * 0.3) + "s";
-            pageClone.style.transform = "translate(0px, 0px) scale(1, 1)";
-            pageClone.style.opacity = "1";
+        kfCam.push({ offset: o, transform: "translate3d(" + tx.toFixed(3) + "px," + ty.toFixed(3) + "px,0) scale(" + sc.toFixed(5) + ")" });
+        kfTilt.push({ offset: o, transform: "perspective(1800px) rotateX(" + (2.2 * Math.sin(Math.PI * e)).toFixed(4) + "deg)" });
+        kfStage.push({ offset: o, opacity: 1 - smooth(0.06, 0.62, e) });
+        kfBook.push({ offset: o, opacity: 1 - smooth(0.60, 0.86, e) });
+        kfPage.push({ offset: o, opacity: smooth(0.40, 0.68, e) });
+        kfDesk.push({ offset: o, opacity: smooth(0.28, 0.86, e) });
+        kfShade.push({ offset: o, opacity: Math.sin(Math.PI * e) });
+        const open = smooth(0.04, 0.58, e);
+        kfCover.push({ offset: o, transform: "rotateY(" + (-146 * open).toFixed(3) + "deg)" });
+    }
 
-        });
-    });
-
-    pageClone.addEventListener("transitionend", function handleZoomIn(e) {
-
-        if (e.target !== pageClone || e.propertyName !== "transform") {
-            return;
-        }
-
-        pageClone.removeEventListener("transitionend", handleZoomIn);
-
-        // Der Seiten-Klon ist jetzt exakt an der echten Stelle
-        // angekommen. Jetzt den eigentlichen Screen-Wechsel anstoßen -
-        // da die echte Seite an derselben Stelle, in derselben
-        // Größe, mit denselben Inhalten liegt, ist der Übergang
-        // nahtlos.
-        enterEntries();
+    // ---------- 5. Starten ----------
+    function cleanup() {
+        overlay.removeEventListener("wheel", block);
+        overlay.removeEventListener("touchmove", block);
+        overlay.remove();
+        document.body.classList.remove("diary-flying");
+        entriesScreenEl.style.animation = "";
         diaryScreenEl.style.visibility = "";
+        diaryFlyBusy = false;
+    }
 
-        [stageClone, bookClone, pageClone].forEach(function(el) {
-            el.style.transition = "opacity 0.22s ease-out";
-            el.style.opacity = "0";
+    document.body.appendChild(overlay);
+    document.body.classList.add("diary-flying");
+    diaryScreenEl.style.visibility = "hidden";
+
+    const opts = { duration: DURATION, easing: "linear", fill: "forwards" };
+    let anims;
+    try {
+        anims = [
+            cam.animate(kfCam, opts),
+            tilt.animate(kfTilt, opts),
+            stageClone.animate(kfStage, opts),
+            bookClone.animate(kfBook, opts),
+            pageClone.animate(kfPage.map(function(k, i) {
+                return { offset: k.offset, opacity: k.opacity, transform: "scale(" + (1 / S) + ")" };
+            }), opts),
+            deskLayer.animate(kfDesk, opts),
+            shade.animate(kfShade, opts)
+        ];
+        if (coverClone) {
+            anims.push(coverClone.animate(kfCover, opts));
+        }
+    } catch (err) {
+        cleanup();
+        enterEntries();
+        return;
+    }
+
+    // Ende der Fahrt: erst den echten Screen darunter einschalten (ohne
+    // eigene Einblend-Animation, er liegt ja deckungsgleich unter dem
+    // Overlay), dann das Overlay nach zwei Frames entfernen.
+    let finished = false;
+    function finish() {
+        if (finished) { return; }
+        finished = true;
+        enterEntries();
+        entriesScreenEl.style.animation = "none";
+        requestAnimationFrame(function() {
+            requestAnimationFrame(cleanup);
         });
+    }
 
-        pageClone.addEventListener("transitionend", function handleFade(e2) {
-
-            if (e2.target !== pageClone || e2.propertyName !== "opacity") {
-                return;
-            }
-
-            stageClone.remove();
-            bookClone.remove();
-            pageClone.remove();
-            document.body.classList.remove("diary-zoom-active");
-
-        });
-
-    });
+    Promise.all(anims.map(function(a) { return a.finished; }))
+        .then(finish)
+        .catch(finish);
+    window.setTimeout(finish, DURATION + 800);
 
 }
 
