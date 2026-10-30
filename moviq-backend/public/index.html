@@ -2,12 +2,6 @@
 <html lang="de">
 
 <head>
-<script type="importmap">
-{ "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
-} }
-</script>
 
 
 <meta charset="UTF-8">
@@ -15759,8 +15753,12 @@ window.setAnalysisMode = function (mode) {
 };
 
 /* Beim Verlassen des Startscreens Render-Schleife pausieren */
+let wasVisible = !$("startScreen").classList.contains("hidden");
+
 new MutationObserver(function () {
     const visible = !$("startScreen").classList.contains("hidden");
+    if (visible && !wasVisible && viewer) { viewer.reset(); }
+    wasVisible = visible;
     if (visible && loadState === "idle") { initViewer(); }
     if (viewer) { viewer.setActive(wantActive && visible); }
 }).observe($("startScreen"), { attributes: true, attributeFilter: ["class"] });
@@ -15772,10 +15770,11 @@ async function initViewer() {
 
     try {
 
-        const THREE = await import("three");
-        const { OrbitControls } = await import("three/addons/controls/OrbitControls.js");
-        const { GLTFLoader } = await import("three/addons/loaders/GLTFLoader.js");
-        const { RoomEnvironment } = await import("three/addons/environments/RoomEnvironment.js");
+        const lib = await import("/three-bundle.js");
+        const THREE = lib.THREE;
+        const OrbitControls = lib.OrbitControls;
+        const GLTFLoader = lib.GLTFLoader;
+        const RoomEnvironment = lib.RoomEnvironment;
 
         viewer = await buildViewer(THREE, OrbitControls, GLTFLoader, RoomEnvironment);
         loadState = "ready";
@@ -16055,14 +16054,17 @@ async function buildViewer(THREE, OrbitControls, GLTFLoader, RoomEnvironment) {
         applyVisibility();
     };
 
-    $("anatReset").onclick = function () {
-        entries.forEach(function (e) { e.peeled = false; });
+    function fullReset(animate) {
+        entries.forEach(function (e) { e.peeled = false; e.hoverT = 0; e.hover = 0; });
         Object.keys(layerOn).forEach(function (k) { layerOn[k] = true; });
         document.querySelectorAll(".anat-chip").forEach(function (c) { c.classList.remove("off"); c.setAttribute("aria-pressed", "true"); });
         select(null);
+        setHover(null);
         applyVisibility();
-        resetCamera(true);
-    };
+        resetCamera(animate);
+    }
+
+    $("anatReset").onclick = function () { fullReset(true); };
 
     /* Ebenen */
 
@@ -16293,6 +16295,12 @@ async function buildViewer(THREE, OrbitControls, GLTFLoader, RoomEnvironment) {
     window.__anat = { entries: entries, camera: camera, controls: controls, select: select, pick: pick, layerOn: layerOn };
 
     return {
+        reset: function () {
+            fullReset(false);
+            controls.autoRotate = !reduceMotion;
+            $("anatHint").classList.remove("gone");
+            dim = 0; dimT = 0; paint(); need = true;
+        },
         setActive: function (on) {
             active = on;
             if (on) { last = performance.now(); need = true; resize(); }
