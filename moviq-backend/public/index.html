@@ -7541,9 +7541,7 @@ const ANALYSIS_PATTERNS = [
         weight: 0,
         match: function() { return true; },
         text: function(area) {
-            return "Aus deinen Angaben lässt sich noch kein eindeutiges Muster ableiten. " +
-                   "Beobachte, wie sich die Beschwerden im Bereich " + area +
-                   " über die nächsten Tage entwickeln.";
+            return "In deinen Angaben gibt es keine Hinweise auf eine ernste Ursache. Am wahrscheinlichsten handelt es sich um eine funktionelle, meist gut behandelbare Beschwerde im Bereich " + area + ". Beobachte, wie sie sich über die nächsten Tage entwickelt.";
         },
         advice: [
             "Trag deine Beschwerden im Tagebuch ein, um Entwicklung und Auslöser besser zu erkennen.",
@@ -7885,7 +7883,7 @@ const LWS_RESULTS = {
     "funktionsgruppe-unspezifisch": {
         redflag: null,
         text: function(area) {
-            return "Bei " + area + " lässt sich keine eindeutige bewegungs- oder haltungsabhängige Auslösung erkennen, und es liegt keine Ausstrahlung mit neurologischen Auffälligkeiten vor – das passt zu einem unspezifischen, einfachen Rückenschmerzmuster, wie es sehr häufig vorkommt.";
+            return "Bei " + area + " wechselt die Auslösung der Schmerzen, und es liegt keine Ausstrahlung mit neurologischen Auffälligkeiten vor – das passt zu einem unspezifischen, einfachen Rückenschmerzmuster, wie es sehr häufig vorkommt.";
         },
         advice: [
             "Bleib so gut wie möglich in normaler Alltagsbewegung – Schonung verlängert unspezifische Rückenschmerzen meist eher.",
@@ -7921,7 +7919,7 @@ const LWS_RESULTS = {
     fallback: {
         redflag: null,
         text: function(area) {
-            return "Aus deinen Angaben zu " + area + " lässt sich noch kein eindeutiges Muster ableiten.";
+            return "In deinen Angaben zu " + area + " gibt es keine Hinweise auf eine ernste Ursache. Am wahrscheinlichsten handelt es sich um eine funktionelle, meist gut behandelbare Beschwerde, die sich durch angepasste Belastung und gezielte Bewegung günstig beeinflussen lässt.";
         },
         advice: [
             "Trag deine Beschwerden im Tagebuch ein, um Entwicklung und Auslöser besser zu erkennen.",
@@ -8165,7 +8163,7 @@ const BWS_RESULTS = {
     fallback: {
         redflag: null,
         text: function(area) {
-            return "Aus deinen Angaben zu " + area + " lässt sich noch kein eindeutiges Muster ableiten.";
+            return "In deinen Angaben zu " + area + " gibt es keine Hinweise auf eine ernste Ursache. Am wahrscheinlichsten handelt es sich um eine funktionelle, meist gut behandelbare Beschwerde, die sich durch angepasste Belastung und gezielte Bewegung günstig beeinflussen lässt.";
         },
         advice: [
             "Trag deine Beschwerden im Tagebuch ein, um Entwicklung und Auslöser besser zu erkennen.",
@@ -8469,7 +8467,7 @@ const HWS_RESULTS = {
     fallback: {
         redflag: null,
         text: function(area) {
-            return "Aus deinen Angaben zu " + area + " lässt sich noch kein eindeutiges Muster ableiten.";
+            return "In deinen Angaben zu " + area + " gibt es keine Hinweise auf eine ernste Ursache. Am wahrscheinlichsten handelt es sich um eine funktionelle, meist gut behandelbare Beschwerde, die sich durch angepasste Belastung und gezielte Bewegung günstig beeinflussen lässt.";
         },
         advice: [
             "Trag deine Beschwerden im Tagebuch ein, um Entwicklung und Auslöser besser zu erkennen.",
@@ -8698,7 +8696,7 @@ const SCHULTER_RESULTS = {
     fallback: {
         redflag: null,
         text: function(area) {
-            return "Aus deinen Angaben zu " + area + " lässt sich noch kein eindeutiges Muster ableiten.";
+            return "In deinen Angaben zu " + area + " gibt es keine Hinweise auf eine ernste Ursache. Am wahrscheinlichsten handelt es sich um eine funktionelle, meist gut behandelbare Beschwerde, die sich durch angepasste Belastung und gezielte Bewegung günstig beeinflussen lässt.";
         },
         advice: [
             "Trag deine Beschwerden im Tagebuch ein, um Entwicklung und Auslöser besser zu erkennen.",
@@ -8905,7 +8903,7 @@ const ELLENBOGEN_RESULTS = {
     "reizung-akut-ellenbogen": {
         redflag: null,
         text: function(area) {
-            return "Bei " + area + " bestehen die Beschwerden seit weniger als 6 Wochen, ohne eindeutige seitenbetonte Zuordnung oder rote Flaggen – das passt zu einer akuten, meist gut behandelbaren Reizung im Ellenbogenbereich.";
+            return "Bei " + area + " bestehen die Beschwerden seit weniger als 6 Wochen, ohne rote Flaggen – das passt am ehesten zu einer akuten, meist gut behandelbaren Reizung im Ellenbogenbereich.";
         },
         advice: [
             "Belastungen, die den Schmerz deutlich auslösen, vorübergehend reduzieren, ohne den Arm komplett ruhigzustellen.",
@@ -8916,7 +8914,7 @@ const ELLENBOGEN_RESULTS = {
     "ueberlastung-chronisch-ellenbogen": {
         redflag: null,
         text: function(area) {
-            return "Bei " + area + " bestehen die Beschwerden schon länger als 6 Wochen, ohne eindeutige seitenbetonte Zuordnung oder rote Flaggen – das passt zu einem chronischen Überlastungsmuster im Ellenbogenbereich.";
+            return "Bei " + area + " bestehen die Beschwerden schon länger als 6 Wochen, ohne rote Flaggen – das passt am ehesten zu einem chronischen Überlastungsmuster im Ellenbogenbereich.";
         },
         advice: [
             "Ein strukturiertes, langsam gesteigertes Kräftigungsprogramm der Unterarmmuskulatur hilft bei diesem Muster meist am meisten.",
@@ -8928,7 +8926,7 @@ const ELLENBOGEN_RESULTS = {
     fallback: {
         redflag: null,
         text: function(area) {
-            return "Aus deinen Angaben zu " + area + " lässt sich noch kein eindeutiges Muster ableiten.";
+            return "In deinen Angaben zu " + area + " gibt es keine Hinweise auf eine ernste Ursache. Am wahrscheinlichsten handelt es sich um eine funktionelle, meist gut behandelbare Beschwerde, die sich durch angepasste Belastung und gezielte Bewegung günstig beeinflussen lässt.";
         },
         advice: [
             "Trag deine Beschwerden im Tagebuch ein, um Entwicklung und Auslöser besser zu erkennen.",
@@ -9160,7 +9158,7 @@ const HAND_RESULTS = {
     "reizung-akut-hand": {
         redflag: null,
         text: function(area) {
-            return "Bei " + area + " bestehen die Beschwerden seit weniger als 6 Wochen, ohne eindeutige Zuordnung zu einem der abgefragten Muster oder rote Flaggen – das passt zu einer akuten, meist gut behandelbaren Reizung im Hand-/Fingerbereich.";
+            return "Bei " + area + " bestehen die Beschwerden seit weniger als 6 Wochen, ohne rote Flaggen – das passt am ehesten zu einer akuten, meist gut behandelbaren Reizung im Hand-/Fingerbereich.";
         },
         advice: [
             "Belastungen, die den Schmerz deutlich auslösen, vorübergehend reduzieren, ohne die Hand komplett ruhigzustellen.",
@@ -9171,7 +9169,7 @@ const HAND_RESULTS = {
     "ueberlastung-chronisch-hand": {
         redflag: null,
         text: function(area) {
-            return "Bei " + area + " bestehen die Beschwerden schon länger als 6 Wochen, ohne eindeutige Zuordnung zu einem der abgefragten Muster oder rote Flaggen – das passt zu einem chronischen Überlastungsmuster im Hand-/Fingerbereich.";
+            return "Bei " + area + " bestehen die Beschwerden schon länger als 6 Wochen, ohne rote Flaggen – das passt am ehesten zu einem chronischen Überlastungsmuster im Hand-/Fingerbereich.";
         },
         advice: [
             "Prüfe, ob bestimmte Alltags- oder Arbeitsbewegungen (z. B. Tippen, Greifen) die Beschwerden regelmäßig auslösen, und passe die Ausführung bzw. Pausen an.",
@@ -9183,7 +9181,7 @@ const HAND_RESULTS = {
     fallback: {
         redflag: null,
         text: function(area) {
-            return "Aus deinen Angaben zu " + area + " lässt sich noch kein eindeutiges Muster ableiten.";
+            return "In deinen Angaben zu " + area + " gibt es keine Hinweise auf eine ernste Ursache. Am wahrscheinlichsten handelt es sich um eine funktionelle, meist gut behandelbare Beschwerde, die sich durch angepasste Belastung und gezielte Bewegung günstig beeinflussen lässt.";
         },
         advice: [
             "Trag deine Beschwerden im Tagebuch ein, um Entwicklung und Auslöser besser zu erkennen.",
@@ -9410,7 +9408,7 @@ const BECKEN_RESULTS = {
     "reizung-akut-becken": {
         redflag: null,
         text: function(area) {
-            return "Bei " + area + " bestehen die Beschwerden seit weniger als 6 Wochen, ohne eindeutige Zuordnung zu einem der abgefragten Muster oder rote Flaggen – das passt zu einer akuten, meist gut behandelbaren Reizung im Becken-/Hüftbereich.";
+            return "Bei " + area + " bestehen die Beschwerden seit weniger als 6 Wochen, ohne rote Flaggen – das passt am ehesten zu einer akuten, meist gut behandelbaren Reizung im Becken-/Hüftbereich.";
         },
         advice: [
             "Belastungen, die den Schmerz deutlich auslösen, vorübergehend reduzieren, ohne dich komplett zu schonen.",
@@ -9421,7 +9419,7 @@ const BECKEN_RESULTS = {
     "ueberlastung-chronisch-becken": {
         redflag: null,
         text: function(area) {
-            return "Bei " + area + " bestehen die Beschwerden schon länger als 6 Wochen, ohne eindeutige Zuordnung zu einem der abgefragten Muster oder rote Flaggen – das passt zu einem chronischen Überlastungsmuster im Becken-/Hüftbereich.";
+            return "Bei " + area + " bestehen die Beschwerden schon länger als 6 Wochen, ohne rote Flaggen – das passt am ehesten zu einem chronischen Überlastungsmuster im Becken-/Hüftbereich.";
         },
         advice: [
             "Ein strukturiertes, langsam gesteigertes Kräftigungsprogramm für die Hüft- und Rumpfmuskulatur hilft bei diesem Muster meist am meisten.",
@@ -9433,7 +9431,7 @@ const BECKEN_RESULTS = {
     fallback: {
         redflag: null,
         text: function(area) {
-            return "Aus deinen Angaben zu " + area + " lässt sich noch kein eindeutiges Muster ableiten.";
+            return "In deinen Angaben zu " + area + " gibt es keine Hinweise auf eine ernste Ursache. Am wahrscheinlichsten handelt es sich um eine funktionelle, meist gut behandelbare Beschwerde, die sich durch angepasste Belastung und gezielte Bewegung günstig beeinflussen lässt.";
         },
         advice: [
             "Trag deine Beschwerden im Tagebuch ein, um Entwicklung und Auslöser besser zu erkennen.",
@@ -9673,7 +9671,7 @@ const KNIE_RESULTS = {
     "reizung-akut-knie": {
         redflag: null,
         text: function(area) {
-            return "Bei " + area + " bestehen die Beschwerden seit weniger als 6 Wochen, ohne eindeutige Zuordnung zu einem der abgefragten Muster oder rote Flaggen – das passt zu einer akuten, meist gut behandelbaren Reizung im Kniebereich.";
+            return "Bei " + area + " bestehen die Beschwerden seit weniger als 6 Wochen, ohne rote Flaggen – das passt am ehesten zu einer akuten, meist gut behandelbaren Reizung im Kniebereich.";
         },
         advice: [
             "Belastungen, die den Schmerz deutlich auslösen, vorübergehend reduzieren, ohne dich komplett zu schonen.",
@@ -9684,7 +9682,7 @@ const KNIE_RESULTS = {
     "ueberlastung-chronisch-knie": {
         redflag: null,
         text: function(area) {
-            return "Bei " + area + " bestehen die Beschwerden schon länger als 6 Wochen, ohne eindeutige Zuordnung zu einem der abgefragten Muster oder rote Flaggen – das passt zu einem chronischen Überlastungsmuster im Kniebereich.";
+            return "Bei " + area + " bestehen die Beschwerden schon länger als 6 Wochen, ohne rote Flaggen – das passt am ehesten zu einem chronischen Überlastungsmuster im Kniebereich.";
         },
         advice: [
             "Ein strukturiertes, langsam gesteigertes Kräftigungsprogramm für die Bein- und Rumpfmuskulatur hilft bei diesem Muster meist am meisten.",
@@ -9696,7 +9694,7 @@ const KNIE_RESULTS = {
     fallback: {
         redflag: null,
         text: function(area) {
-            return "Aus deinen Angaben zu " + area + " lässt sich noch kein eindeutiges Muster ableiten.";
+            return "In deinen Angaben zu " + area + " gibt es keine Hinweise auf eine ernste Ursache. Am wahrscheinlichsten handelt es sich um eine funktionelle, meist gut behandelbare Beschwerde, die sich durch angepasste Belastung und gezielte Bewegung günstig beeinflussen lässt.";
         },
         advice: [
             "Trag deine Beschwerden im Tagebuch ein, um Entwicklung und Auslöser besser zu erkennen.",
@@ -9934,7 +9932,7 @@ const UNTERSCHENKEL_RESULTS = {
     "reizung-akut-unterschenkel": {
         redflag: null,
         text: function(area) {
-            return "Bei " + area + " bestehen die Beschwerden seit weniger als 6 Wochen, ohne eindeutige Zuordnung zu einem der abgefragten Muster oder rote Flaggen – das passt zu einer akuten, meist gut behandelbaren Reizung im Unterschenkelbereich.";
+            return "Bei " + area + " bestehen die Beschwerden seit weniger als 6 Wochen, ohne rote Flaggen – das passt am ehesten zu einer akuten, meist gut behandelbaren Reizung im Unterschenkelbereich.";
         },
         advice: [
             "Belastungen, die den Schmerz deutlich auslösen, vorübergehend reduzieren, ohne dich komplett zu schonen.",
@@ -9945,7 +9943,7 @@ const UNTERSCHENKEL_RESULTS = {
     "ueberlastung-chronisch-unterschenkel": {
         redflag: null,
         text: function(area) {
-            return "Bei " + area + " bestehen die Beschwerden schon länger als 6 Wochen, ohne eindeutige Zuordnung zu einem der abgefragten Muster oder rote Flaggen – das passt zu einem chronischen Überlastungsmuster im Unterschenkelbereich.";
+            return "Bei " + area + " bestehen die Beschwerden schon länger als 6 Wochen, ohne rote Flaggen – das passt am ehesten zu einem chronischen Überlastungsmuster im Unterschenkelbereich.";
         },
         advice: [
             "Prüfe, ob bestimmte Sport- oder Alltagsbewegungen die Beschwerden regelmäßig auslösen, und passe Umfang bzw. Intensität an.",
@@ -9957,7 +9955,7 @@ const UNTERSCHENKEL_RESULTS = {
     fallback: {
         redflag: null,
         text: function(area) {
-            return "Aus deinen Angaben zu " + area + " lässt sich noch kein eindeutiges Muster ableiten.";
+            return "In deinen Angaben zu " + area + " gibt es keine Hinweise auf eine ernste Ursache. Am wahrscheinlichsten handelt es sich um eine funktionelle, meist gut behandelbare Beschwerde, die sich durch angepasste Belastung und gezielte Bewegung günstig beeinflussen lässt.";
         },
         advice: [
             "Trag deine Beschwerden im Tagebuch ein, um Entwicklung und Auslöser besser zu erkennen.",
@@ -10239,7 +10237,7 @@ const FUSS_RESULTS = {
     "reizung-akut-fuss": {
         redflag: null,
         text: function(area) {
-            return "Bei " + area + " bestehen die Beschwerden seit weniger als 6 Wochen, ohne eindeutige Zuordnung zu einem der abgefragten Muster oder rote Flaggen – das passt zu einer akuten, meist gut behandelbaren Reizung im Fußbereich.";
+            return "Bei " + area + " bestehen die Beschwerden seit weniger als 6 Wochen, ohne rote Flaggen – das passt am ehesten zu einer akuten, meist gut behandelbaren Reizung im Fußbereich.";
         },
         advice: [
             "Belastungen, die den Schmerz deutlich auslösen, vorübergehend reduzieren, ohne dich komplett zu schonen.",
@@ -10250,7 +10248,7 @@ const FUSS_RESULTS = {
     "ueberlastung-chronisch-fuss": {
         redflag: null,
         text: function(area) {
-            return "Bei " + area + " bestehen die Beschwerden schon länger als 6 Wochen, ohne eindeutige Zuordnung zu einem der abgefragten Muster oder rote Flaggen – das passt zu einem chronischen Überlastungsmuster im Fußbereich.";
+            return "Bei " + area + " bestehen die Beschwerden schon länger als 6 Wochen, ohne rote Flaggen – das passt am ehesten zu einem chronischen Überlastungsmuster im Fußbereich.";
         },
         advice: [
             "Prüfe, ob bestimmtes Schuhwerk oder bestimmte Alltags-/Sportbewegungen die Beschwerden regelmäßig auslösen.",
@@ -10262,7 +10260,7 @@ const FUSS_RESULTS = {
     fallback: {
         redflag: null,
         text: function(area) {
-            return "Aus deinen Angaben zu " + area + " lässt sich noch kein eindeutiges Muster ableiten.";
+            return "In deinen Angaben zu " + area + " gibt es keine Hinweise auf eine ernste Ursache. Am wahrscheinlichsten handelt es sich um eine funktionelle, meist gut behandelbare Beschwerde, die sich durch angepasste Belastung und gezielte Bewegung günstig beeinflussen lässt.";
         },
         advice: [
             "Trag deine Beschwerden im Tagebuch ein, um Entwicklung und Auslöser besser zu erkennen.",
@@ -10357,9 +10355,7 @@ const KOPF_QUESTION_FLOW = {
             { value: "stress", label: "Beschwerden treten gehäuft in stressigen Phasen auf" }
         ],
         next: function() {
-            regionResultId = (qvArr("tensionCheck").length >= 2)
-                ? "spannungskopfschmerz"
-                : "kopfschmerz-fallback";
+            regionResultId = "spannungskopfschmerz";
             return null;
         }
     },
@@ -10374,7 +10370,7 @@ const KOPF_QUESTION_FLOW = {
             { value: "aura", label: "Vorher Sehstörungen, Kribbeln oder andere Vorboten (Aura)" }
         ],
         next: function() {
-            regionResultId = (qvArr("migraineCheck").length >= 2)
+            regionResultId = (qvArr("migraineCheck").length >= 1)
                 ? "migraene-verdacht"
                 : "kopfschmerz-fallback";
             return null;
@@ -10406,9 +10402,7 @@ const KOPF_QUESTION_FLOW = {
             { value: "nein", label: "Nein, kein klarer Zusammenhang" }
         ],
         next: function(answers) {
-            regionResultId = (answers.cervicalHeadacheCheck.value === "ja")
-                ? "zervikogener-kopfschmerz-primaer"
-                : "kopfschmerz-fallback";
+            regionResultId = "zervikogener-kopfschmerz-primaer";
             return null;
         }
     }
@@ -10507,7 +10501,7 @@ const KOPF_RESULTS = {
     "kopfschmerz-fallback": {
         redflag: null,
         text: function(area) {
-            return "Aus deinen Angaben zu " + area + " lässt sich kein eindeutiges Kopfschmerz-Muster ableiten – möglich ist auch eine Mischform aus mehreren Kopfschmerzarten.";
+            return "Deine Angaben zu " + area + " passen am ehesten zu einer Mischform aus mehreren Kopfschmerzarten (häufig eine Kombination aus Anspannung und Nackenbeteiligung). Rote Flaggen liegen nicht vor, und Mischformen sind gut behandelbar.";
         },
         advice: [
             "Ein Kopfschmerztagebuch (Auslöser, Dauer, Begleitsymptome) hilft, das Muster klarer zu erkennen.",
@@ -10518,7 +10512,7 @@ const KOPF_RESULTS = {
     fallback: {
         redflag: null,
         text: function(area) {
-            return "Aus deinen Angaben zu " + area + " lässt sich noch kein eindeutiges Muster ableiten.";
+            return "In deinen Angaben zu " + area + " gibt es keine Hinweise auf eine ernste Ursache. Am wahrscheinlichsten handelt es sich um eine funktionelle, meist gut behandelbare Beschwerde, die sich durch angepasste Belastung und gezielte Bewegung günstig beeinflussen lässt.";
         },
         advice: [
             "Trag deine Beschwerden im Tagebuch ein, um Entwicklung und Auslöser besser zu erkennen.",
@@ -10743,7 +10737,7 @@ const BRUST_RESULTS = {
     fallback: {
         redflag: null,
         text: function(area) {
-            return "Aus deinen Angaben zu " + area + " lässt sich noch kein eindeutiges Muster ableiten.";
+            return "In deinen Angaben zu " + area + " gibt es keine Hinweise auf eine ernste Ursache. Am wahrscheinlichsten handelt es sich um eine funktionelle, meist gut behandelbare Beschwerde, die sich durch angepasste Belastung und gezielte Bewegung günstig beeinflussen lässt.";
         },
         advice: [
             "Trag deine Beschwerden im Tagebuch ein, um Entwicklung und Auslöser besser zu erkennen.",
@@ -10763,6 +10757,106 @@ const BRUST_RESULTS = {
    zu müssen. Regionen ohne Eintrag nutzen weiterhin den
    allgemeinen QUESTION_FLOW als Fallback.
 ===================================================== */
+
+/* =====================================================
+   ZUSATZFRAGE STATT "KEIN EINDEUTIGES MUSTER"
+   Würde ein Fragebaum sonst bei einem unspezifischen Ergebnis
+   enden, folgt zuerst eine gemeinsame Frage zur Art der
+   Beschwerden. Jede Antwort führt zu einer konkreten Einordnung.
+===================================================== */
+
+const UNSPEC_IDS = {
+    lws: ["funktionsgruppe-unspezifisch"],
+    ellenbogen: ["reizung-akut-ellenbogen", "ueberlastung-chronisch-ellenbogen"],
+    hand: ["reizung-akut-hand", "ueberlastung-chronisch-hand"],
+    becken: ["reizung-akut-becken", "ueberlastung-chronisch-becken"],
+    knie: ["reizung-akut-knie", "ueberlastung-chronisch-knie"],
+    unterschenkel: ["reizung-akut-unterschenkel", "ueberlastung-chronisch-unterschenkel"],
+    fuss: ["reizung-akut-fuss", "ueberlastung-chronisch-fuss"]
+};
+
+let unspecOrigId = null;
+
+const UNSPEC_STEP = {
+    text: "Welche Beschreibung passt am ehesten zu deinen Beschwerden?",
+    type: "choice",
+    options: [
+        { value: "anlauf", label: "Steif und schmerzhaft nach Ruhe oder morgens, wird mit Bewegung besser" },
+        { value: "belastung", label: "Tritt vor allem bei oder nach Belastung auf und bessert sich in Ruhe" },
+        { value: "verspannung", label: "Dumpf, ziehend oder verspannt, tut Wärme oder Dehnen gut" },
+        { value: "haltung", label: "Hängt mit bestimmten Haltungen oder Alltagsbewegungen zusammen (Sitzen, Stehen, Heben)" },
+        { value: "unklar", label: "Nichts davon passt richtig" }
+    ],
+    next: function(answers) {
+        const v = answers.unspecDiff.value;
+        regionResultId = (v === "unklar") ? unspecOrigId : "generic-" + v;
+        return null;
+    }
+};
+
+function unspecDuration() {
+    const key = Object.keys(questionAnswers).filter(function(k) { return k.indexOf("duration") === 0; })[0];
+    const v = key ? questionAnswers[key].value : null;
+    if (v === "akut") {
+        return " Da die Beschwerden erst seit weniger als 6 Wochen bestehen, ist die Aussicht in der Regel gut.";
+    }
+    if (v === "chronisch") {
+        return " Da die Beschwerden schon länger als 6 Wochen bestehen, lohnt sich ein gezielter, schrittweiser Belastungsaufbau mit physiotherapeutischer Begleitung.";
+    }
+    return "";
+}
+
+const SHARED_RESULTS = {
+
+    "generic-anlauf": {
+        redflag: null,
+        text: function(area) {
+            return "Bei " + area + " sind die Beschwerden vor allem nach Ruhephasen oder morgens steif und schmerzhaft und bessern sich mit Bewegung. Das ist ein typisches Anlaufmuster: Es passt am ehesten zu einem gereizten oder beginnend abgenutzten Gelenk, das auf Ruhe empfindlich und auf dosierte Bewegung gut reagiert." + unspecDuration();
+        },
+        advice: [
+            "Bleib in Bewegung und wärm dich vor Belastung gezielt auf – lange Ruhephasen verstärken dieses Muster.",
+            "Sanfte, regelmäßige Bewegung in kleinen Dosen ist meist besser als Schonung oder seltene Spitzenbelastung.",
+            "Bei Schwellung, Überwärmung oder Rötung des Gelenks sollte das ärztlich abgeklärt werden."
+        ]
+    },
+
+    "generic-belastung": {
+        redflag: null,
+        text: function(area) {
+            return "Bei " + area + " treten die Beschwerden vor allem bei oder nach Belastung auf und bessern sich in Ruhe. Das passt am ehesten zu einer Überlastungsreaktion von Sehnen oder Muskeln: Die Belastung war zuletzt größer als die aktuelle Belastbarkeit." + unspecDuration();
+        },
+        advice: [
+            "Belastungen, die den Schmerz deutlich auslösen, vorübergehend dosieren, ohne dich komplett zu schonen.",
+            "Danach Belastung schrittweise wieder aufbauen – Kraft und Belastbarkeit lassen sich gezielt trainieren.",
+            "Wenn nach 1–2 Wochen keine Besserung eintritt, ist eine physiotherapeutische Untersuchung sinnvoll."
+        ]
+    },
+
+    "generic-verspannung": {
+        redflag: null,
+        text: function(area) {
+            return "Bei " + area + " sind die Beschwerden dumpf, ziehend oder verspannt, und Wärme oder Dehnen tut gut. Das passt am ehesten zu einer muskulären Verspannung mit erhöhter Muskelspannung, oft mit Triggerpunkten." + unspecDuration();
+        },
+        advice: [
+            "Wärme, sanftes Dehnen und leichte Bewegung lösen diese Spannung meist gut.",
+            "Auf regelmäßige Bewegungspausen achten und Stress bzw. dauerhafte Anspannung im Blick behalten.",
+            "Kräftigung der umgebenden Muskulatur beugt erneuten Verspannungen vor."
+        ]
+    },
+
+    "generic-haltung": {
+        redflag: null,
+        text: function(area) {
+            return "Bei " + area + " hängen die Beschwerden mit bestimmten Haltungen oder Alltagsbewegungen zusammen. Das passt am ehesten zu einer haltungs- bzw. belastungsabhängigen Überlastung: Einzelne Positionen oder Bewegungsmuster beanspruchen die Strukturen dort zu einseitig." + unspecDuration();
+        },
+        advice: [
+            "Position häufig wechseln und lange Zwangshaltungen unterbrechen.",
+            "Alltagsbewegungen und Arbeitsplatz prüfen: Oft genügen kleine Anpassungen.",
+            "Eine physiotherapeutische Bewegungsanalyse zeigt, welche Muster du gezielt verändern kannst."
+        ]
+    }
+
+};
 
 const REGION_FLOWS = {
 
@@ -10921,6 +11015,7 @@ function getActiveFlow() {
    Fragebaum (generisch oder regionsspezifisch). */
 
 function getStep(id) {
+    if (id === "unspecDiff") { return UNSPEC_STEP; }
     return HISTORY_QUESTIONS[id] || getActiveFlow()[id];
 }
 
@@ -11046,6 +11141,17 @@ function answerQuestion(option) {
     const step = getStep(currentQuestionId);
 
     const next = step.next(questionAnswers);
+
+    if (next === null && currentQuestionId !== "unspecDiff" &&
+        activeFlowKey !== "generic" && UNSPEC_IDS[activeFlowKey] &&
+        UNSPEC_IDS[activeFlowKey].indexOf(regionResultId) !== -1 &&
+        questionHistory.indexOf("unspecDiff") === -1) {
+        unspecOrigId = regionResultId;
+        regionResultId = null;
+        currentQuestionId = "unspecDiff";
+        renderQuestion();
+        return;
+    }
 
     if (next === null) {
         showResultScreen();
@@ -11335,7 +11441,7 @@ function showResultScreen() {
     } else {
 
         const results = REGION_FLOWS[activeFlowKey].results;
-        const result = results[regionResultId] || results.fallback;
+        const result = SHARED_RESULTS[regionResultId] || results[regionResultId] || results.fallback;
 
         narrative = result.text(area);
         advice = result.advice;
@@ -11378,6 +11484,11 @@ function showResultScreen() {
         HISTORY_SUMMARY_LABELS,
         (activeFlowKey === "generic") ? QUESTION_SUMMARY_LABELS : REGION_FLOWS[activeFlowKey].summaryLabels
     );
+
+    if (questionHistory.indexOf("unspecDiff") !== -1) {
+        summaryOrder.push("unspecDiff");
+        summaryLabels.unspecDiff = "Art der Beschwerden";
+    }
 
     summaryOrder.forEach(function(key) {
 
