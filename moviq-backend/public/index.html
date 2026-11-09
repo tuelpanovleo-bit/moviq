@@ -2828,6 +2828,8 @@ body.diary-desk-mode .diary-desk-scene {
     line-height: 1.6;
 }
 
+.prose ul{margin:0 0 16px;padding-left:22px;line-height:1.6;}
+.prose li{margin-bottom:8px;}
 .team-member {
     margin-top: 14px;
 }
@@ -3942,6 +3944,8 @@ body.performance-mode .anat-card { background: rgba(38, 38, 46, 0.92); }
 
 #verifyPendingNote{margin:4px 0 16px;}
 #verifyPendingError:empty{display:none;}
+.btn-danger{ background:#A63A3A; color:#fff; }
+.btn-danger:hover{ background:#8E2F2F; }
 .code-input{
     font-size:30px; letter-spacing:.35em; text-align:center;
     font-weight:700; font-variant-numeric:tabular-nums;
@@ -4499,6 +4503,9 @@ body.performance-mode .anat-card { background: rgba(38, 38, 46, 0.92); }
 
                 <button class="menu-item auth-in hidden hide-no-login"
                         onclick="showChangePassword()">Passwort ändern</button>
+
+                <button class="menu-item auth-in hidden hide-no-login"
+                        onclick="showDeleteAccount()">Account löschen</button>
 
                 <div class="menu-divider auth-in hidden hide-no-login"></div>
 
@@ -5449,7 +5456,10 @@ body.performance-mode .anat-card { background: rgba(38, 38, 46, 0.92); }
                 Ich habe die
                 <button type="button" class="inline-link"
                         onclick="openPage('datenschutz')">Datenschutzerklärung</button>
-                gelesen.
+                gelesen und willige ein, dass meine freiwilligen Angaben
+                (z. B. Arbeitsprofil, Tagebuch, Gesundheitsschirm), die
+                Gesundheitsdaten sein können, gespeichert werden. Ich kann
+                das jederzeit widerrufen.
             </span>
         </label>
 
@@ -5657,6 +5667,45 @@ body.performance-mode .anat-card { background: rgba(38, 38, 46, 0.92); }
     </form>
 
     <div id="changePasswordNote" class="form-note hidden" role="status"></div>
+
+</div>
+
+
+
+<!-- =====================================================
+     ACCOUNT LÖSCHEN
+===================================================== -->
+
+<div id="deleteAccountScreen" class="screen card auth-card hidden">
+
+    <button class="link-btn" onclick="showHome()">← Startseite</button>
+
+    <h1>Account löschen</h1>
+
+    <p class="subtitle">
+        Damit werden dein Account und alle gespeicherten Daten
+        (Arbeitsprofil, Tagebuch, Gesundheitsschirm) sofort und
+        endgültig gelöscht. Das lässt sich nicht rückgängig machen.
+    </p>
+
+    <form id="deleteAccountForm" onsubmit="handleDeleteAccount(event)">
+
+        <div class="field">
+            <label for="deletePassword">Zur Bestätigung: dein Passwort</label>
+            <input id="deletePassword" type="password"
+                   autocomplete="current-password" required>
+        </div>
+
+        <label class="check-row">
+            <input id="deleteConfirm" type="checkbox" required>
+            <span>Ja, ich möchte meinen Account und alle Daten endgültig löschen.</span>
+        </label>
+
+        <p id="deleteAccountError" class="form-error" role="alert"></p>
+
+        <button type="submit" class="btn btn-danger">Account endgültig löschen</button>
+
+    </form>
 
 </div>
 
@@ -6283,6 +6332,7 @@ const screens = [
     "registerScreen",
     "verifyPendingScreen",
     "emailVerifyScreen",
+    "deleteAccountScreen",
     "forgotPasswordScreen",
     "resetPasswordScreen",
     "changePasswordScreen",
@@ -11749,10 +11799,10 @@ const PAGES = {
                 <dd><span class="placeholder">[E-Mail-Adresse]</span></dd>
 
                 <dt>Telefon</dt>
-                <dd><span class="placeholder">[Telefonnummer]</span></dd>
+                <dd>02921 / 70842039</dd>
 
                 <dt>Adresse</dt>
-                <dd><span class="placeholder">[Straße, PLZ, Ort]</span></dd>
+                <dd><span class="placeholder">[Straße und Hausnummer]</span>, 59494 Soest</dd>
 
                 <dt>Erreichbarkeit</dt>
                 <dd><span class="placeholder">[Zeiten]</span></dd>
@@ -11792,40 +11842,212 @@ const PAGES = {
     "impressum": {
         title: "Impressum",
         html: `
-            <p>Angaben gemäß § 5 DDG</p>
+            <p>Angaben gemäß § 5 Digitale-Dienste-Gesetz (DDG)</p>
 
             <h3>Anbieter</h3>
-            <p><span class="placeholder">[Name bzw. Firma, Rechtsform]</span></p>
-            <p><span class="placeholder">[Straße, PLZ, Ort]</span></p>
+            <p>
+                Movalia<br>
+                Inhaber: <span class="placeholder">[Vor- und Nachname]</span><br>
+                <span class="placeholder">[Straße und Hausnummer]</span><br>
+                59494 Soest
+            </p>
 
             <h3>Kontakt</h3>
-            <p><span class="placeholder">[E-Mail-Adresse, Telefonnummer]</span></p>
+            <p>
+                E-Mail: <span class="placeholder">[E-Mail-Adresse]</span><br>
+                Telefon: 02921 / 70842039
+            </p>
 
             <h3>Berufsbezeichnung und berufsrechtliche Regelungen</h3>
-            <p><span class="placeholder">[falls zutreffend]</span></p>
+            <p>
+                Berufsbezeichnung: Physiotherapeut (verliehen in der
+                Bundesrepublik Deutschland).<br>
+                Berufsrechtliche Regelung: Masseur- und
+                Physiotherapeutengesetz (MPhG).<br>
+                Zuständige Behörde: Gesundheitsamt des Kreises Soest, 59494 Soest
+            </p>
 
-            <h3>Umsatzsteuer-Identifikationsnummer</h3>
-            <p><span class="placeholder">[falls vorhanden]</span></p>
+            <h3>Verantwortlich für den Inhalt (§ 18 Abs. 2 MStV)</h3>
+            <p><span class="placeholder">[Vor- und Nachname]</span>, Inhaber von Movalia, Anschrift wie oben</p>
 
-            <h3>Verantwortlich für den Inhalt</h3>
-            <p><span class="placeholder">[Name und Anschrift]</span></p>
+            <h3>Hinweis zu den Inhalten</h3>
+            <p>
+                Die Inhalte von Movalia dienen der allgemeinen Information
+                und Orientierung. Sie ersetzen keine ärztliche oder
+                physiotherapeutische Untersuchung, Diagnose oder Behandlung.
+                Bei starken oder anhaltenden Beschwerden, Taubheitsgefühlen,
+                Lähmungserscheinungen, Fieber oder im Notfall wende dich
+                bitte an eine Ärztin oder einen Arzt bzw. den Notruf 112.
+            </p>
+
+            <h3>Haftung für Links</h3>
+            <p>
+                Diese Seite enthält Verweise auf externe Websites (z. B.
+                Quellenangaben). Auf deren Inhalte haben wir keinen Einfluss
+                und übernehmen dafür keine Gewähr. Für die Inhalte der
+                verlinkten Seiten ist stets der jeweilige Anbieter
+                verantwortlich.
+            </p>
+
+            <h3>Verbraucherstreitbeilegung</h3>
+            <p>
+                Wir sind weder bereit noch verpflichtet, an
+                Streitbeilegungsverfahren vor einer
+                Verbraucherschlichtungsstelle teilzunehmen.
+            </p>
+
+            <h3>Bildnachweis 3D-Anatomiemodell</h3>
+            <p>
+                Das 3D-Modell basiert auf BodyParts3D, © The Database Center
+                for Life Science, lizenziert unter CC BY-SA 2.1 Japan.
+            </p>
         `
     },
 
     "datenschutz": {
         title: "Datenschutz",
         html: `
-            <h3>Verantwortlicher</h3>
-            <p><span class="placeholder">[Name und Kontaktdaten]</span></p>
+            <p>
+                Stand: November 2026. Hier erfährst du, welche
+                personenbezogenen Daten wir verarbeiten, wenn du Movalia
+                nutzt, wofür wir sie brauchen und welche Rechte du hast.
+            </p>
 
-            <h3>Welche Daten wir verarbeiten</h3>
-            <p><span class="placeholder">[z. B. Account-Daten, Angaben in der Beschwerdeanalyse, Kontaktanfragen]</span></p>
+            <h3>1. Verantwortlicher</h3>
+            <p>
+                Movalia, Inhaber <span class="placeholder">[Vor- und Nachname]</span>, <span class="placeholder">[Straße und Hausnummer]</span>, 59494 Soest<br>
+                E-Mail: <span class="placeholder">[E-Mail-Adresse]</span>
+            </p>
 
-            <h3>Zwecke und Rechtsgrundlagen</h3>
-            <p><span class="placeholder">[Text]</span></p>
+            <h3>2. Besuch der Website ohne Account</h3>
+            <p>
+                Beim Aufruf der Seite verarbeitet unser Hosting-Anbieter
+                technisch notwendige Verbindungsdaten (z. B. IP-Adresse,
+                Datum und Uhrzeit, angeforderte Datei, Browsertyp) in
+                Server-Logdateien. Das ist erforderlich, um die Seite
+                auszuliefern und sicher zu betreiben (Art. 6 Abs. 1 lit. f
+                DSGVO). Wir setzen keine Werbe- oder Tracking-Cookies ein,
+                nutzen keine Analyse-Dienste und laden keine Schriftarten
+                oder Skripte von fremden Servern nach.
+            </p>
+            <p>
+                Die Beschwerdeanalyse, die Prävention und die übrigen
+                Bereiche laufen im Browser. Deine Antworten in der
+                Beschwerdeanalyse werden nicht an uns übertragen.
+            </p>
 
-            <h3>Deine Rechte</h3>
-            <p><span class="placeholder">[Auskunft, Berichtigung, Löschung, Widerspruch, Beschwerde bei der Aufsichtsbehörde]</span></p>
+            <h3>3. Account und E-Mail-Bestätigung</h3>
+            <p>
+                Für einen Account speichern wir deinen Namen, deine
+                E-Mail-Adresse und dein Passwort (nur als verschlüsselter
+                Hash, nie im Klartext). Zur Bestätigung deiner E-Mail-Adresse
+                senden wir dir einen 6-stelligen Code per E-Mail; er ist
+                15 Minuten gültig. Rechtsgrundlage ist die Durchführung des
+                Nutzungsvertrags (Art. 6 Abs. 1 lit. b DSGVO). Wird der Code
+                nicht eingegeben, wird der unbestätigte Account nicht
+                freigeschaltet.
+            </p>
+            <p>
+                Nach dem Login speichert dein Browser ein Sitzungstoken im
+                lokalen Speicher (localStorage). Es ist technisch notwendig,
+                damit du angemeldet bleibst, und wird beim Abmelden gelöscht.
+            </p>
+
+            <h3>4. Gesundheitsbezogene Daten</h3>
+            <p>
+                Wenn du ein Arbeitsprofil ausfüllst, ein Schmerztagebuch
+                führst oder den Gesundheitsschirm nutzt, speichern wir die
+                von dir eingegebenen Angaben (z. B. Beruf, Wochenstunden,
+                beanspruchte Körperbereiche, Schmerzwerte, Verlaufs- und
+                Maßnahmen-Notizen, Selbsteinschätzungen). Das können
+                Gesundheitsdaten im Sinne von Art. 9 DSGVO sein. Wir
+                verarbeiten sie ausschließlich auf Grundlage deiner
+                ausdrücklichen Einwilligung (Art. 9 Abs. 2 lit. a,
+                Art. 6 Abs. 1 lit. a DSGVO), die du bei der Registrierung
+                erteilst. Alle Angaben sind freiwillig; du kannst das
+                Arbeitsprofil überspringen. Du kannst die Einwilligung
+                jederzeit mit Wirkung für die Zukunft widerrufen (z. B. per
+                E-Mail an uns oder direkt im Menü unter „Account löschen“); dann löschen wir deinen Account samt Daten.
+            </p>
+            <p>
+                Die Daten sind nur mit deinem Account abrufbar. Wir nutzen
+                sie nicht für Werbung und geben sie nicht zu Werbezwecken
+                weiter. Falls Movalia über ein Unternehmen bereitgestellt
+                wird, erhält das Unternehmen keinen Einblick in deine
+                persönlichen Eingaben, es sei denn, du stimmst dem
+                ausdrücklich zu.
+            </p>
+
+            <h3>5. Empfänger und Dienstleister</h3>
+            <p>Wir setzen folgende Dienstleister ein, die in unserem Auftrag Daten verarbeiten:</p>
+            <ul>
+                <li>
+                    <strong>Hosting und Datenbank:</strong> Render Services, Inc.,
+                    San Francisco, USA (Auftragsverarbeiter).
+                    Serverstandort: Oregon, USA.
+                </li>
+                <li>
+                    <strong>E-Mail-Versand:</strong> Resend, Inc., USA
+                    (Auftragsverarbeiter). Übermittelt werden deine
+                    E-Mail-Adresse, dein Name und der Inhalt der Nachricht
+                    (z. B. dein Code).
+                </li>
+            </ul>
+            <p>
+                Da unsere Server in den USA stehen, werden deine Daten dorthin übermittelt. Das geschieht auf
+                Grundlage von EU-Standardvertragsklauseln bzw. eines
+                Angemessenheitsbeschlusses (EU-US Data Privacy Framework),
+                Art. 44 ff. DSGVO. Eine darüber hinausgehende Weitergabe
+                an Dritte findet nicht statt.
+            </p>
+
+            <h3>6. Speicherdauer</h3>
+            <p>
+                Wir speichern deine Daten, solange dein Account besteht.
+                Du kannst deinen Account jederzeit selbst im Menü unter „Account löschen“ entfernen; dann löschen wir
+                deine Daten, soweit keine gesetzlichen Aufbewahrungspflichten
+                entgegenstehen. Server-Logdateien werden nach kurzer Zeit
+                automatisch gelöscht. Unbestätigte Accounts löschen wir
+                regelmäßig.
+            </p>
+
+            <h3>7. Kontaktaufnahme</h3>
+            <p>
+                Wenn du uns schreibst, verarbeiten wir deine Nachricht und
+                deine Kontaktdaten, um sie zu beantworten (Art. 6 Abs. 1
+                lit. b bzw. f DSGVO).
+            </p>
+
+            <h3>8. Deine Rechte</h3>
+            <p>
+                Du hast das Recht auf Auskunft (Art. 15), Berichtigung
+                (Art. 16), Löschung (Art. 17), Einschränkung der
+                Verarbeitung (Art. 18), Datenübertragbarkeit (Art. 20) und
+                Widerspruch (Art. 21 DSGVO). Eine erteilte Einwilligung
+                kannst du jederzeit widerrufen (Art. 7 Abs. 3 DSGVO); die
+                Rechtmäßigkeit der bisherigen Verarbeitung bleibt davon
+                unberührt. Wende dich dazu einfach an <span class="placeholder">[E-Mail-Adresse]</span>.
+            </p>
+            <p>
+                Du hast außerdem das Recht, dich bei einer
+                Datenschutz-Aufsichtsbehörde zu beschweren, z. B. bei der
+                für deinen Wohnort oder für uns zuständigen Landesbehörde:
+                Landesbeauftragte für Datenschutz und Informationsfreiheit Nordrhein-Westfalen, Kavalleriestraße 2–4, 40213 Düsseldorf, www.ldi.nrw.de
+            </p>
+
+            <h3>9. Sicherheit</h3>
+            <p>
+                Die Übertragung zwischen deinem Browser und unserem Server
+                erfolgt verschlüsselt (HTTPS). Passwörter werden mit einem
+                modernen Verfahren (scrypt) gesichert gespeichert.
+            </p>
+
+            <h3>10. Änderungen</h3>
+            <p>
+                Wir passen diese Erklärung an, wenn sich Movalia oder die
+                Rechtslage ändert. Es gilt die jeweils hier veröffentlichte
+                Fassung.
+            </p>
         `
     }
 
@@ -12430,6 +12652,67 @@ async function handleChangePassword(event) {
     } catch (e) {
 
         errorEl.innerText = e.message;
+
+    } finally {
+
+        submitBtn.disabled = false;
+
+    }
+
+}
+
+function showDeleteAccount() {
+
+    document.getElementById("deleteAccountForm").reset();
+
+    document.getElementById("deleteAccountError").innerText = "";
+
+    showScreen("deleteAccountScreen");
+
+}
+
+async function handleDeleteAccount(event) {
+
+    event.preventDefault();
+
+    const errorEl = document.getElementById("deleteAccountError");
+
+    const password = document.getElementById("deletePassword").value;
+
+    const submitBtn = event.target.querySelector("button[type=submit]");
+
+    errorEl.innerText = "";
+
+    submitBtn.disabled = true;
+
+    try {
+
+        await apiFetch("/auth/delete-account", {
+            method: "POST",
+            body: JSON.stringify({ password: password })
+        });
+
+        isLoggedIn = false;
+
+        currentUser = null;
+
+        workProfile = null;
+
+        clearAuthToken();
+
+        updateAuthUI();
+
+        document.getElementById("profileCard").innerHTML = "";
+
+        event.target.reset();
+
+        showHome();
+
+        alert("Dein Account und alle Daten wurden gelöscht.");
+
+    } catch (err) {
+
+        errorEl.innerText = err.message;
 
     } finally {
 
