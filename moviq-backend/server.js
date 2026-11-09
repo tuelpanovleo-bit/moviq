@@ -207,7 +207,8 @@ async function sendMail(to, subject, text, html) {
         const r = await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: { "Authorization": "Bearer " + key, "Content-Type": "application/json" },
-            body: JSON.stringify({ from: MAIL_FROM, to: [to], subject, text, html })
+            body: JSON.stringify({ from: MAIL_FROM, to: [to], subject, text, html }),
+            signal: AbortSignal.timeout(8000)
         });
         if (!r.ok) {
             console.log("[MAIL-FEHLER] Resend antwortete " + r.status + ": " + (await r.text()));
@@ -282,7 +283,7 @@ const route = (method, pattern, handler) => routes.push({ method, pattern, handl
 
 const normEmail = (e) => String(e || "").trim().toLowerCase();
 
-route("GET", /^\/api\/health$/, async () => ({ status: 200, body: { status: "ok" } }));
+route("GET", /^\/api\/health$/, async () => ({ status: 200, body: { status: "ok", version: "movalia-auth-code-3" } }));
 
 // Account anlegen -> Code per E-Mail, noch KEINE Anmeldung
 route("POST", /^\/api\/auth\/register$/, async (req, res, m, body) => {
