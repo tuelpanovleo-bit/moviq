@@ -6,7 +6,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MOVIQ</title>
+<title>Movalia</title>
 
 <style>
 
@@ -547,87 +547,80 @@ header {
     perspective: 400px;
 }
 
-/* Jeder Buchstabe von "MOVIQ" bekommt eine eigene kleine
-   Einflug-Animation, die beim Laden bzw. Neuaufrufen der
-   Seite einmal abläuft. */
+/* Titel-Animation (gleich wie im Werbevideo): Das Logo zeichnet
+   sich selbst, der Schriftzug zoomt aus großer Unschärfe heran
+   und "pocht" kurz im Takt. Danach blendet der Slogan ein. */
+
+.hero-logo {
+    display: block;
+    margin: 0 auto 6px;
+}
+
+.hero-logo-line {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: logo-draw 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.35s forwards;
+}
+
+.hero-logo-dot {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+    animation: logo-dot-in 0.3s ease-out 1.35s forwards;
+}
+
+@keyframes logo-draw {
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes logo-dot-in {
+    from { opacity: 0; transform: scale(0.2); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+.hero-wordmark {
+    opacity: 0;
+    transform-origin: 50% 55%;
+    animation:
+        title-zoom 1.35s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards,
+        title-beat 0.5s ease-out 1.5s 2;
+}
 
 .hero-wordmark .letter {
     display: inline-block;
-    opacity: 0;
-    animation-duration: 0.75s;
-    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-    animation-fill-mode: forwards;
 }
 
-.hero-wordmark .letter-m {
-    animation-name: letter-slide-in;
-    animation-delay: 0.05s;
+@keyframes title-zoom {
+    0%   { opacity: 0; transform: scale(5); filter: blur(40px); }
+    35%  { opacity: 1; }
+    100% { opacity: 1; transform: scale(1); filter: blur(0); }
 }
 
-.hero-wordmark .letter-o {
-    animation-name: letter-roll-in;
-    animation-delay: 0.22s;
-}
-
-/* Kleiner Gag: Sobald das V gelandet ist, "pumpt" es dreimal
-   auf, bevor alles ruhig als normale Schrift stehen bleibt. */
-
-.hero-wordmark .letter-v {
-    animation:
-        letter-drop-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.4s forwards,
-        letter-v-pump 0.7s ease-in-out 1.15s 3 both;
-}
-
-@keyframes letter-v-pump {
-    0%   { transform: scale(1); }
-    30%  { transform: scale(1.18); }
-    55%  { transform: scale(0.94); }
-    75%  { transform: scale(1.08); }
+@keyframes title-beat {
+    0%   { transform: scale(1.035); }
     100% { transform: scale(1); }
 }
 
-.hero-wordmark .letter-i {
-    animation-name: letter-unfold;
-    animation-delay: 0.58s;
-    transform-origin: bottom center;
+.hero-tagline {
+    opacity: 0;
+    animation: tagline-in 0.7s ease-out 1.5s forwards;
 }
 
-.hero-wordmark .letter-q {
-    animation-name: letter-roll-in-reverse;
-    animation-delay: 0.74s;
-}
-
-@keyframes letter-slide-in {
-    from { opacity: 0; transform: translateX(-46px); }
-    to   { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes letter-roll-in {
-    from { opacity: 0; transform: translateX(-44px) rotate(-320deg); }
-    to   { opacity: 1; transform: translateX(0) rotate(0deg); }
-}
-
-@keyframes letter-drop-in {
-    0%   { opacity: 0; transform: translateY(-70px); }
-    70%  { opacity: 1; transform: translateY(8px); }
-    100% { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes letter-unfold {
-    from { opacity: 0; transform: rotateX(-100deg); }
-    to   { opacity: 1; transform: rotateX(0deg); }
-}
-
-@keyframes letter-roll-in-reverse {
-    from { opacity: 0; transform: translateX(44px) rotate(320deg); }
-    to   { opacity: 1; transform: translateX(0) rotate(0deg); }
+@keyframes tagline-in {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .hero-wordmark .letter {
+    .hero-wordmark, .hero-tagline, .hero-logo-dot {
         animation: none !important;
         opacity: 1 !important;
         transform: none !important;
+        filter: none !important;
+    }
+    .hero-logo-line {
+        animation: none !important;
+        stroke-dashoffset: 0 !important;
     }
 }
 
@@ -1575,8 +1568,8 @@ header {
 }
 
 /* Profilkarte schwebt oben links in der Ecke, links neben dem
-   "MOVIQ"-Schriftzug. Sie steht bewusst AUSSERHALB des normalen
-   Textflusses (position: fixed), damit Hero ("MOVIQ") und
+   "Movalia"-Schriftzug. Sie steht bewusst AUSSERHALB des normalen
+   Textflusses (position: fixed), damit Hero ("Movalia") und
    Kachelübersicht direkt zusammenbleiben und nicht durch die
    Karte auseinandergezogen werden - die Karte nimmt dadurch
    keinerlei vertikalen Platz zwischen den beiden weg. Nur auf
@@ -3946,6 +3939,14 @@ body.performance-mode .anat-card { background: rgba(38, 38, 46, 0.92); }
 .prevention-tipbox .prevention-area-sub { margin-top: 0; }
 
 #preventionExerciseList .prevention-exercise-card { margin-bottom: 18px; }
+
+#verifyPendingNote{margin:4px 0 16px;}
+#verifyPendingError:empty{display:none;}
+.code-input{
+    font-size:30px; letter-spacing:.35em; text-align:center;
+    font-weight:700; font-variant-numeric:tabular-nums;
+    padding:14px 10px;
+}
 </style>
 
 </head>
@@ -4440,14 +4441,10 @@ body.performance-mode .anat-card { background: rgba(38, 38, 46, 0.92); }
 
 <header>
 
-    <a class="logo" href="#" onclick="showHome(); return false;" aria-label="MOVIQ Startseite">
+    <a class="logo" href="#" onclick="showHome(); return false;" aria-label="Movalia Startseite">
         <svg class="logo-mark" width="40" height="40" viewBox="0 0 100 100" fill="none" aria-hidden="true">
-            <path d="M12,88 L33,50 L45,65 L57,24 L78,38" stroke="var(--green-900)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="12" cy="88" r="5.5" fill="var(--green-900)"/>
-            <circle cx="33" cy="50" r="5.5" fill="var(--green-900)"/>
-            <circle cx="45" cy="65" r="5.5" fill="var(--green-900)"/>
-            <circle cx="57" cy="24" r="5.5" fill="var(--green-900)"/>
-            <circle cx="78" cy="38" r="5.5" fill="var(--green-900)"/>
+            <path d="M18 80 V28 L50 64 L82 28 V80" stroke="var(--green-900)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="50" cy="38" r="7.5" fill="var(--green-900)"/>
         </svg>
     </a>
 
@@ -4548,8 +4545,13 @@ body.performance-mode .anat-card { background: rgba(38, 38, 46, 0.92); }
 
         <div class="hero-text">
 
-            <h1 class="hero-wordmark" aria-label="MOVIQ">
-                <span class="letter letter-m" aria-hidden="true">M</span><span class="letter letter-o" aria-hidden="true">O</span><span class="letter letter-v" aria-hidden="true">V</span><span class="letter letter-i" aria-hidden="true">I</span><span class="letter letter-q" aria-hidden="true">Q</span>
+            <svg class="hero-logo" width="92" height="92" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+                <path class="hero-logo-line" pathLength="1" d="M18 80 V28 L50 64 L82 28 V80" stroke="var(--green-900)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle class="hero-logo-dot" cx="50" cy="38" r="7.5" fill="var(--green-900)"/>
+            </svg>
+
+            <h1 class="hero-wordmark" aria-label="Movalia">
+                <span class="letter" aria-hidden="true">M</span><span class="letter" aria-hidden="true">O</span><span class="letter" aria-hidden="true">V</span><span class="letter" aria-hidden="true">A</span><span class="letter" aria-hidden="true">L</span><span class="letter" aria-hidden="true">I</span><span class="letter" aria-hidden="true">A</span>
             </h1>
 
             <p class="hero-tagline">Dein Körper. Besser verstehen.</p>
@@ -5382,9 +5384,6 @@ body.performance-mode .anat-card { background: rgba(38, 38, 46, 0.92); }
 
         <p id="loginError" class="form-error" role="alert"></p>
 
-        <div id="loginResendRow" class="form-note hidden" role="status">
-            <button type="button" class="inline-link" onclick="handleResendFromLogin()">Bestätigungslink erneut senden</button>
-        </div>
 
         <button type="submit" class="btn btn-primary">Anmelden</button>
 
@@ -5478,23 +5477,36 @@ body.performance-mode .anat-card { background: rgba(38, 38, 46, 0.92); }
 
 <div id="verifyPendingScreen" class="screen card auth-card hidden">
 
-    <h1>Fast geschafft!</h1>
+    <button class="link-btn" onclick="cancelVerify()">← Zurück</button>
+
+    <h1>E-Mail bestätigen</h1>
 
     <p class="subtitle">
-        Wir haben eine E-Mail an <strong id="verifyPendingEmail"></strong>
-        geschickt. Klick dort auf den Bestätigungslink, um deinen Account
-        zu aktivieren.
+        Wir haben einen 6-stelligen Code an <strong id="verifyPendingEmail"></strong>
+        geschickt. Gib ihn hier ein, um deinen Account freizuschalten.
+        Schau auch im Spam-Ordner nach.
     </p>
 
-    <p id="verifyPendingError" class="form-error" role="alert"></p>
+    <form id="verifyCodeForm" onsubmit="handleVerifyCode(event)">
 
-    <div id="verifyPendingNote" class="form-note hidden" role="status"></div>
+        <div class="field">
+            <label for="verifyCodeInput">Dein Code</label>
+            <input id="verifyCodeInput" class="code-input" type="text"
+                   inputmode="numeric" pattern="[0-9]*" maxlength="7"
+                   autocomplete="one-time-code" placeholder="000000" required>
+        </div>
 
-    <button class="btn btn-soft" onclick="handleResendFromPending()">E-Mail erneut senden</button>
+        <p id="verifyPendingError" class="form-error" role="alert"></p>
+
+        <div id="verifyPendingNote" class="form-note hidden" role="status"></div>
+
+        <button type="submit" class="btn btn-primary">Bestätigen</button>
+
+    </form>
 
     <p class="auth-switch">
-        Schon bestätigt?
-        <button class="inline-link" onclick="showLogin()">Zum Login</button>
+        Keinen Code erhalten?
+        <button id="verifyResendBtn" class="inline-link" onclick="handleResendFromPending()">Neuen Code senden</button>
     </p>
 
 </div>
@@ -5660,7 +5672,7 @@ body.performance-mode .anat-card { background: rgba(38, 38, 46, 0.92); }
     <h1>Dein Arbeitsalltag</h1>
 
     <p class="subtitle">
-        Damit MOVIQ dich so gut wie möglich unterstützen kann, erzähl uns
+        Damit Movalia dich so gut wie möglich unterstützen kann, erzähl uns
         kurz etwas über deine Arbeit. Alle Angaben sind freiwillig und
         können später jederzeit geändert werden.
     </p>
@@ -6099,7 +6111,10 @@ const API_BASE = (window.location.protocol === "file:")
 const AUTH_TOKEN_KEY = "moviq_auth_token";
 
 /* =====================================================
-   NOCH OHNE LOGIN/ACCOUNT (vorübergehend, auf Wunsch)
+   LOGIN/ACCOUNT ist wieder aktiv (NO_LOGIN_MODE = false).
+   Der Code darunter ist der frühere Gast-Modus ohne Account;
+   er wird nur benutzt, wenn NO_LOGIN_MODE auf true steht.
+   (alter Hinweis:) NOCH OHNE LOGIN/ACCOUNT (vorübergehend, auf Wunsch)
    Login und Account-Erstellung sind auf der Seite aktuell
    bewusst ausgeblendet - man kann sich frei durch alle
    Bereiche klicken, ohne sich anzumelden. Alles, was sonst
@@ -6113,7 +6128,7 @@ const AUTH_TOKEN_KEY = "moviq_auth_token";
    NO_LOGIN_MODE unten auf false gesetzt wird.
 ===================================================== */
 
-const NO_LOGIN_MODE = true;
+const NO_LOGIN_MODE = false;
 
 const NO_LOGIN_USER = { id: "guest", name: "Gast", email: "" };
 
@@ -6213,7 +6228,7 @@ async function apiFetch(path, options) {
     } catch (networkErr) {
 
         throw new Error(
-            "Server nicht erreichbar. Läuft das MOVIQ-Backend gerade " +
+            "Server nicht erreichbar. Läuft das Movalia-Backend gerade " +
             "(node server.js)?"
         );
 
@@ -11675,7 +11690,7 @@ const PAGES = {
             <h3>Wer wir sind</h3>
 
             <p>
-                Hey! Wir sind MOVIQ. Wir verbinden Physiotherapie mit
+                Hey! Wir sind Movalia. Wir verbinden Physiotherapie mit
                 künstlicher Intelligenz. Unser Ziel ist es, Menschen
                 einen einfacheren und niedrigschwelligen Zugang zu
                 physiotherapeutischem Wissen zu ermöglichen und sie
@@ -11690,7 +11705,7 @@ const PAGES = {
                 zugänglich sein. In einem Zeitalter, wo Gesundheit am
                 Arbeitsplatz immer wichtiger wird, möchten wir
                 Unternehmen einen schnellen Zugang zu moderner
-                Physiotherapie verschaffen. Mit MOVIQ möchten wir die
+                Physiotherapie verschaffen. Mit Movalia möchten wir die
                 Möglichkeiten von KI sinnvoll in die Physiotherapie
                 integrieren und Menschen dort unterstützen, wo
                 Beschwerden entstehen.
@@ -11708,7 +11723,7 @@ const PAGES = {
             <h3>Unser Team</h3>
 
             <div class="team-member">
-                <p class="team-name">Leo — Physiotherapeut &amp; Gründer von MOVIQ</p>
+                <p class="team-name">Leo — Physiotherapeut &amp; Gründer von Movalia</p>
                 <p>
                     Leo ist 23 Jahre alt und ausgebildeter
                     Physiotherapeut. Seine praktische Erfahrung aus der
@@ -11716,7 +11731,7 @@ const PAGES = {
                     für moderne Technologien und künstliche Intelligenz.
                 </p>
                 <p>
-                    Mit MOVIQ verfolgt er die Vision, physiotherapeutisches
+                    Mit Movalia verfolgt er die Vision, physiotherapeutisches
                     Wissen für mehr Menschen zugänglich zu machen und die
                     klassische Physiotherapie durch intelligente digitale
                     Lösungen sinnvoll zu ergänzen.
@@ -11761,7 +11776,7 @@ const PAGES = {
                 </details>
 
                 <details>
-                    <summary>Was kostet MOVIQ?</summary>
+                    <summary>Was kostet Movalia?</summary>
                     <p><span class="placeholder">[Antwort]</span></p>
                 </details>
 
@@ -11832,7 +11847,7 @@ function openPage(key) {
 
 /* =====================================================
    LOGIN UND ACCOUNT
-   Spricht das MOVIQ-Backend an (siehe API_BASE oben): echte
+   Spricht das Movalia-Backend an (siehe API_BASE oben): echte
    Accounts mit Passwort, echtes Sitzungstoken. Nur das Token
    selbst liegt im Browser (localStorage) – alle eigentlichen
    Daten liegen serverseitig in der Datenbank.
@@ -11935,8 +11950,6 @@ function showLogin() {
 
     document.getElementById("loginError").innerText = "";
 
-    document.getElementById("loginResendRow").classList.add("hidden");
-
     showScreen("loginScreen");
 
 }
@@ -11971,13 +11984,9 @@ async function handleLogin(event) {
 
     const errorEl = document.getElementById("loginError");
 
-    const resendRow = document.getElementById("loginResendRow");
-
     const submitBtn = event.target.querySelector("button[type=submit]");
 
     errorEl.innerText = "";
-
-    resendRow.classList.add("hidden");
 
     submitBtn.disabled = true;
 
@@ -11998,15 +12007,38 @@ async function handleLogin(event) {
 
         document.getElementById("loginPassword").value = "";
 
-        showHome();
+        // Direkt nach dem Login: noch kein Arbeitsprofil? Dann den
+        // Fragebogen anbieten (lässt sich überspringen), sonst Startseite.
+        let hasProfile = true;
+
+        try {
+            const pdata = await apiFetch("/profile");
+            workProfile = pdata.profile;
+            hasProfile = !!pdata.profile;
+        } catch (e) {
+            hasProfile = true;
+        }
+
+        if (hasProfile) {
+            showHome();
+        } else {
+            openWorkProfile(null);
+        }
 
     } catch (err) {
 
-        errorEl.innerText = err.message;
-
         if (err.code === "EMAIL_NOT_VERIFIED") {
-            pendingVerifyEmail = email;
-            resendRow.classList.remove("hidden");
+
+            // Account existiert, E-Mail aber noch nicht bestätigt:
+            // gleich zur Code-Eingabe, neuen Code schicken.
+            document.getElementById("loginPassword").value = "";
+            openVerifyScreen(email, null);
+            handleResendFromPending(true);
+
+        } else {
+
+            errorEl.innerText = err.message;
+
         }
 
     } finally {
@@ -12051,21 +12083,11 @@ async function handleRegister(event) {
             body: JSON.stringify({ name: name, email: email, password: password })
         });
 
-        persistAuthToken(data.token);
-
-        currentUser = data.user;
-
-        isLoggedIn = true;
-
-        workProfile = null;
-
-        updateAuthUI();
-
         document.getElementById("regPassword").value = "";
 
         document.getElementById("regPassword2").value = "";
 
-        openWorkProfile(null);
+        openVerifyScreen(data.email || email, data);
 
     } catch (err) {
 
@@ -12079,111 +12101,103 @@ async function handleRegister(event) {
 
 }
 
-// Gemeinsamer Aufruf für alle drei Stellen, von denen aus eine neue
-// Bestätigungs-E-Mail angefordert werden kann (Login-Fehler, Warte-
-// bildschirm nach der Registrierung, Fehlerfall beim Linkklick).
-async function requestResendVerification(email) {
-    return apiFetch("/auth/resend-verification", {
-        method: "POST",
-        body: JSON.stringify({ email: email })
-    });
-}
+// ---------- E-Mail-Bestätigung per 6-stelligem Code ----------
 
-async function handleResendFromLogin() {
+let verifyCooldownTimer = null;
 
-    const email = document.getElementById("loginEmail").value.trim() || pendingVerifyEmail;
-
-    const row = document.getElementById("loginResendRow");
-
-    if (!email) return;
-
-    try {
-        const data = await requestResendVerification(email);
-        row.innerText = data.message;
-    } catch (e) {
-        row.innerText = e.message;
-    }
-
-}
-
-async function handleResendFromPending() {
-
-    const errorEl = document.getElementById("verifyPendingError");
+function showDevCode(data) {
 
     const noteEl = document.getElementById("verifyPendingNote");
 
+    if (data && data.devCode) {
+        noteEl.innerText = "Testmodus: Dein Code lautet " + data.devCode +
+            " (wird nur angezeigt, solange der E-Mail-Versand nicht eingerichtet ist).";
+        noteEl.classList.remove("hidden");
+    }
+
+}
+
+function startResendCooldown(seconds) {
+
+    const btn = document.getElementById("verifyResendBtn");
+
+    clearInterval(verifyCooldownTimer);
+
+    let left = seconds;
+
+    btn.disabled = true;
+
+    function tick() {
+        if (left <= 0) {
+            clearInterval(verifyCooldownTimer);
+            btn.disabled = false;
+            btn.innerText = "Neuen Code senden";
+            return;
+        }
+        btn.innerText = "Neuen Code senden (" + left + " s)";
+        left--;
+    }
+
+    tick();
+
+    verifyCooldownTimer = setInterval(tick, 1000);
+
+}
+
+function openVerifyScreen(email, data) {
+
+    pendingVerifyEmail = email;
+
+    document.getElementById("verifyPendingEmail").innerText = email;
+
+    document.getElementById("verifyPendingError").innerText = "";
+
+    document.getElementById("verifyPendingNote").classList.add("hidden");
+
+    document.getElementById("verifyCodeInput").value = "";
+
+    showDevCode(data);
+
+    startResendCooldown(30);
+
+    showScreen("verifyPendingScreen");
+
+    setTimeout(function() {
+        document.getElementById("verifyCodeInput").focus();
+    }, 50);
+
+}
+
+function cancelVerify() {
+
+    clearInterval(verifyCooldownTimer);
+
+    showLogin();
+
+}
+
+async function handleVerifyCode(event) {
+
+    event.preventDefault();
+
+    const errorEl = document.getElementById("verifyPendingError");
+
+    const code = document.getElementById("verifyCodeInput").value.replace(/\s+/g, "");
+
+    const submitBtn = event.target.querySelector("button[type=submit]");
+
     errorEl.innerText = "";
 
-    if (!pendingVerifyEmail) return;
+    submitBtn.disabled = true;
 
     try {
 
-        const data = await requestResendVerification(pendingVerifyEmail);
-
-        noteEl.innerText = data.message;
-
-        noteEl.classList.remove("hidden");
-
-    } catch (e) {
-
-        errorEl.innerText = e.message;
-
-    }
-
-}
-
-async function handleResendFromVerifyScreen() {
-
-    const email = document.getElementById("verifyResendEmail").value.trim();
-
-    const noteEl = document.getElementById("verifyResendNote");
-
-    if (!email) return;
-
-    try {
-
-        const data = await requestResendVerification(email);
-
-        noteEl.innerText = data.message;
-
-        noteEl.classList.remove("hidden");
-
-    } catch (e) {
-
-        noteEl.innerText = e.message;
-
-        noteEl.classList.remove("hidden");
-
-    }
-
-}
-
-// Wird beim Laden der Seite aufgerufen, wenn die URL "?verify=TOKEN"
-// enthält (Klick auf den Bestätigungslink aus der E-Mail). Bestätigt
-// die E-Mail-Adresse serverseitig und loggt bei Erfolg direkt ein,
-// damit es gleich mit dem Arbeitsprofil-Fragebogen weitergehen kann.
-async function handleEmailVerifyFromUrl(token) {
-
-    showScreen("emailVerifyScreen");
-
-    const titleEl = document.getElementById("verifyResultTitle");
-
-    const textEl = document.getElementById("verifyResultText");
-
-    const resendBox = document.getElementById("verifyResultResendBox");
-
-    titleEl.innerText = "E-Mail wird bestätigt …";
-
-    textEl.innerText = "";
-
-    resendBox.classList.add("hidden");
-
-    try {
-
-        const data = await apiFetch("/auth/verify-email", {
+        const data = await apiFetch("/auth/verify-code", {
             method: "POST",
-            body: JSON.stringify({ token: token })
+            body: JSON.stringify({ email: pendingVerifyEmail, code: code })
         });
+
+        clearInterval(verifyCooldownTimer);
 
         persistAuthToken(data.token);
 
@@ -12195,15 +12209,54 @@ async function handleEmailVerifyFromUrl(token) {
 
         updateAuthUI();
 
+        // Direkt nach der Bestätigung: Arbeitsprofil-Fragebogen
         openWorkProfile(null);
+
+    } catch (err) {
+
+        errorEl.innerText = err.message;
+
+    } finally {
+
+        submitBtn.disabled = false;
+
+    }
+
+}
+
+async function handleResendFromPending(silent) {
+
+    const errorEl = document.getElementById("verifyPendingError");
+
+    const noteEl = document.getElementById("verifyPendingNote");
+
+    if (!silent) errorEl.innerText = "";
+
+    if (!pendingVerifyEmail) return;
+
+    try {
+
+        const data = await apiFetch("/auth/resend-code", {
+            method: "POST",
+            body: JSON.stringify({ email: pendingVerifyEmail })
+        });
+
+        noteEl.innerText = data.message || "Ein neuer Code wurde gesendet.";
+
+        noteEl.classList.remove("hidden");
+
+        showDevCode(data);
+
+        startResendCooldown(30);
 
     } catch (e) {
 
-        titleEl.innerText = "Link ungültig oder abgelaufen";
-
-        textEl.innerText = e.message;
-
-        resendBox.classList.remove("hidden");
+        if (e.code === "COOLDOWN") {
+            noteEl.innerText = "Der Code wurde gerade erst gesendet.";
+            noteEl.classList.remove("hidden");
+        } else {
+            errorEl.innerText = e.message;
+        }
 
     }
 
@@ -12852,7 +12905,7 @@ function renderProfileCard() {
             '<p class="profile-card-name">' + escapeHtml(currentUser.name) + '</p>' +
             '<div class="profile-card-empty">' +
                 '<p>Du hast dein Arbeitsprofil noch nicht ausgefüllt. ' +
-                'Ein paar Angaben zu deinem Arbeitsalltag helfen MOVIQ, ' +
+                'Ein paar Angaben zu deinem Arbeitsalltag helfen Movalia, ' +
                 'dich noch gezielter zu unterstützen.</p>' +
             '</div>' +
             '<button class="btn btn-soft" onclick="openWorkProfile(null)">Profil ausfüllen</button>';
@@ -12890,7 +12943,7 @@ function renderProfileCard() {
 
 /* =====================================================
    TAGEBUCH
-   Einträge liegen jetzt serverseitig (MOVIQ-Backend), pro
+   Einträge liegen jetzt serverseitig (Movalia-Backend), pro
    angemeldetem Nutzer getrennt – nicht mehr nur im Browser.
 ===================================================== */
 
@@ -15907,7 +15960,7 @@ updateAuthUI();
 
     if (verifyToken) {
 
-        handleEmailVerifyFromUrl(verifyToken);
+        // alte Bestätigungslinks gibt es nicht mehr (jetzt Code-Eingabe)
         history.replaceState({}, "", window.location.pathname);
 
     } else if (resetToken) {
@@ -16177,6 +16230,88 @@ async function buildViewer(THREE, OrbitControls, GLTFLoader, RoomEnvironment) {
         o.userData.entry = en;
     });
 
+    /* ---------- Muskelgruppen: mehrere Muskeln = eine verständliche Region ---------- */
+
+    const GROUP_RULES = [
+        [/vastus|rectus femoris|sartorius/, "Oberschenkel Vorderseite"],
+        [/biceps femoris|semitendinosus|semimembranosus/, "Oberschenkel Rückseite"],
+        [/adductor (brevis|longus|magnus|minimus)|gracilis|pectineus/, "Oberschenkel Innenseite"],
+        [/iliotibial/, "Oberschenkel Außenseite"],
+        [/psoas|iliacus/, "Hüftbeuger (Leiste)"],
+        [/gluteus|piriformis|gemellus|obturator|quadratus femoris|tensor fasciae/, "Gesäß & Hüfte"],
+        [/levator ani|coccyg|puborectalis|anal sphincter/, "Beckenboden"],
+        [/gastrocnemius|soleus|plantaris|calcaneal|tibialis posterior|flexor hallucis longus|flexor digitorum longus/, "Wade & Achillessehne"],
+        [/tibialis anterior|extensor hallucis longus|extensor digitorum longus|fibularis tertius/, "Unterschenkel Vorderseite (Schienbein)"],
+        [/fibularis (longus|brevis)/, "Unterschenkel Außenseite"],
+        [/popliteus/, "Kniekehle"],
+        [/extensor digitorum brevis|extensor hallucis brevis|dorsal interossei of foot/, "Fußrücken"],
+        [/ of foot|abductor hallucis|flexor digitorum brevis|flexor accessorius|hallucis brevis|adductor hallucis|lumbrical of foot/, "Fußsohle"],
+        [/pollicis brevis|opponens pollicis|adductor pollicis|abductor pollicis brevis/, "Daumenballen"],
+        [/ of hand|lumbricals of hand|interossei of hand|flexor retinaculum|palmaris longus/, "Handfläche"],
+        [/biceps brachii|brachialis|coracobrachialis/, "Oberarm Vorderseite (Bizeps)"],
+        [/triceps|anconeus/, "Oberarm Rückseite (Trizeps)"],
+        [/flexor carpi|flexor digitorum (profundus|superficialis)|flexor pollicis longus|pronator|palmaris/, "Unterarm Beugeseite"],
+        [/extensor|supinator|brachioradialis|abductor pollicis longus/, "Unterarm Streckseite"],
+        [/deltoid/, "Schulter (Deltamuskel)"],
+        [/supraspinatus|infraspinatus|teres minor|subscapularis/, "Rotatorenmanschette"],
+        [/trapezius|levator scapulae/, "Schulter-Nacken oben (Trapezmuskel)"],
+        [/rhomboid|serratus posterior superior/, "Zwischen den Schulterblättern"],
+        [/latissimus|teres major/, "Breiter Rückenmuskel"],
+        [/quadratus lumborum|lumborum|lumbar|multifidus|serratus posterior inferior/, "Untere Rückenmuskulatur (Lende)"],
+        [/thoracis|thoracic|levatores costarum|intermediate tendon/, "Rückenstrecker Brustwirbelsäule"],
+        [/rectus capitis posterior|obliquus capitis/, "Nackenansatz (Hinterhaupt)"],
+        [/splenius|cervicis|capitis|cervical|iliocostalis|longissimus|spinalis|semispinalis|interspinales/, "Nacken hinten"],
+        [/sternocleidomastoid|scalenus/, "Hals seitlich"],
+        [/longus colli|longus capitis|rectus capitis (anterior|lateralis)|anterior cervical/, "Tiefe Halsmuskeln (vorne)"],
+        [/hyoid|thyroid|thyrohyoid|platysma|digastric|mylohyoid|geniohyoid/, "Hals vorne"],
+        [/pectoralis|subclavius/, "Brustmuskel"],
+        [/serratus anterior/, "Seitliche Brustwand (Sägemuskel)"],
+        [/intercostal|transversus thoracis/, "Zwischenrippenmuskeln"],
+        [/diaphragm/, "Zwerchfell"],
+        [/rectus abdominis|linea alba|pyramidalis/, "Gerade Bauchmuskeln"],
+        [/oblique|transversus abdominis|inguinal/, "Seitliche & tiefe Bauchmuskeln"],
+        [/masseter|temporalis|pterygoid/, "Kaumuskulatur"],
+        [/frontalis|occipitalis|temporoparietalis|epicranius/, "Stirn & Kopfhaut"],
+        [/orbicularis|corrugator|levator labii|zygomatic|depressor|levator anguli|mentalis|buccinator|risorius|nasalis|procerus/, "Gesichtsmuskeln"]
+    ];
+
+    const groups = {};
+
+    entries.forEach(function (en) {
+        const i = en.info;
+        if (i.g !== "muscle") { return; }
+        const ex = String(i.e || "").toLowerCase();
+        let name = null;
+        for (let k = 0; k < GROUP_RULES.length; k++) {
+            if (GROUP_RULES[k][0].test(ex)) { name = GROUP_RULES[k][1]; break; }
+        }
+        if (!name) { return; }
+        const key = name + "|" + (i.s || "");
+        if (!groups[key]) { groups[key] = { name: name, side: i.s || "", members: [], areas: {}, latin: [], box: new THREE.Box3() }; }
+        const G = groups[key];
+        G.members.push(en);
+        G.areas[i.a] = (G.areas[i.a] || 0) + 1;
+        const lat = i.l || i.e;
+        if (lat && G.latin.indexOf(lat) < 0) { G.latin.push(lat); }
+        G.box.union(en.mesh.geometry.boundingBox);
+        en.grp = G;
+    });
+
+    Object.keys(groups).forEach(function (k) {
+        const G = groups[k];
+        const c = new THREE.Vector3(), z = new THREE.Vector3();
+        G.box.getCenter(c); G.box.getSize(z);
+        G.center = c;
+        G.size = Math.max(z.x, z.y, z.z);
+        let best = null;
+        Object.keys(G.areas).forEach(function (a) { if (!best || G.areas[a] > G.areas[best]) { best = a; } });
+        G.area = best;
+    });
+
+    function membersOf(e) { return e ? (e.grp ? e.grp.members : [e]) : []; }
+    function focusOf(e) { return e.grp ? { center: e.grp.center, size: e.grp.size } : { center: e.center, size: e.size }; }
+    function sameSel(e) { return !!selected && (e === selected || (!!e.grp && e.grp === selected.grp)); }
+
     /* Sanfter Kontaktschatten unter den Füßen */
 
     const shadowTex = (function () {
@@ -16264,7 +16399,7 @@ async function buildViewer(THREE, OrbitControls, GLTFLoader, RoomEnvironment) {
     function paint() {
         entries.forEach(function (e) {
             const m = e.mat;
-            if (e === selected) {
+            if (sameSel(e)) {
                 m.color.copy(e.base).lerp(hiColor, 0.55);
                 m.emissive.copy(hiColor).multiplyScalar(0.28);
             } else {
@@ -16289,8 +16424,15 @@ async function buildViewer(THREE, OrbitControls, GLTFLoader, RoomEnvironment) {
         if (!e) { card.classList.remove("show"); return; }
         const i = e.info;
         $("anatTag").textContent = GROUP_LABEL[i.g] + (i.s ? " · " + i.s : "");
-        $("anatName").textContent = i.n || i.e;
-        const lat = i.l && i.l !== i.n ? i.l : "";
+        let lat;
+        if (e.grp) {
+            $("anatName").textContent = e.grp.name;
+            const L = e.grp.latin;
+            lat = L.length > 4 ? L.slice(0, 4).join(", ") + " u. a." : L.join(", ");
+        } else {
+            $("anatName").textContent = i.n || i.e;
+            lat = i.l && i.l !== i.n ? i.l : "";
+        }
         $("anatLat").textContent = lat;
         $("anatLat").style.display = lat ? "" : "none";
         $("anatGo").style.display = i.a ? "" : "none";
@@ -16301,14 +16443,14 @@ async function buildViewer(THREE, OrbitControls, GLTFLoader, RoomEnvironment) {
 
     $("anatGo").onclick = function () {
         if (!selected || !selected.info.a) { return; }
-        const a = selected.info.a;
+        const a = selected.grp ? selected.grp.area : selected.info.a;
         const side = PAIR_AREAS.indexOf(a) >= 0 ? (selected.info.s || "") : "";
         window.selectArea(a, side);
     };
 
     $("anatPeel").onclick = function () {
         if (!selected) { return; }
-        selected.peeled = true;
+        membersOf(selected).forEach(function (m) { m.peeled = true; });
         select(null);
         applyVisibility();
     };
@@ -16412,7 +16554,8 @@ async function buildViewer(THREE, OrbitControls, GLTFLoader, RoomEnvironment) {
         select(hit);
         if (hit) {
             const d = camera.position.distanceTo(controls.target);
-            flyToCenter(hit.center, Math.min(d, Math.max(hit.size * 3.4, 0.5)), 650);
+            const F = focusOf(hit);
+            flyToCenter(F.center, Math.min(d, Math.max(F.size * 3.4, 0.5)), 650);
         }
     });
 
@@ -16420,7 +16563,8 @@ async function buildViewer(THREE, OrbitControls, GLTFLoader, RoomEnvironment) {
         const hit = pick(ev.clientX, ev.clientY);
         if (hit) {
             select(hit);
-            flyToCenter(hit.center, Math.max(hit.size * 2.3, 0.22), 800);
+            const F2 = focusOf(hit);
+            flyToCenter(F2.center, Math.max(F2.size * 2.3, 0.22), 800);
         } else {
             resetCamera(true);
         }
@@ -16442,16 +16586,16 @@ async function buildViewer(THREE, OrbitControls, GLTFLoader, RoomEnvironment) {
     canvas.addEventListener("pointerleave", function () { setHover(null); });
 
     function setHover(hit) {
-        if (hit === hovered) {
+        if (hit === hovered || (hit && hovered && hit.grp && hit.grp === hovered.grp)) {
             if (hit) { placeTip(); }
             return;
         }
-        if (hovered) { hovered.hoverT = 0; }
+        membersOf(hovered).forEach(function (m) { m.hoverT = 0; });
         hovered = hit;
-        if (hit) { hit.hoverT = 1; }
+        membersOf(hit).forEach(function (m) { m.hoverT = 1; });
         canvas.classList.toggle("pick", !!hit);
         if (hit) {
-            tip.textContent = hit.info.n || hit.info.e;
+            tip.textContent = hit.grp ? hit.grp.name : (hit.info.n || hit.info.e);
             placeTip();
             tip.classList.add("show");
         } else {
