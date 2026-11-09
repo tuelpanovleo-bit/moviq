@@ -393,6 +393,23 @@ route("POST", /^\/api\/auth\/change-password$/, async (req, res, m, body) => {
     return { status: 200, body: { success: true } };
 });
 
+// Account endgültig löschen (Passwort zur Sicherheit nötig)
+route("POST", /^\/api\/auth\/delete-account$/, async (req, res, m, body) => {
+    rateLimit(req, "delete", 10, 3600 * 1000);
+    const user = authUser(req);
+    if (!checkPassword(String(body.password || ""), user.password_hash)) {
+        throw new HttpError(400, "Das Passwort stimmt nicht.");
+    }
+    // Sitzungen, Profil, Tagebuch und Gesundheitsschirm hängen per
+    // "ON DELETE CASCADE" am Nutzer und verschwinden mit ihm.
+    db.prepare("DELETE FROM sessions WHERE user_id=?").run(user.id);
+    db.prepare("DELETE FROM work_profiles WHERE user_id=?").run(user.id);
+    db.prepare("DELETE FROM diary_entries WHERE user_id=?").run(user.id);
+    db.prepare("DELETE FROM wheel WHERE user_id=?").run(user.id);
+    db.prepare("DELETE FROM users WHERE id=?").run(user.id);
+    return { status: 200, body: { success: true } };
+});
+
 // Passwort vergessen: Link per E-Mail
 route("POST", /^\/api\/auth\/request-password-reset$/, async (req, res, m, body) => {
     rateLimit(req, "reset", 5, 3600 * 1000);
